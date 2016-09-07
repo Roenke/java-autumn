@@ -1,7 +1,6 @@
 package com.spbau.bibaev.practice.first;
 
 import com.sun.istack.internal.NotNull;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.BrokenBarrierException;
@@ -10,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class LazyFactoryMultiThreadTest extends LazyFactoryTestBase {
   @Override
@@ -19,15 +18,15 @@ public class LazyFactoryMultiThreadTest extends LazyFactoryTestBase {
   }
 
   @Test
-  public void oneSupplierCallTest() throws BrokenBarrierException, InterruptedException {
+  public void oneTimeSupplierCallTest() throws BrokenBarrierException, InterruptedException {
     AtomicInteger callCounter = new AtomicInteger(0);
     CyclicBarrier barrier = new CyclicBarrier(50);
     CyclicBarrier endBarrier = new CyclicBarrier(51);
+    Lazy lazy = LazyFactory.createMultithreadedLazy(() -> {
+      callCounter.incrementAndGet();
+      return new Object();
+    });
     long count = Stream.generate(() -> new Thread(() -> {
-      Lazy lazy = LazyFactory.createMultithreadedLazy(() -> {
-        callCounter.incrementAndGet();
-        return new Object();
-      });
       try {
         barrier.await();
         lazy.get();

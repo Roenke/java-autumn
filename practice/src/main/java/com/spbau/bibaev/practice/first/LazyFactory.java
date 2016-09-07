@@ -1,60 +1,78 @@
 package com.spbau.bibaev.practice.first;
 
 import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+@SuppressWarnings("WeakerAccess")
 public class LazyFactory {
 
+  @NotNull
   public static <T> Lazy<T> createSingleThreadLazy(@NotNull Supplier<T> supplier) {
     return new Lazy<T>() {
-      private T myValue;
+      private ResultWrapper<T> myValue = null;
 
       @Override
       public T get() {
         if (myValue == null) {
-          myValue = supplier.get();
+          T value = supplier.get();
+          myValue = new ResultWrapper<>(value);
         }
 
-        return myValue;
+        return myValue.get();
       }
     };
   }
 
+  @NotNull
   public static <T> Lazy<T> createMultithreadedLazy(@NotNull Supplier<T> supplier) {
     return new Lazy<T>() {
-      private volatile T myValue = null;
+      private volatile ResultWrapper<T> myValue = null;
 
       @Override
       public T get() {
         if (myValue == null) {
           synchronized (this) {
             if (myValue == null) {
-              myValue = supplier.get();
+              myValue = new ResultWrapper<>(supplier.get());
             }
           }
         }
 
-        return myValue;
+        return myValue.get();
       }
     };
   }
 
+  @NotNull
   public static <T> Lazy<T> createLockFreeLazy(@NotNull Supplier<T> supplier) {
     return new Lazy<T>() {
-      private final AtomicReference<Optional<T>> myValue = new AtomicReference<>(Optional.empty());
+      private final AtomicReference<ResultWrapper<T>> myValue = new AtomicReference<>();
 
       @Override
       public T get() {
-        if (!myValue.get().isPresent()) {
+        if (myValue.get() == null) {
           T value = supplier.get();
-          myValue.compareAndSet(Optional.empty(), Optional.of(value));
+          myValue.compareAndSet(null, new ResultWrapper<>(value));
         }
 
-        return myValue.get().orElse(null);
+        return myValue.get().get();
       }
     };
+  }
+
+  private static class ResultWrapper<T> {
+    private final T myResult;
+
+    ResultWrapper(@Nullable T result) {
+      myResult = result;
+    }
+
+    @Nullable
+    T get() {
+      return myResult;
+    }
   }
 }

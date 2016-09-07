@@ -1,8 +1,6 @@
 package com.spbau.bibaev.practice.first;
 
 import com.sun.istack.internal.NotNull;
-import com.sun.jdi.ObjectReference;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
@@ -20,7 +18,7 @@ public class LazyFactoryLockFreeTest extends LazyFactoryTestBase {
   @Test
   public void sameObjectSharedTest() throws BrokenBarrierException, InterruptedException {
     AtomicInteger callCounter = new AtomicInteger(0);
-    CyclicBarrier supplierBarrier = new CyclicBarrier(10);
+    CyclicBarrier supplierBarrier = new CyclicBarrier(50);
     Lazy lazy = LazyFactory.createLockFreeLazy (() -> {
       try {
         supplierBarrier.await();

@@ -49,5 +49,18 @@ abstract class LazyFactoryTestBase {
     assertSame(lazy.get(), lazy.get());
   }
 
+  @Test
+  public void supplierReturnsItself() {
+    AtomicInteger callCounter = new AtomicInteger(0);
+    Lazy lazy = getLazy(() -> {
+      callCounter.incrementAndGet();
+      return this;
+    });
+
+    assertEquals(0, callCounter.get());
+    assertEquals(lazy.get(), lazy.get());
+    assertEquals(1, callCounter.get());
+  }
+
   abstract Lazy getLazy(@NotNull Supplier supplier);
 }

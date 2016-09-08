@@ -52,12 +52,12 @@ public class LazyFactoryLockFreeTest extends LazyFactoryTestBase {
   }
 
   @Test
-  public void everyThreadCallOneTime() throws BrokenBarrierException, InterruptedException {
+  public void everyThreadCallZeroOrOneOneTimeTest() throws BrokenBarrierException, InterruptedException {
     Map<Thread, Integer> callCountMap = new ConcurrentHashMap<>();
 
     Supplier supplier = () -> {
       Thread currentThread = Thread.currentThread();
-      callCountMap.put(currentThread, callCountMap.getOrDefault(currentThread, 0) + 1);
+      callCountMap.put(currentThread, callCountMap.get(currentThread) + 1);
       return new Object();
     };
 
@@ -67,6 +67,7 @@ public class LazyFactoryLockFreeTest extends LazyFactoryTestBase {
     List<Object> lazyResults = new CopyOnWriteArrayList<>();
     Stream.generate(() -> new Thread(() -> {
       try {
+        callCountMap.put(Thread.currentThread(), 0);
         barrier.await();
         lazyResults.add(lazy.get());
         lazyResults.add(lazy.get());
@@ -76,10 +77,41 @@ public class LazyFactoryLockFreeTest extends LazyFactoryTestBase {
     })).peek(Thread::start).limit(50).count();
 
     endBarrier.await();
-    callCountMap.values().forEach(integer -> assertEquals(Integer.valueOf(1), integer));
+    callCountMap.values().forEach(integer -> assertTrue(integer < 2));
     assertEquals(100, lazyResults.size());
     Object first = lazyResults.get(0);
     lazyResults.forEach(o -> assertSame(first, o));
+  }
+
+  @Test
+  public void subsequentCallsFromFewThreadsTest() throws BrokenBarrierException, InterruptedException {
+    AtomicInteger callCounter = new AtomicInteger(0);
+    Lazy lazy = getLazy(() -> {
+      callCounter.incrementAndGet();
+      return new Object();
+    });
+
+    CyclicBarrier barrier = new CyclicBarrier(2);
+    CyclicBarrier endBarrier = new CyclicBarrier(3);
+    new Thread(() -> {
+      lazy.get();
+      try {
+        barrier.await();
+        endBarrier.await();
+      } catch (InterruptedException | BrokenBarrierException ignored) {
+      }
+    }).start();
+    new Thread(() -> {
+      try {
+        barrier.await();
+        lazy.get();
+        endBarrier.await();
+      } catch (InterruptedException | BrokenBarrierException ignored) {
+      }
+    }).start();
+
+    endBarrier.await();
+    assertEquals(1, callCounter.get());
   }
 
   @Override

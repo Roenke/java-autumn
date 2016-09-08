@@ -4,7 +4,9 @@ import com.sun.istack.internal.NotNull;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,7 +21,7 @@ public class LazyFactoryLockFreeTest extends LazyFactoryTestBase {
   public void sameObjectSharedTest() throws BrokenBarrierException, InterruptedException {
     AtomicInteger callCounter = new AtomicInteger(0);
     CyclicBarrier supplierBarrier = new CyclicBarrier(50);
-    Lazy lazy = LazyFactory.createLockFreeLazy (() -> {
+    Lazy lazy = LazyFactory.createLockFreeLazy(() -> {
       try {
         supplierBarrier.await();
       } catch (InterruptedException | BrokenBarrierException ignored) {
@@ -45,6 +47,37 @@ public class LazyFactoryLockFreeTest extends LazyFactoryTestBase {
     assertEquals(50, completeCount);
     assertNotEquals(1, callCounter.get());
     assertEquals(50, lazyResults.size());
+    Object first = lazyResults.get(0);
+    lazyResults.forEach(o -> assertSame(first, o));
+  }
+
+  @Test
+  public void everyThreadCallOneTime() throws BrokenBarrierException, InterruptedException {
+    Map<Thread, Integer> callCountMap = new ConcurrentHashMap<>();
+
+    Supplier supplier = () -> {
+      Thread currentThread = Thread.currentThread();
+      callCountMap.put(currentThread, callCountMap.getOrDefault(currentThread, 0) + 1);
+      return new Object();
+    };
+
+    Lazy lazy = getLazy(supplier);
+    CyclicBarrier barrier = new CyclicBarrier(50);
+    CyclicBarrier endBarrier = new CyclicBarrier(51);
+    List<Object> lazyResults = new CopyOnWriteArrayList<>();
+    Stream.generate(() -> new Thread(() -> {
+      try {
+        barrier.await();
+        lazyResults.add(lazy.get());
+        lazyResults.add(lazy.get());
+        endBarrier.await();
+      } catch (InterruptedException | BrokenBarrierException ignored) {
+      }
+    })).peek(Thread::start).limit(50).count();
+
+    endBarrier.await();
+    callCountMap.values().forEach(integer -> assertEquals(Integer.valueOf(1), integer));
+    assertEquals(100, lazyResults.size());
     Object first = lazyResults.get(0);
     lazyResults.forEach(o -> assertSame(first, o));
   }

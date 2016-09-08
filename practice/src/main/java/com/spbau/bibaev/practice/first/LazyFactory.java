@@ -79,7 +79,7 @@ public class LazyFactory {
       Object supplier = mySupplier;
       if(mySupplier != null && mySupplier instanceof MySupplier) {
         //noinspection unchecked
-        Object t = ((Supplier<Supplier<?>>) mySupplier).get().get();
+        Object t = ((Supplier<Supplier<?>>) supplier).get().get();
         FIELD_UPDATER.compareAndSet(this, supplier, t);
       }
 

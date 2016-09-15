@@ -2,21 +2,17 @@ package com.spbau.bibaev.homework.vcs;
 
 import com.spbau.bibaev.homework.vcs.command.CommandBase;
 import com.spbau.bibaev.homework.vcs.command.CommandFactory;
-import com.spbau.bibaev.homework.vcs.repository.Metadata;
+import com.spbau.bibaev.homework.vcs.repository.Repository;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * Supporting commands:
- * TODO: init
+ * init
+ * user [name]
  * TODO: log
  * TODO: add file file ...
  * TODO: remove file file ...
@@ -24,7 +20,6 @@ import java.util.stream.Collectors;
  * TODO: branch [delete] name
  * TODO: checkout branch_name
  * TODO: commit [message]
- * TODO: user [name]
  * TODO: merge [branch]
  */
 public class EntryPoint {

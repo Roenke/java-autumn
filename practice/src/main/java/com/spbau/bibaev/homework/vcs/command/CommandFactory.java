@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.vcs.command;
 
-import com.spbau.bibaev.homework.vcs.Repository;
+import com.spbau.bibaev.homework.vcs.command.impl.UserCommand;
+import com.spbau.bibaev.homework.vcs.repository.Repository;
 import com.spbau.bibaev.homework.vcs.command.impl.InitCommand;
 import com.spbau.bibaev.homework.vcs.command.impl.LogCommand;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +18,7 @@ public class CommandFactory {
   static {
     NAME_2_COMMAND_CLASS_MAP.put("log", LogCommand.class);
     NAME_2_COMMAND_CLASS_MAP.put("init", InitCommand.class);
+    NAME_2_COMMAND_CLASS_MAP.put("user", UserCommand.class);
   }
 
   @Nullable

@@ -1,6 +1,5 @@
-package com.spbau.bibaev.homework.vcs;
+package com.spbau.bibaev.homework.vcs.repository;
 
-import com.spbau.bibaev.homework.vcs.repository.Metadata;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,13 +57,18 @@ public class Repository {
 
     myRepositoryMetadataDirectory = metadataDirectory;
 
-    myRepositoryMetadataFile = FilesUtil.findFileByName(myRepositoryDirectory, METADATA_FILENAME);
+    myRepositoryMetadataFile = FilesUtil.findFileByName(myRepositoryMetadataDirectory, METADATA_FILENAME);
     if (myRepositoryMetadataFile != null) {
       myMetadata = readMetadata(myRepositoryMetadataFile);
     } else {
       myRepositoryMetadataFile = new File(myRepositoryMetadataDirectory.getAbsolutePath() +
           File.separator + METADATA_FILENAME);
     }
+  }
+
+  @Nullable
+  public Metadata getMetadata() {
+    return myMetadata == null ? null : new Metadata(myMetadata);
   }
 
   /**
@@ -103,6 +107,10 @@ public class Repository {
     if (myMetadata != null && myRepositoryMetadataFile != null && myRepositoryMetadataFile.exists()) {
       saveMetadata(myRepositoryMetadataFile);
     }
+  }
+
+  public void setMetadata(@NotNull Metadata metadata) {
+    myMetadata = new Metadata(metadata);
   }
 
   @Nullable

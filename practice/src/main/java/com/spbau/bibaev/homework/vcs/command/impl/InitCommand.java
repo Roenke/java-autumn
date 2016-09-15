@@ -1,6 +1,6 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
-import com.spbau.bibaev.homework.vcs.Repository;
+import com.spbau.bibaev.homework.vcs.repository.Repository;
 import com.spbau.bibaev.homework.vcs.command.CommandBase;
 import org.jetbrains.annotations.NotNull;
 

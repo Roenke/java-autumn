@@ -1,6 +1,6 @@
 package com.spbau.bibaev.homework.vcs.command;
 
-import com.spbau.bibaev.homework.vcs.Repository;
+import com.spbau.bibaev.homework.vcs.repository.Repository;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -20,5 +20,8 @@ public abstract class RepositoryCommand extends CommandBase {
     }
   }
 
+  /** Implement with precondition that repository initialize
+   * @param args command line args
+   */
   public abstract void performImpl(@NotNull List<String> args);
 }

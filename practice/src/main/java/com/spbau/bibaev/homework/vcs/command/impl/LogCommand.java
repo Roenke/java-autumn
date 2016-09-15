@@ -12,7 +12,12 @@ public class LogCommand extends RepositoryCommand {
   }
 
   @Override
-  public void performImpl(@NotNull List<String> args) {
-    Repository repository = getRepository();
+  protected void perform(@NotNull List<String> args, @NotNull Repository repository) {
+
+  }
+
+  @Override
+  protected int getMaxArgCount() {
+    return 0;
   }
 }

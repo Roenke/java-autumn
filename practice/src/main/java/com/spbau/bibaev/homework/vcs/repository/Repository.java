@@ -137,7 +137,4 @@ public class Repository {
       e.printStackTrace();
     }
   }
-
-  private class Storage {
-  }
 }

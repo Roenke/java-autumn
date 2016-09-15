@@ -1,6 +1,6 @@
 package com.spbau.bibaev.homework.vcs;
 
-import com.spbau.bibaev.homework.vcs.command.CommandBase;
+import com.spbau.bibaev.homework.vcs.command.Command;
 import com.spbau.bibaev.homework.vcs.command.CommandFactory;
 import com.spbau.bibaev.homework.vcs.repository.Repository;
 
@@ -32,7 +32,7 @@ public class EntryPoint {
 
     File currentDirectory = new File(System.getProperty("user.dir"));
     Repository repository = Repository.open(currentDirectory);
-    CommandBase command = CommandFactory.createCommand(args[0], repository);
+    Command command = CommandFactory.createCommand(args[0], repository);
     if (command == null) {
       usage();
       return;

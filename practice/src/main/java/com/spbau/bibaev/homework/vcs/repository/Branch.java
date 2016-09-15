@@ -6,6 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Branch {
+  public Branch(@NotNull String name) {
+
+  }
+
+  public Branch(@NotNull String name, @NotNull Branch branchParent) {
+  }
 
   @NotNull
   public List<Revision> getRevisions() {

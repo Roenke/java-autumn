@@ -22,7 +22,7 @@ public class CommandFactory {
   }
 
   @Nullable
-  public static CommandBase createCommand(@NotNull String name, @NotNull Repository rep) {
+  public static Command createCommand(@NotNull String name, @NotNull Repository rep) {
     if (!NAME_2_COMMAND_CLASS_MAP.containsKey(name)) {
       return null;
     }

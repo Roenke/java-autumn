@@ -10,18 +10,18 @@ public abstract class RepositoryCommand extends CommandBase {
     super(repository);
   }
 
+  /** Implement with precondition that repository initialize
+   * @param args command line args
+   */
   @Override
-  public final void perform(@NotNull List<String> args) {
+  protected void performImpl(@NotNull List<String> args) {
     Repository rep = getRepository();
     if (!rep.isInitialized()) {
       System.out.println("Repository must be initialized. Use: my_cvs init");
     } else {
-      performImpl(args);
+      perform(args, rep);
     }
   }
 
-  /** Implement with precondition that repository initialize
-   * @param args command line args
-   */
-  public abstract void performImpl(@NotNull List<String> args);
+  protected abstract void perform(@NotNull List<String> args, @NotNull Repository repository);
 }

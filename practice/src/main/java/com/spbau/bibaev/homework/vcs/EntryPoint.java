@@ -2,9 +2,14 @@ package com.spbau.bibaev.homework.vcs;
 
 import com.spbau.bibaev.homework.vcs.command.CommandBase;
 import com.spbau.bibaev.homework.vcs.command.CommandFactory;
-import org.apache.commons.cli.Options;
+import com.spbau.bibaev.homework.vcs.repository.Metadata;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -13,5 +13,11 @@ public class InitCommand extends CommandBase {
 
   @Override
   public void perform(@NotNull List<String> args) {
+    Repository repository = getRepository();
+    if(repository.isInitialized()) {
+      System.out.println("Already initialized");
+    } else {
+      repository.initialize();
+    }
   }
 }

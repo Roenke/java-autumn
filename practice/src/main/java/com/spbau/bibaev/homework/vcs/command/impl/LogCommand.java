@@ -1,18 +1,18 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.Repository;
-import com.spbau.bibaev.homework.vcs.command.CommandBase;
+import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class LogCommand extends CommandBase {
+public class LogCommand extends RepositoryCommand {
   public LogCommand(@NotNull Repository repository) {
     super(repository);
   }
 
   @Override
-  public void perform(@NotNull List<String> args) {
-
+  public void performImpl(@NotNull List<String> args) {
+    Repository repository = getRepository();
   }
 }

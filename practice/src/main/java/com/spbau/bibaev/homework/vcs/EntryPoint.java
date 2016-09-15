@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
  * TODO: log
  * TODO: add file file ...
  * TODO: remove file file ...
+ * TODO: status
  * TODO: branch [delete] name
  * TODO: checkout branch_name
  * TODO: commit [message]
@@ -22,8 +23,6 @@ import java.util.stream.Collectors;
  * TODO: merge [branch]
  */
 public class EntryPoint {
-  private static final String VCS_DIT_NAME = File.separator + ".my_vcs" + File.separator;
-  private static Options OPTIONS = new Options();
 
   public static void main(String[] args) {
     if (args.length == 0) {

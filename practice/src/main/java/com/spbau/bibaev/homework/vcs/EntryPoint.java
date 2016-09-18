@@ -13,13 +13,11 @@ import java.util.stream.Collectors;
  * Supporting commands:
  * init
  * user [name]
- * TODO: log
- * TODO: add file file ...
- * TODO: remove file file ...
- * TODO: status
- * TODO: branch name
- * TODO: checkout branch_name|revision_hash
+ * branch name
  * TODO: commit [message]
+ * TODO: log
+ * TODO: status
+ * TODO: checkout branch_name|revision_hash
  * TODO: merge [branch]
  */
 public class EntryPoint {

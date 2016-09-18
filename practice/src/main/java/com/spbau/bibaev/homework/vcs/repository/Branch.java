@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class Branch {
@@ -76,5 +77,26 @@ public class Branch {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  public void commit(@NotNull String message, @NotNull Date date, String myCurrentUserName) throws RepositoryIOException {
+    File revisionDirectory = new File(myBranchDirectory.getAbsolutePath() + File.separator + date.getTime());
+    if(!revisionDirectory.mkdir()) {
+      throw new RepositoryIOException("Cannot create directory for new revision");
+    }
+
+    try{
+      String hashCode = Revision.addNewRevision(revisionDirectory, message, date, myCurrentUserName);
+      if(revisionDirectory.renameTo(new File(hashCode))) {
+        throw new RepositoryIOException("Cannot rename revision folder to hash code");
+      }
+    } catch (RepositoryIOException e) {
+      try {
+        Files.delete(revisionDirectory.toPath());
+        throw e;
+      } catch (IOException e1) {
+        throw new RepositoryIOException("Repository was corrupted", e1);
+      }
+    }
   }
 }

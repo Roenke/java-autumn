@@ -3,9 +3,7 @@ package com.spbau.bibaev.homework.vcs.util;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -25,6 +23,16 @@ public class FilesUtil {
   @Nullable
   public static File findFileByName(@NotNull File directory, @NotNull String filename) {
     return find(directory, File::isFile, filename);
+  }
+
+  public static void copy(@NotNull InputStream in, @NotNull OutputStream out) throws IOException {
+    byte[] buffer = new byte[4096];
+    int n = in.read(buffer);
+    while (n > 0) {
+      out.write(buffer, 0, n);
+      n = in.read(buffer);
+    }
+    in.close();
   }
 
   public static void recursiveCopyDirectory(@NotNull Path from, @NotNull Path to) throws IOException {

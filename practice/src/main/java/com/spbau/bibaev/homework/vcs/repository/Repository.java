@@ -170,8 +170,14 @@ public class Repository {
     myCurrentUserName = newName;
   }
 
-  public void createNewBranch(@NotNull String name) throws RepositoryIOException, RepositoryOpeningException {
+  public void createNewBranch(@NotNull String name) throws RepositoryIOException {
     Branch.createNewBranch(myRepositoryMetadataDirectory, name, myName2Branch.get(myCurrentBranchName));
+  }
+
+  public void commitChanges(@NotNull String message) throws RepositoryIOException {
+    Date date = new Date();
+    Branch currentBranch = myName2Branch.get(myCurrentBranchName);
+    currentBranch.commit(message, date, myCurrentUserName);
   }
 
   @XmlRootElement

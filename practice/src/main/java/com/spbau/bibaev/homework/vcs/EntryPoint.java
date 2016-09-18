@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * TODO: remove file file ...
  * TODO: status
  * TODO: branch [delete] name
- * TODO: checkout branch_name
+ * TODO: checkout branch_name|revision_hash
  * TODO: commit [message]
  * TODO: merge [branch]
  */
@@ -31,8 +31,7 @@ public class EntryPoint {
     }
 
     File currentDirectory = new File(System.getProperty("user.dir"));
-    Repository repository = Repository.open(currentDirectory);
-    Command command = CommandFactory.createCommand(args[0], repository);
+    Command command = CommandFactory.createCommand(currentDirectory, args[0]);
     if (command == null) {
       usage();
       return;

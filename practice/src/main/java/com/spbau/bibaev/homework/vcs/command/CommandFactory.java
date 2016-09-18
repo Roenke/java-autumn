@@ -7,6 +7,7 @@ import com.spbau.bibaev.homework.vcs.command.impl.LogCommand;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -22,7 +23,7 @@ public class CommandFactory {
   }
 
   @Nullable
-  public static Command createCommand(@NotNull String name, @NotNull Repository rep) {
+  public static Command createCommand(@NotNull File currentDirectory, @NotNull String name) {
     if (!NAME_2_COMMAND_CLASS_MAP.containsKey(name)) {
       return null;
     }
@@ -30,8 +31,8 @@ public class CommandFactory {
     Class<?> clazz = NAME_2_COMMAND_CLASS_MAP.get(name);
     CommandBase instance = null;
     try {
-      Constructor<?> constructor = clazz.getConstructor(Repository.class);
-      instance = (CommandBase) constructor.newInstance(rep);
+      Constructor<?> constructor = clazz.getConstructor(File.class);
+      instance = (CommandBase) constructor.newInstance(currentDirectory);
     } catch (NoSuchMethodException | IllegalAccessException |
         InstantiationException | InvocationTargetException ignored) {
     }

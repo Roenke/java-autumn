@@ -1,15 +1,15 @@
 package com.spbau.bibaev.homework.vcs.command;
 
-import com.spbau.bibaev.homework.vcs.repository.Repository;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.List;
 
 public abstract class CommandBase implements Command {
-  private final Repository myRepository;
+  protected final File ourDirectory;
 
-  public CommandBase(@NotNull Repository repository) {
-    myRepository = repository;
+  public CommandBase(@NotNull File directory) {
+    ourDirectory = directory;
   }
 
   @Override
@@ -21,11 +21,6 @@ public abstract class CommandBase implements Command {
   }
 
   protected abstract void performImpl(@NotNull List<String> args);
-
-  @NotNull
-  protected Repository getRepository() {
-    return myRepository;
-  }
 
   protected int getMinArgCount() {
     return 0;

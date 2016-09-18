@@ -1,140 +1,178 @@
 package com.spbau.bibaev.homework.vcs.repository;
 
+import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
+import com.spbau.bibaev.homework.vcs.ex.RepositoryOpeningException;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
+import com.spbau.bibaev.homework.vcs.util.XmlSerializer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Repository {
   private static final String VCS_DIRECTORY_NAME = ".my_vcs";
+  private static final String DEFAULT_BRANCH_NAME = "master";
   private static final String METADATA_FILENAME = "metadata.xml";
-  private final File myRepositoryDirectory;
-  private final File myRepositoryMetadataDirectory;
-  private File myRepositoryMetadataFile;
-  private Metadata myMetadata;
+  private final List<Branch> myBranches;
+  private String myCurrentBranchName;
+  private String myCurrentUserName;
+  private File myRepositoryMetadataDirectory;
 
   /**
-   * Open nearest repository (may be in parent folders) or open non-initialized here
+   * Open nearest repository (may be in parent folders)
    *
    * @param directory Start directory
    * @return Existed repository, if it exists, otherwise empty non-initialized repository
    */
   @NotNull
-  public static Repository open(@NotNull File directory) {
+  public static Repository open(@NotNull File directory) throws RepositoryOpeningException {
     File currentDirectory = directory;
     while (currentDirectory != null && !FilesUtil.isContainsDirectory(currentDirectory, VCS_DIRECTORY_NAME)) {
       currentDirectory = currentDirectory.getParentFile();
     }
 
-    File vcsRoot = currentDirectory == null ? directory : currentDirectory;
-    return openHere(vcsRoot);
+    if (currentDirectory == null) {
+      throw new RepositoryOpeningException("Could not find repository root in " + directory.getAbsolutePath());
+    }
+
+    return openHere(currentDirectory);
   }
 
-  /**
-   * Open/create repository here
-   *
-   * @param directory directory for repository creating
-   * @return repository
-   */
-  public static Repository openHere(@NotNull File directory) {
-    return new Repository(directory);
-  }
-
-  private Repository(@NotNull File directory) {
-    myRepositoryDirectory = directory;
+  private static Repository openHere(@NotNull File directory) throws RepositoryOpeningException {
     File metadataDirectory = FilesUtil.findDirectoryByName(directory, VCS_DIRECTORY_NAME);
-    FilesUtil.findDirectoryByName(directory, VCS_DIRECTORY_NAME);
-
     if (metadataDirectory == null) {
-      metadataDirectory = new File(directory.getAbsolutePath() + File.separator + VCS_DIRECTORY_NAME);
+      throw new RepositoryOpeningException("Could not find repository root in " + directory.getAbsolutePath());
     }
 
-    myRepositoryMetadataDirectory = metadataDirectory;
-
-    myRepositoryMetadataFile = FilesUtil.findFileByName(myRepositoryMetadataDirectory, METADATA_FILENAME);
-    if (myRepositoryMetadataFile != null) {
-      myMetadata = readMetadata(myRepositoryMetadataFile);
-    } else {
-      myRepositoryMetadataFile = new File(myRepositoryMetadataDirectory.getAbsolutePath() +
-          File.separator + METADATA_FILENAME);
-    }
-  }
-
-  @Nullable
-  public Metadata getMetadata() {
-    return myMetadata == null ? null : new Metadata(myMetadata);
-  }
-
-  /**
-   * Check that metadata created
-   *
-   * @return true, if metadata already created, false otherwise
-   */
-  public boolean isInitialized() {
-    return myRepositoryMetadataFile != null && myRepositoryMetadataFile.exists();
-  }
-
-  /**
-   * Create metadata files for current directory
-   *
-   * @return true, if metadata successfully created, false if it already exists
-   */
-  public boolean initialize() {
-    if (isInitialized()) {
-      return false;
+    File[] branchDirectories = metadataDirectory.listFiles(File::isDirectory);
+    if (branchDirectories == null) {
+      throw new RepositoryOpeningException("Could not read any branch information");
     }
 
-    //noinspection ResultOfMethodCallIgnored
-    myRepositoryMetadataDirectory.mkdir();
+    List<Branch> branches = new ArrayList<>();
+    for (File file : branchDirectories) {
+      branches.add(Branch.read(file));
+    }
+
+    File metadataFile = FilesUtil.findFileByName(metadataDirectory, METADATA_FILENAME);
+    if (metadataFile == null) {
+      throw new RepositoryOpeningException("Repository metadata file not found");
+    }
+    RepositoryMetadata meta;
     try {
-      //noinspection ResultOfMethodCallIgnored
-      myRepositoryMetadataFile.createNewFile();
+      meta = XmlSerializer.deserialize(metadataFile, RepositoryMetadata.class);
+    } catch (JAXBException e) {
+      throw new RepositoryOpeningException("Could not read from repository metadata file");
+    }
+
+    return new Repository(directory, meta, branches);
+  }
+
+  public static void createNewRepository(@NotNull File directory) throws RepositoryIOException {
+    File metadataDirectory = new File(directory.getAbsolutePath() + File.separator + VCS_DIRECTORY_NAME);
+    if (metadataDirectory.exists() || !metadataDirectory.mkdir()) {
+      throw new RepositoryIOException("Repository in \"" + directory.getAbsolutePath() + "\" already exists");
+    }
+
+    Branch.createNewBranch(metadataDirectory, DEFAULT_BRANCH_NAME);
+
+    File metadataFile = new File(metadataDirectory.getAbsolutePath() + File.separator + METADATA_FILENAME);
+    try {
+      if (!metadataFile.createNewFile()) {
+        throw new RepositoryIOException("Repository metadata file already exists");
+      }
+
+      XmlSerializer.serialize(metadataFile, RepositoryMetadata.class, RepositoryMetadata.defaultMeta());
     } catch (IOException e) {
-      e.printStackTrace();
-    }
-    myMetadata = Metadata.defaultMeta();
-    saveMetadata(myRepositoryMetadataFile);
-    return true;
-  }
-
-  public void saveAll() {
-    if (myMetadata != null && myRepositoryMetadataFile != null && myRepositoryMetadataFile.exists()) {
-      saveMetadata(myRepositoryMetadataFile);
-    }
-  }
-
-  public void setMetadata(@NotNull Metadata metadata) {
-    myMetadata = new Metadata(metadata);
-  }
-
-  @Nullable
-  private Metadata readMetadata(@NotNull File fileToRead) {
-    Metadata result = null;
-    try {
-      JAXBContext jaxbContext = JAXBContext.newInstance(Metadata.class);
-      Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-      result = (Metadata) jaxbUnmarshaller.unmarshal(fileToRead);
+      throw new RepositoryIOException("Could not create repository metadata file", e);
     } catch (JAXBException e) {
-      e.printStackTrace();
+      throw new RepositoryIOException("Could not serialize repository metadata", e);
     }
-
-    return result;
   }
 
-  private void saveMetadata(@NotNull File fileToSave) {
+  private Repository(@NotNull File metaDirectory, @NotNull RepositoryMetadata meta, @NotNull List<Branch> branches) {
+    myRepositoryMetadataDirectory = metaDirectory;
+    myBranches = branches;
+    myCurrentBranchName = meta.currentBranch;
+    myCurrentUserName = meta.userName;
+  }
+
+  public void save() throws RepositoryIOException {
     try {
-      JAXBContext jaxbContext = JAXBContext.newInstance(Metadata.class);
-      final Marshaller marshaller = jaxbContext.createMarshaller();
-      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-      marshaller.marshal(myMetadata, fileToSave);
+      File metadataFile = new File(myRepositoryMetadataDirectory.getAbsolutePath() + File.separator +
+          METADATA_FILENAME);
+      XmlSerializer.serialize(metadataFile, RepositoryMetadata.class,
+          new RepositoryMetadata(myCurrentBranchName, myCurrentUserName));
     } catch (JAXBException e) {
-      e.printStackTrace();
+      throw new RepositoryIOException("Could not save repository meta", e);
+    }
+  }
+
+  public void makeCurrentStateSnapshot(@NotNull File outputFile) throws RepositoryIOException {
+    File[] files = myRepositoryMetadataDirectory.getParentFile().listFiles((dir, name) -> !dir.isDirectory() || !name.equals(VCS_DIRECTORY_NAME));
+    if (files != null) {
+      AtomicReference<IOException> exception = new AtomicReference<>(null);
+      List<File> uncommitedFiles = Arrays.stream(files).flatMap(file -> {
+        try {
+          return Files.walk(file.toPath());
+        } catch (IOException e) {
+          exception.compareAndSet(null, e);
+          return Stream.empty();
+        }
+      }).map(Path::toFile).collect(Collectors.toList());
+      //noinspection ThrowableResultOfMethodCallIgnored
+      if (exception.get() != null) {
+        throw new RepositoryIOException("IO exception occurred", exception.get());
+      }
+
+      try {
+        ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(outputFile));
+      } catch (IOException e) {
+        throw new RepositoryIOException("Cannot find file for write a snapshot", e);
+      }
+
+    }
+  }
+
+  public String getUserName() {
+    return myCurrentUserName;
+  }
+
+  public void setUserName(@NotNull String newName) {
+    myCurrentUserName = newName;
+  }
+
+  @XmlRootElement
+  private static class RepositoryMetadata {
+    @XmlElement(name = "branch")
+    String currentBranch;
+    @XmlElement(name = "user")
+    String userName;
+
+    @SuppressWarnings("unused")
+    RepositoryMetadata() {
+    }
+
+    RepositoryMetadata(@NotNull String branch, @NotNull String user) {
+      currentBranch = branch;
+      userName = user;
+    }
+
+    static RepositoryMetadata defaultMeta() {
+      return new RepositoryMetadata(DEFAULT_BRANCH_NAME, System.getProperty("user.name"));
     }
   }
 }

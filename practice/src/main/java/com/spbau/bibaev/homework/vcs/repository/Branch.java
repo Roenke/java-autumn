@@ -22,6 +22,7 @@ public class Branch {
     myName = name;
     myRevisions = revisions;
     myBranchDirectory = directory;
+    myRevisions.sort((o1, o2) -> o1.getDate().compareTo(o2.getDate()));
   }
 
   static Branch read(@NotNull File dir) throws RepositoryOpeningException {

@@ -2,7 +2,6 @@ package com.spbau.bibaev.homework.vcs;
 
 import com.spbau.bibaev.homework.vcs.command.Command;
 import com.spbau.bibaev.homework.vcs.command.CommandFactory;
-import com.spbau.bibaev.homework.vcs.repository.Repository;
 
 import java.io.File;
 import java.util.Arrays;
@@ -14,8 +13,8 @@ import java.util.stream.Collectors;
  * init
  * user [name]
  * branch name
- * TODO: commit [message]
- * TODO: log
+ * commit [message]
+ * log
  * TODO: status
  * TODO: checkout branch_name|revision_hash
  * TODO: merge [branch]

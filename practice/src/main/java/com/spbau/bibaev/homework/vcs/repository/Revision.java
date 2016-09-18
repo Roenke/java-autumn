@@ -74,19 +74,19 @@ public class Revision {
     return new Revision(meta, snapshot);
   }
 
-  String getHash() {
+  public String getHash() {
     return myHash;
   }
 
-  Date getDate() {
+  public Date getDate() {
     return myDate;
   }
 
-  String getMessage() {
+  public String getMessage() {
     return myMessage;
   }
 
-  String getAuthor() {
+  public String getAuthor() {
     return myAuthor;
   }
 

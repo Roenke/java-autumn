@@ -87,6 +87,11 @@ public class Repository {
   }
 
   @NotNull
+  public Branch getCurrentBranch() {
+    return myName2Branch.get(myCurrentBranchName);
+  }
+
+  @NotNull
   public List<Branch> getAllBranches() {
     return new ArrayList<>(myName2Branch.values());
   }

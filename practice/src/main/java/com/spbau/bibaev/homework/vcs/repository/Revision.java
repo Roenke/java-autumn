@@ -54,16 +54,11 @@ public class Revision {
 
   public static Revision read(@NotNull File dir) throws RepositoryOpeningException {
     String revisionName = dir.getName();
-    File[] files = dir.listFiles((dir1, name) -> dir.isFile() && REVISION_METADATA_FILENAME.equals(name));
-    if (files == null || files.length == 0) {
-      throw new RepositoryOpeningException("RepositoryMetadata file not found for revision" + revisionName);
+    File metadataFile = FilesUtil.findFileByName(dir, REVISION_METADATA_FILENAME);
+    if (metadataFile == null) {
+      throw new RepositoryOpeningException("Metadata file not found for revision" + revisionName);
     }
 
-    if (files.length > 1) {
-      throw new RepositoryOpeningException("Ambiguous metadata file for revision " + revisionName);
-    }
-
-    File metadataFile = files[0];
     RevisionMetadata meta;
     try {
       meta = XmlSerializer.deserialize(metadataFile, RevisionMetadata.class);
@@ -112,7 +107,7 @@ public class Revision {
       if (!snapshot.createNewFile()) {
         throw new RepositoryIOException("Cannot create file for snapshot");
       }
-      File metaRevisionFile = new File(revisionDirectory.getAbsolutePath() + File.separator + "revision_metadata.xml");
+      File metaRevisionFile = new File(revisionDirectory.getAbsolutePath() + File.separator + REVISION_METADATA_FILENAME);
       if (!metaRevisionFile.createNewFile()) {
         throw new RepositoryIOException("Cannot create meta file for revision");
       }

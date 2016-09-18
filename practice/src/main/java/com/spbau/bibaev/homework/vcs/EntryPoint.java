@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * TODO: add file file ...
  * TODO: remove file file ...
  * TODO: status
- * TODO: branch [delete] name
+ * TODO: branch name
  * TODO: checkout branch_name|revision_hash
  * TODO: commit [message]
  * TODO: merge [branch]

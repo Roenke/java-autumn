@@ -2,29 +2,28 @@ package com.spbau.bibaev.homework.vcs.repository;
 
 import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryOpeningException;
+import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@XmlRootElement
 public class Branch {
-  @XmlElement(name = "name")
   private final String myName;
-  @XmlElement(name = "revisions")
   private final List<Revision> myRevisions;
+  private final File myBranchDirectory;
 
-  public Branch(@NotNull String name, @NotNull List<Revision> revisions) {
+  private Branch(@NotNull String name, @NotNull List<Revision> revisions, @NotNull File directory) {
     myName = name;
     myRevisions = revisions;
+    myBranchDirectory = directory;
   }
 
-  public static Branch read(@NotNull File dir) throws RepositoryOpeningException {
+  static Branch read(@NotNull File dir) throws RepositoryOpeningException {
     String name = dir.getName();
     List<Revision> revisions = new ArrayList<>();
 
@@ -35,21 +34,38 @@ public class Branch {
       }
     }
 
-    return new Branch(name, revisions);
+    return new Branch(name, revisions, dir);
   }
 
-  public static Branch createNewBranch(@NotNull File metadataDirectory, @NotNull String name) throws RepositoryIOException {
+  static Branch createNewBranch(@NotNull File metadataDirectory, @NotNull String name) throws RepositoryIOException {
     File branchDirectory = new File(metadataDirectory.getAbsoluteFile() + File.separator + name);
     if (!branchDirectory.mkdir()) {
       throw new RepositoryIOException(String.format("Branch \"%s\" already exists", name));
     }
 
-    return new Branch(name, new ArrayList<>());
+    return new Branch(name, new ArrayList<>(), branchDirectory);
   }
 
-  public static Branch createNewBranch(@NotNull File metadataDirectory, @NotNull String name, @NotNull Branch base) {
-    // TODO: copy revision from base to new branch
-    return null;
+  static Branch createNewBranch(@NotNull File metadataDirectory, @NotNull String name, @NotNull Branch base)
+      throws RepositoryIOException {
+    File branchDirectory = new File(metadataDirectory.getAbsoluteFile() + File.separator + name);
+    if (!branchDirectory.mkdir()) {
+      throw new RepositoryIOException(String.format("Branch \"%s\" already exists", name));
+    }
+
+    try {
+      FilesUtil.recursiveCopyDirectory(base.myBranchDirectory.toPath(), branchDirectory.toPath());
+    } catch (IOException e) {
+      try {
+        Files.delete(branchDirectory.toPath());
+      } catch (IOException e1) {
+        throw new RepositoryIOException("Repository corrupted", e1);
+      }
+      throw new RepositoryIOException(String.format("Could not recursive copy from %s to %s",
+          base.myBranchDirectory.getAbsolutePath(), branchDirectory.getAbsolutePath()));
+    }
+
+    return Branch.read(branchDirectory);
   }
 
   @NotNull

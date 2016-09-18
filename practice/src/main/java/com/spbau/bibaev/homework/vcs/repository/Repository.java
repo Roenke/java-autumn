@@ -5,6 +5,7 @@ import com.spbau.bibaev.homework.vcs.ex.RepositoryOpeningException;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import com.spbau.bibaev.homework.vcs.util.XmlSerializer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlElement;
@@ -15,9 +16,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,7 +25,7 @@ public class Repository {
   private static final String VCS_DIRECTORY_NAME = ".my_vcs";
   private static final String DEFAULT_BRANCH_NAME = "master";
   private static final String METADATA_FILENAME = "metadata.xml";
-  private final List<Branch> myBranches;
+  private final Map<String, Branch> myName2Branch;
   private String myCurrentBranchName;
   private String myCurrentUserName;
   private File myRepositoryMetadataDirectory;
@@ -62,9 +61,10 @@ public class Repository {
       throw new RepositoryOpeningException("Could not read any branch information");
     }
 
-    List<Branch> branches = new ArrayList<>();
+    Map<String, Branch> branches = new HashMap<>();
     for (File file : branchDirectories) {
-      branches.add(Branch.read(file));
+      Branch branch = Branch.read(file);
+      branches.put(branch.getName(), branch);
     }
 
     File metadataFile = FilesUtil.findFileByName(metadataDirectory, METADATA_FILENAME);
@@ -78,7 +78,22 @@ public class Repository {
       throw new RepositoryOpeningException("Could not read from repository metadata file");
     }
 
-    return new Repository(directory, meta, branches);
+    return new Repository(metadataDirectory, meta, branches);
+  }
+
+  @Nullable
+  public Branch getBranchByName(@NotNull String name) {
+    return myName2Branch.getOrDefault(name, null);
+  }
+
+  @NotNull
+  public List<Branch> getAllBranches() {
+    return new ArrayList<>(myName2Branch.values());
+  }
+
+  @NotNull
+  public String getCurrentBranchName() {
+    return myCurrentBranchName;
   }
 
   public static void createNewRepository(@NotNull File directory) throws RepositoryIOException {
@@ -103,9 +118,9 @@ public class Repository {
     }
   }
 
-  private Repository(@NotNull File metaDirectory, @NotNull RepositoryMetadata meta, @NotNull List<Branch> branches) {
+  private Repository(@NotNull File metaDirectory, @NotNull RepositoryMetadata meta, @NotNull Map<String, Branch> branches) {
     myRepositoryMetadataDirectory = metaDirectory;
-    myBranches = branches;
+    myName2Branch = branches;
     myCurrentBranchName = meta.currentBranch;
     myCurrentUserName = meta.userName;
   }
@@ -153,6 +168,10 @@ public class Repository {
 
   public void setUserName(@NotNull String newName) {
     myCurrentUserName = newName;
+  }
+
+  public void createNewBranch(@NotNull String name) throws RepositoryIOException, RepositoryOpeningException {
+    Branch.createNewBranch(myRepositoryMetadataDirectory, name, myName2Branch.get(myCurrentBranchName));
   }
 
   @XmlRootElement

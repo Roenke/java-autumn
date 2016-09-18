@@ -25,6 +25,11 @@ public class CommitCommand extends RepositoryCommand {
   }
 
   @Override
+  protected String getUsage() {
+    return "commit [message]";
+  }
+
+  @Override
   protected int getMaxArgCount() {
     return 1;
   }

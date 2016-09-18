@@ -29,6 +29,11 @@ public class UserCommand extends RepositoryCommand {
   }
 
   @Override
+  protected String getUsage() {
+    return "user [new_name]";
+  }
+
+  @Override
   protected int getMaxArgCount() {
     return 1;
   }

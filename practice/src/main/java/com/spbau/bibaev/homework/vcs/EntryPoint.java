@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * TODO: merge [branch]
  */
 public class EntryPoint {
-
+  public static String VCS_NAME = "my_vcs";
   public static void main(String[] args) {
     if (args.length == 0) {
       usage();
@@ -39,6 +39,6 @@ public class EntryPoint {
   }
 
   private static void usage() {
-    System.out.println("Usage: my_cvs command [options]");
+    System.out.println(String.format("Usage: %s command [options]", VCS_NAME));
   }
 }

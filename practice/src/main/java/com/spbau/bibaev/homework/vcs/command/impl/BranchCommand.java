@@ -46,6 +46,11 @@ public class BranchCommand extends RepositoryCommand {
   }
 
   @Override
+  protected String getUsage() {
+    return "branch [branch_name]";
+  }
+
+  @Override
   protected int getMaxArgCount() {
     return 1;
   }

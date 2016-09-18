@@ -25,6 +25,11 @@ public class InitCommand extends CommandBase {
   }
 
   @Override
+  protected String getUsage() {
+    return "init";
+  }
+
+  @Override
   protected int getMaxArgCount() {
     return 0;
   }

@@ -30,6 +30,11 @@ public class LogCommand extends RepositoryCommand {
   }
 
   @Override
+  protected String getUsage() {
+    return "log";
+  }
+
+  @Override
   protected int getMaxArgCount() {
     return 0;
   }

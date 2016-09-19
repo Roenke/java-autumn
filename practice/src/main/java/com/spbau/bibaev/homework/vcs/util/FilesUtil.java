@@ -9,6 +9,10 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 public class FilesUtil {
   public static boolean isContainsDirectory(@NotNull File directory, @NotNull String dirName) {
@@ -33,6 +37,24 @@ public class FilesUtil {
       n = in.read(buffer);
     }
     in.close();
+  }
+
+  private static Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
+
+  public static String evalHashOfFile(@NotNull File file) throws IOException {
+    try {
+      MessageDigest digest = MessageDigest.getInstance("MD5");
+      DigestInputStream stream = new DigestInputStream(Files.newInputStream(file.toPath()), digest);
+      byte[] buffer = new byte[4096];
+      int count = stream.read(buffer);
+      while(count > 0) {
+        count = stream.read(buffer);
+      }
+
+      return BASE64_ENCODER.encodeToString(digest.digest());
+    } catch (NoSuchAlgorithmException ignored) {
+      throw new UnsupportedEncodingException();
+    }
   }
 
   public static void recursiveCopyDirectory(@NotNull Path from, @NotNull Path to) throws IOException {

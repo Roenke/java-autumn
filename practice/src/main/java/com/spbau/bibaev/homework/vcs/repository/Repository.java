@@ -11,31 +11,20 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Repository {
   private static final String VCS_DIRECTORY_NAME = ".my_vcs";
   private static final String DEFAULT_BRANCH_NAME = "master";
   private static final String METADATA_FILENAME = "metadata.xml";
+  private static final String DEFAULT_USER_NAME = System.getProperty("user.name");
   private final Map<String, Branch> myName2Branch;
+  private final Project myProject;
   private String myCurrentBranchName;
   private String myCurrentUserName;
   private File myRepositoryMetadataDirectory;
 
-  /**
-   * Open nearest repository (may be in parent folders)
-   *
-   * @param directory Start directory
-   * @return Existed repository, if it exists, otherwise empty non-initialized repository
-   */
   @NotNull
   public static Repository open(@NotNull File directory) throws RepositoryOpeningException {
     File currentDirectory = directory;
@@ -78,7 +67,8 @@ public class Repository {
       throw new RepositoryOpeningException("Could not read from repository metadata file");
     }
 
-    return new Repository(metadataDirectory, meta, branches);
+    Project project = Project.open(directory, metadataDirectory);
+    return new Repository(metadataDirectory, meta, branches, project);
   }
 
   @Nullable
@@ -89,6 +79,11 @@ public class Repository {
   @NotNull
   public Branch getCurrentBranch() {
     return myName2Branch.get(myCurrentBranchName);
+  }
+
+  @NotNull
+  public Project getProject() {
+    return myProject;
   }
 
   @NotNull
@@ -107,7 +102,7 @@ public class Repository {
       throw new RepositoryIOException("Repository in \"" + directory.getAbsolutePath() + "\" already exists");
     }
 
-    Branch.createNewBranch(metadataDirectory, DEFAULT_BRANCH_NAME);
+    Branch.createNewBranch(metadataDirectory, DEFAULT_BRANCH_NAME, DEFAULT_USER_NAME);
 
     File metadataFile = new File(metadataDirectory.getAbsolutePath() + File.separator + METADATA_FILENAME);
     try {
@@ -123,9 +118,11 @@ public class Repository {
     }
   }
 
-  private Repository(@NotNull File metaDirectory, @NotNull RepositoryMetadata meta, @NotNull Map<String, Branch> branches) {
+  private Repository(@NotNull File metaDirectory, @NotNull RepositoryMetadata meta,
+                     @NotNull Map<String, Branch> branches, @NotNull Project project) {
     myRepositoryMetadataDirectory = metaDirectory;
     myName2Branch = branches;
+    myProject = project;
     myCurrentBranchName = meta.currentBranch;
     myCurrentUserName = meta.userName;
   }
@@ -138,32 +135,6 @@ public class Repository {
           new RepositoryMetadata(myCurrentBranchName, myCurrentUserName));
     } catch (JAXBException e) {
       throw new RepositoryIOException("Could not save repository meta", e);
-    }
-  }
-
-  public void makeCurrentStateSnapshot(@NotNull File outputFile) throws RepositoryIOException {
-    File[] files = myRepositoryMetadataDirectory.getParentFile().listFiles((dir, name) -> !dir.isDirectory() || !name.equals(VCS_DIRECTORY_NAME));
-    if (files != null) {
-      AtomicReference<IOException> exception = new AtomicReference<>(null);
-      List<File> uncommitedFiles = Arrays.stream(files).flatMap(file -> {
-        try {
-          return Files.walk(file.toPath());
-        } catch (IOException e) {
-          exception.compareAndSet(null, e);
-          return Stream.empty();
-        }
-      }).map(Path::toFile).collect(Collectors.toList());
-      //noinspection ThrowableResultOfMethodCallIgnored
-      if (exception.get() != null) {
-        throw new RepositoryIOException("IO exception occurred", exception.get());
-      }
-
-      try {
-        ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(outputFile));
-      } catch (IOException e) {
-        throw new RepositoryIOException("Cannot find file for write a snapshot", e);
-      }
-
     }
   }
 
@@ -202,7 +173,7 @@ public class Repository {
     }
 
     static RepositoryMetadata defaultMeta() {
-      return new RepositoryMetadata(DEFAULT_BRANCH_NAME, System.getProperty("user.name"));
+      return new RepositoryMetadata(DEFAULT_BRANCH_NAME, DEFAULT_USER_NAME);
     }
   }
 }

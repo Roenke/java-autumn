@@ -2,6 +2,7 @@ package com.spbau.bibaev.homework.vcs.repository;
 
 import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryOpeningException;
+import com.spbau.bibaev.homework.vcs.util.FileState;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import com.spbau.bibaev.homework.vcs.util.Pair;
 import com.spbau.bibaev.homework.vcs.util.XmlSerializer;
@@ -24,10 +25,7 @@ import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,6 +33,7 @@ import java.util.stream.Collectors;
 public class Revision {
   private static final String REVISION_METADATA_FILENAME = "revision_meta.xml";
   private static final String SNAPSHOT_FILENAME = "snapshot.data";
+  private static final String INITIAL_COMMIT_MESSAGE = "Initial commit";
   private final String myHash;
   private final String myMessage;
   private final String myAuthor;
@@ -52,7 +51,7 @@ public class Revision {
     mySnapshot = snapshot;
   }
 
-  public static Revision read(@NotNull File dir) throws RepositoryOpeningException {
+  static Revision read(@NotNull File dir) throws RepositoryOpeningException {
     String revisionName = dir.getName();
     File metadataFile = FilesUtil.findFileByName(dir, REVISION_METADATA_FILENAME);
     if (metadataFile == null) {
@@ -90,6 +89,35 @@ public class Revision {
     return myAuthor;
   }
 
+  public List<String> getAllFiles() {
+    return myFile2Hash.keySet().stream().collect(Collectors.toList());
+  }
+
+  public FileState getFileState(@NotNull String path, @NotNull String hashCode) {
+    if(!myFile2Hash.containsKey(path)) {
+      return FileState.NEW;
+    }
+
+    String revisionHash = myFile2Hash.get(path);
+    return revisionHash.equals(hashCode) ? FileState.NOT_CHANGED : FileState.MODIFIED;
+  }
+
+  static void createEmptyRevision(@NotNull File revisionDirectory, @NotNull String userName) throws RepositoryIOException {
+    RevisionMetadata meta = new RevisionMetadata();
+    meta.author = userName;
+    meta.date = new Date();
+    meta.message = INITIAL_COMMIT_MESSAGE;
+    meta.hash = "";
+    meta.file2Descriptor = new HashMap<>();
+    Pair<File, File> files = createMetaAndSnapshotFiles(revisionDirectory);
+    File metaFile = files.first;
+    try {
+      XmlSerializer.serialize(metaFile, RevisionMetadata.class, meta);
+    } catch (JAXBException e) {
+      throw new RepositoryIOException("Cannot save initial revision metadata", e);
+    }
+  }
+
   static String addNewRevision(@NotNull File revisionDirectory, @NotNull String message,
                                @NotNull Date date, @NotNull String user) throws RepositoryIOException {
     RevisionMetadata meta = new RevisionMetadata();
@@ -103,14 +131,9 @@ public class Revision {
     try {
       MessageDigest globalDigest = MessageDigest.getInstance("MD5");
       MessageDigest fileDigest = MessageDigest.getInstance("MD5");
-      File snapshot = new File(revisionDirectory.getAbsolutePath() + File.separator + "snapshot.data");
-      if (!snapshot.createNewFile()) {
-        throw new RepositoryIOException("Cannot create file for snapshot");
-      }
-      File metaRevisionFile = new File(revisionDirectory.getAbsolutePath() + File.separator + REVISION_METADATA_FILENAME);
-      if (!metaRevisionFile.createNewFile()) {
-        throw new RepositoryIOException("Cannot create meta file for revision");
-      }
+      Pair<File, File> files = createMetaAndSnapshotFiles(revisionDirectory);
+      File metaRevisionFile = files.first;
+      File snapshot = files.second;
 
       OutputStream snapshotStream = new DigestOutputStream(Files.newOutputStream(snapshot.toPath()), globalDigest);
       File metadataDirectory = revisionDirectory.getParentFile().getParentFile();
@@ -165,7 +188,7 @@ public class Revision {
                   path2OffsetAndLength.get(p).first,
                   path2OffsetAndLength.get(p).second)));
       XmlSerializer.serialize(metaRevisionFile, RevisionMetadata.class, meta);
-      if (!revisionDirectory.renameTo(new File(revisionDirectory.getParentFile().getAbsolutePath() + File.separator + globalHash))) {
+      if (!revisionDirectory.renameTo(new File(revisionDirectory.getParentFile().getAbsolutePath() + File.separator + globalHash.replace('/', '-')))) {
         throw new RepositoryIOException("Snapshot file exists");
       }
       return globalHash;
@@ -176,6 +199,23 @@ public class Revision {
     } catch (JAXBException e) {
       throw new RepositoryIOException("Cannot save revision metadata", e);
     }
+  }
+
+  private static Pair<File, File> createMetaAndSnapshotFiles(@NotNull File revisionDirectory) throws RepositoryIOException {
+    File metaRevisionFile = new File(revisionDirectory.getAbsolutePath() + File.separator + REVISION_METADATA_FILENAME);
+    File snapshot = new File(revisionDirectory.getAbsolutePath() + File.separator + "snapshot.data");
+    try {
+      if (!snapshot.createNewFile()) {
+        throw new RepositoryIOException("Cannot create file for snapshot");
+      }
+      if (!metaRevisionFile.createNewFile()) {
+        throw new RepositoryIOException("Cannot create meta file for revision");
+      }
+    } catch (IOException e) {
+      throw new RepositoryIOException("Revision directory initializing failed", e);
+    }
+
+    return Pair.makePair(metaRevisionFile, snapshot);
   }
 
   @XmlRootElement

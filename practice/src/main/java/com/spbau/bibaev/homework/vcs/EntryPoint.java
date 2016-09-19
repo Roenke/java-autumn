@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
  * branch name
  * commit [message]
  * log
- * TODO: status
+ * status
  * TODO: checkout branch_name|revision_hash
  * TODO: merge [branch]
  */

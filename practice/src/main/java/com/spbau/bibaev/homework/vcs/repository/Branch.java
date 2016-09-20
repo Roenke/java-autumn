@@ -50,10 +50,12 @@ public class Branch {
       throw new RepositoryIOException(String.format("Branch \"%s\" already exists", name));
     }
 
-
     try {
       if (revisions.isEmpty()) {
-        Files.createDirectory(branchDirectory.toPath().resolve(INITIAL_REVISION_DIRECTORY_NAME)).toFile();
+        File revisionDirectory = Files.createDirectory(branchDirectory.toPath()
+            .resolve(INITIAL_REVISION_DIRECTORY_NAME)).toFile();
+        Files.createDirectory(revisionDirectory.toPath());
+        Revision.createEmptyRevision(revisionDirectory);
       }
 
       for (Revision revision : revisions) {

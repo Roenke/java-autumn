@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.printListOfFiles;
+
 public class StatusCommand extends RepositoryCommand {
   public StatusCommand(@NotNull File directory) {
     super(directory);
@@ -54,26 +56,14 @@ public class StatusCommand extends RepositoryCommand {
     } catch (IOException e) {
       ConsoleColoredPrinter.println("Error occurred: " + e.getMessage());
     }
-    printFileList("New files", ConsoleColoredPrinter.GREEN, newFiles);
-    printFileList("Modified", ConsoleColoredPrinter.YELLOW, modifiedFiles);
+    printListOfFiles("New files", ConsoleColoredPrinter.GREEN, newFiles);
+    printListOfFiles("Modified", ConsoleColoredPrinter.YELLOW, modifiedFiles);
 
     Set<String> fileNames = projectFiles.stream()
         .map(file -> projectRoot.relativize(file.toPath()).toString()).collect(Collectors.toSet());
     Set<String> deletedFiles = lastRevision.getAllFiles().stream().collect(Collectors.toSet());
     deletedFiles.removeAll(fileNames);
-    printFileList("Deleted", ConsoleColoredPrinter.RED, deletedFiles);
-  }
-
-  private static void printFileList(@NotNull String groupName, @NotNull String color,
-                                    @NotNull Collection<String> paths) {
-    if (paths.isEmpty()) {
-      return;
-    }
-
-    ConsoleColoredPrinter.println(String.format("%s:", groupName));
-    for (String path : paths) {
-      ConsoleColoredPrinter.println(String.format("\t\t%s", path), color);
-    }
+    printListOfFiles("Deleted", ConsoleColoredPrinter.RED, deletedFiles);
   }
 
   @Override

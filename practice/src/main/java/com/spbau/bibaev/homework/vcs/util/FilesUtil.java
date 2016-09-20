@@ -12,7 +12,10 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 public class FilesUtil {
   public static boolean isContainsDirectory(@NotNull File directory, @NotNull String dirName) {
@@ -37,6 +40,10 @@ public class FilesUtil {
       n = in.read(buffer);
     }
     in.close();
+  }
+
+  public static Collection<String> pathsToStrings(@NotNull Collection<Path> paths) {
+    return paths.stream().map(Path::toString).collect(Collectors.toCollection(ArrayList::new));
   }
 
   private static Base64.Encoder BASE64_ENCODER = Base64.getEncoder();

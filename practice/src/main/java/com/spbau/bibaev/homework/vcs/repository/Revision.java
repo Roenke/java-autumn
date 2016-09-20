@@ -11,10 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -41,14 +38,17 @@ public class Revision {
   private final Map<String, String> myFile2Hash;
   private final RevisionSnapshot mySnapshot;
 
-  private Revision(@NotNull Revision.RevisionMetadata meta, @NotNull RevisionSnapshot snapshot) {
+  private Revision(@NotNull Revision.RevisionMetadata meta, @NotNull File snapshotFile) {
     myHash = meta.hash;
     myAuthor = meta.author;
     myMessage = meta.message;
     myFile2Hash = meta.file2Descriptor.keySet().stream()
         .collect(Collectors.toMap(Function.identity(), x -> meta.file2Descriptor.get(x).fileHash));
     myDate = meta.date;
-    mySnapshot = snapshot;
+    Map<String, Pair<Long, Long>> file2Pos = meta.file2Descriptor.keySet().stream()
+        .collect(Collectors.toMap(Function.identity(),
+            s -> Pair.makePair(meta.file2Descriptor.get(s).offset, meta.file2Descriptor.get(s).length)));
+    mySnapshot = new RevisionSnapshot(snapshotFile, file2Pos);
   }
 
   static Revision read(@NotNull File dir) throws RepositoryOpeningException {
@@ -69,8 +69,7 @@ public class Revision {
     if (snapshotFile == null) {
       throw new RepositoryOpeningException("Snapshot file not found for revision " + revisionName);
     }
-    RevisionSnapshot snapshot = new RevisionSnapshot(snapshotFile);
-    return new Revision(meta, snapshot);
+    return new Revision(meta, snapshotFile);
   }
 
   public String getHash() {
@@ -94,7 +93,7 @@ public class Revision {
   }
 
   public FileState getFileState(@NotNull String path, @NotNull String hashCode) {
-    if(!myFile2Hash.containsKey(path)) {
+    if (!myFile2Hash.containsKey(path)) {
       return FileState.NEW;
     }
 
@@ -218,6 +217,10 @@ public class Revision {
     return Pair.makePair(metaRevisionFile, snapshot);
   }
 
+  public void restore(@NotNull Path tmpDirectory) throws IOException {
+    mySnapshot.restore(tmpDirectory);
+  }
+
   @XmlRootElement
   private static class RevisionMetadata {
     @XmlElement
@@ -233,6 +236,7 @@ public class Revision {
 
     @XmlRootElement
     static class FileDescriptor {
+      @SuppressWarnings("unused")
       FileDescriptor() {
       }
 
@@ -253,9 +257,41 @@ public class Revision {
 
   private static class RevisionSnapshot {
     private final File myFile;
+    private final Map<String, Pair<Long, Long>> myPositionMapping;
 
-    RevisionSnapshot(@NotNull File file) {
+    RevisionSnapshot(@NotNull File file, @NotNull Map<String, Pair<Long, Long>> positionsMapping) {
       myFile = file;
+      myPositionMapping = new HashMap<>(positionsMapping);
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    void restore(@NotNull Path directory) throws IOException {
+      for (String pathSuffix : myPositionMapping.keySet()) {
+        long offset = myPositionMapping.get(pathSuffix).first;
+        long length = myPositionMapping.get(pathSuffix).second;
+
+        File outputFile = new File(directory.toFile(), pathSuffix);
+        outputFile.getParentFile().mkdirs();
+        outputFile.createNewFile();
+
+        FileInputStream stream = new FileInputStream(myFile);
+        stream.skip(Long.BYTES + offset);
+        writeToFile(stream, outputFile, length);
+      }
+    }
+
+    private void writeToFile(@NotNull InputStream in, @NotNull File file, long len) throws IOException {
+      OutputStream out = new FileOutputStream(file);
+
+      byte[] buffer = new byte[4096];
+      long remain = len;
+      while (remain > 0){
+        int readBytes = in.read(buffer, 0, (int) Math.min(buffer.length, remain));
+        out.write(readBytes);
+        remain -= readBytes;
+      }
+
+      out.close();
     }
   }
 }

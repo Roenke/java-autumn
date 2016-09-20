@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.vcs.util;
 
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +43,31 @@ public class FilesUtil {
     in.close();
   }
 
+  public static void deleteRecursively(@NotNull File file) throws IOException {
+    if (file.isDirectory()) {
+      FileUtils.deleteDirectory(file);
+    } else {
+      FileUtils.deleteQuietly(file);
+    }
+
+  }
+
+  private static void createDirectoryRecursively(@NotNull File directory) throws IOException {
+    if (!directory.exists()) {
+      createDirectoryRecursively(directory.getParentFile());
+      Files.createDirectory(directory.toPath());
+    }
+  }
+
+  public static void createFile(@NotNull File file) throws IOException {
+    if (file.exists()) {
+      return;
+    }
+
+    createDirectoryRecursively(file.getParentFile());
+    Files.createFile(file.toPath());
+  }
+
   public static Collection<String> pathsToStrings(@NotNull Collection<Path> paths) {
     return paths.stream().map(Path::toString).collect(Collectors.toCollection(ArrayList::new));
   }
@@ -54,7 +80,7 @@ public class FilesUtil {
       DigestInputStream stream = new DigestInputStream(Files.newInputStream(file.toPath()), digest);
       byte[] buffer = new byte[4096];
       int count = stream.read(buffer);
-      while(count > 0) {
+      while (count > 0) {
         count = stream.read(buffer);
       }
 
@@ -93,12 +119,12 @@ public class FilesUtil {
   @Nullable
   private static File find(@NotNull File directory, @NotNull FileFilter filter, @NotNull String filename) {
     File[] files = directory.listFiles(filter);
-    if(!directory.isDirectory() || files == null) {
+    if (!directory.isDirectory() || files == null) {
       return null;
     }
 
-    for(File file : files) {
-      if(filename.equals(file.getName())) {
+    for (File file : files) {
+      if (filename.equals(file.getName())) {
         return file;
       }
     }

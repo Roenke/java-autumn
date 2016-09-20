@@ -16,7 +16,8 @@ import java.util.stream.Collectors;
  * commit [message]
  * log
  * status
- * TODO: checkout branch_name|revision_hash
+ * checkout branch_name|revision_hash
+ * TODO: revert
  * TODO: merge [branch]
  */
 public class EntryPoint {

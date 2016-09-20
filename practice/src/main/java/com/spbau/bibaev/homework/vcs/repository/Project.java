@@ -112,8 +112,14 @@ public class Project {
 
   void clean() throws RepositoryIOException {
     final File[] files = myRootDirectory.listFiles((dir, name) -> !name.equals(Repository.VCS_DIRECTORY_NAME));
-    if(files != null) {
-      Arrays.stream(files).forEach(File::delete);
+    try {
+      if (files != null) {
+        for (File f : files) {
+          FilesUtil.deleteRecursively(f);
+        }
+      }
+    } catch (IOException e) {
+      throw new RepositoryIOException("Cannot delete file. " + e.getMessage(), e);
     }
 
     myPath2File.clear();
@@ -134,7 +140,7 @@ public class Project {
 
     @Override
     @NotNull
-    public  Collection<Path> getNewFiles() {
+    public Collection<Path> getNewFiles() {
       return Collections.unmodifiableCollection(myNew);
     }
 

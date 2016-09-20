@@ -12,6 +12,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -105,7 +107,16 @@ public class Repository {
   }
 
   public void checkout(@NotNull Branch newBranch) throws RepositoryIOException {
-    checkout(newBranch.getLastRevision());
+    try {
+      Path tmpDirectory = Files.createTempDirectory("revision");
+      newBranch.getLastRevision().restore(tmpDirectory);
+      myProject.clean();
+      FilesUtil.recursiveCopyDirectory(tmpDirectory, myProject.getRootDirectory().toPath());
+      myCurrentBranchName = newBranch.getName();
+      save();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public void checkout(@NotNull Revision revision) throws RepositoryIOException {
@@ -116,7 +127,8 @@ public class Repository {
         .collect(Collectors.toList());
     Branch newBranch = Branch.createNewBranch(myRepositoryMetadataDirectory.toPath(), newBranchName, earlierRevisions);
     myCurrentBranchName = newBranch.getName();
-    save();
+    myName2Branch.put(myCurrentBranchName, newBranch);
+    checkout(branch);
   }
 
   public static void createNewRepository(@NotNull File directory) throws RepositoryIOException {
@@ -150,7 +162,7 @@ public class Repository {
     myCurrentUserName = meta.userName;
   }
 
-  public void save() throws RepositoryIOException {
+  private void save() throws RepositoryIOException {
     try {
       File metadataFile = new File(myRepositoryMetadataDirectory.getAbsolutePath() + File.separator +
           METADATA_FILENAME);
@@ -165,8 +177,9 @@ public class Repository {
     return myCurrentUserName;
   }
 
-  public void setUserName(@NotNull String newName) {
+  public void setUserName(@NotNull String newName) throws RepositoryIOException {
     myCurrentUserName = newName;
+    save();
   }
 
   public void createNewBranch(@NotNull String name) throws RepositoryIOException {

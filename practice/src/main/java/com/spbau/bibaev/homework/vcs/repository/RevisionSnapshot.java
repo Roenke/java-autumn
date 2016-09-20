@@ -1,9 +1,11 @@
 package com.spbau.bibaev.homework.vcs.repository;
 
+import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import com.spbau.bibaev.homework.vcs.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +26,7 @@ class RevisionSnapshot {
       long length = myPositionMapping.get(pathSuffix).second;
 
       File outputFile = new File(directory.toFile(), pathSuffix);
-      outputFile.getParentFile().mkdirs();
-      outputFile.createNewFile();
+      FilesUtil.createFile(outputFile);
 
       FileInputStream stream = new FileInputStream(myFile);
       stream.skip(offset);

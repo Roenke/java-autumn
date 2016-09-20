@@ -7,6 +7,7 @@ import com.spbau.bibaev.homework.vcs.repository.Project;
 import com.spbau.bibaev.homework.vcs.repository.Repository;
 import com.spbau.bibaev.homework.vcs.repository.Revision;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
+import com.spbau.bibaev.homework.vcs.util.Diff;
 import com.spbau.bibaev.homework.vcs.util.FileState;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.jetbrains.annotations.NotNull;
@@ -35,36 +36,10 @@ public class StatusCommand extends RepositoryCommand {
     ConsoleColoredPrinter.println("On branch " + currentBranch.getName());
     ConsoleColoredPrinter.println("Revision: " + lastRevision.getHash(), ConsoleColoredPrinter.GREEN);
 
-    Project project = repository.getProject();
-    Path projectRoot = project.getRootDirectory().toPath();
-    List<File> projectFiles = project.getAllFiles();
-    Collection<String> newFiles = new ArrayList<>();
-    Collection<String> modifiedFiles = new ArrayList<>();
-    try {
-      for (File file : projectFiles) {
-        String relativePath = projectRoot.relativize(file.toPath()).toString();
-        String hash = FilesUtil.evalHashOfFile(file);
-        FileState state = lastRevision.getFileState(relativePath, hash);
-        switch (state) {
-          case NEW:
-            newFiles.add(relativePath);
-            break;
-          case MODIFIED:
-            modifiedFiles.add(relativePath);
-            break;
-        }
-      }
-    } catch (IOException e) {
-      ConsoleColoredPrinter.println("Error occurred: " + e.getMessage());
-    }
-    printListOfFiles("New files", ConsoleColoredPrinter.GREEN, newFiles);
-    printListOfFiles("Modified", ConsoleColoredPrinter.YELLOW, modifiedFiles);
-
-    Set<String> fileNames = projectFiles.stream()
-        .map(file -> projectRoot.relativize(file.toPath()).toString()).collect(Collectors.toSet());
-    Set<String> deletedFiles = lastRevision.getAllFiles().stream().collect(Collectors.toSet());
-    deletedFiles.removeAll(fileNames);
-    printListOfFiles("Deleted", ConsoleColoredPrinter.RED, deletedFiles);
+    Diff diff = repository.getProject().diffWithRevision(repository.getCurrentBranch().getLastRevision());
+    printListOfFiles("New files", ConsoleColoredPrinter.GREEN, FilesUtil.pathsToStrings(diff.getNewFiles()));
+    printListOfFiles("Modified", ConsoleColoredPrinter.YELLOW, FilesUtil.pathsToStrings(diff.getModifiedFiles()));
+    printListOfFiles("Deleted", ConsoleColoredPrinter.RED, FilesUtil.pathsToStrings(diff.getDeletedFiles()));
   }
 
   @Override

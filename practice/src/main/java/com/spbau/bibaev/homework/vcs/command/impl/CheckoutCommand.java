@@ -23,6 +23,11 @@ public class CheckoutCommand extends RepositoryCommand {
   @Override
   protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws RepositoryException {
     String arg = args.get(0);
+    if(repository.getCurrentBranch().getName().equals(arg)) {
+      ConsoleColoredPrinter.println("Already on " + arg, ConsoleColoredPrinter.YELLOW);
+      return;
+    }
+
     Branch branch = repository.getBranchByName(arg);
     Diff diff = repository.getProject().diffWithRevision(repository.getCurrentBranch().getLastRevision());
     Collection<Path> newFiles = diff.getNewFiles();

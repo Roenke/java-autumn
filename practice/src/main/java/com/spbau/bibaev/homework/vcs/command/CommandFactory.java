@@ -20,6 +20,7 @@ public class CommandFactory {
     NAME_2_COMMAND_CLASS_MAP.put("branch", BranchCommand.class);
     NAME_2_COMMAND_CLASS_MAP.put("commit", CommitCommand.class);
     NAME_2_COMMAND_CLASS_MAP.put("status", StatusCommand.class);
+    NAME_2_COMMAND_CLASS_MAP.put("checkout", CheckoutCommand.class);
   }
 
   @Nullable
@@ -29,12 +30,13 @@ public class CommandFactory {
     }
 
     Class<?> clazz = NAME_2_COMMAND_CLASS_MAP.get(name);
-    CommandBase instance = null;
+    CommandBase instance;
     try {
       Constructor<?> constructor = clazz.getConstructor(File.class);
       instance = (CommandBase) constructor.newInstance(currentDirectory);
     } catch (NoSuchMethodException | IllegalAccessException |
         InstantiationException | InvocationTargetException ignored) {
+      return null;
     }
 
     return instance;

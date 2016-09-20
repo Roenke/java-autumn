@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.vcs.command;
 
 import com.spbau.bibaev.homework.vcs.EntryPoint;
+import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,14 +19,18 @@ public abstract class CommandBase implements Command {
   public void perform(@NotNull List<String> args) {
     int argCount = args.size();
     if (getMinArgCount() <= argCount && argCount <= getMaxArgCount()) {
-      performImpl(args);
+      try {
+        performImpl(args);
+      } catch (RepositoryException e) {
+        ConsoleColoredPrinter.println("Something wrong. " + e.getMessage());
+      }
     } else {
       ConsoleColoredPrinter.println(String.format("Usage: %s %s", EntryPoint.VCS_NAME, getUsage()),
           ConsoleColoredPrinter.RED);
     }
   }
 
-  protected abstract void performImpl(@NotNull List<String> args);
+  protected abstract void performImpl(@NotNull List<String> args) throws RepositoryException;
   protected abstract String getUsage();
 
   protected int getMinArgCount() {

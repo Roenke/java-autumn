@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
+import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
 import com.spbau.bibaev.homework.vcs.repository.Repository;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
@@ -15,16 +16,12 @@ public class UserCommand extends RepositoryCommand {
   }
 
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) {
+  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws RepositoryException {
     if (args.size() == 0) {
       ConsoleColoredPrinter.println(repository.getUserName(), ConsoleColoredPrinter.GREEN);
     } else {
       repository.setUserName(args.get(0));
-      try {
-        repository.save();
-      } catch (RepositoryIOException e) {
-        ConsoleColoredPrinter.println("Repository updating failed: " + e.getMessage(), ConsoleColoredPrinter.RED);
-      }
+      repository.save();
     }
   }
 

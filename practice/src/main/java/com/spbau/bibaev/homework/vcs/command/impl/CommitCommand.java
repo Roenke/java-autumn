@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
+import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
 import com.spbau.bibaev.homework.vcs.repository.Repository;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
@@ -15,13 +16,9 @@ public class CommitCommand extends RepositoryCommand {
   }
 
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) {
-    try {
-      repository.commitChanges(args.size() > 0 ? args.get(0) : "");
-      ConsoleColoredPrinter.println("Successfully", ConsoleColoredPrinter.GREEN);
-    } catch (RepositoryIOException e) {
-      ConsoleColoredPrinter.println("Error occurred: " + e.getMessage(), ConsoleColoredPrinter.RED);
-    }
+  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws RepositoryException {
+    repository.commitChanges(args.size() > 0 ? args.get(0) : "");
+    ConsoleColoredPrinter.println("Successfully", ConsoleColoredPrinter.GREEN);
   }
 
   @Override

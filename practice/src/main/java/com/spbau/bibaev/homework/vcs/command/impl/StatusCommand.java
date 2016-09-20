@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
+import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
 import com.spbau.bibaev.homework.vcs.repository.Branch;
 import com.spbau.bibaev.homework.vcs.repository.Project;
 import com.spbau.bibaev.homework.vcs.repository.Repository;
@@ -27,7 +28,7 @@ public class StatusCommand extends RepositoryCommand {
   }
 
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) {
+  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws RepositoryException {
     Branch currentBranch = repository.getCurrentBranch();
     Revision lastRevision = currentBranch.getLastRevision();
 

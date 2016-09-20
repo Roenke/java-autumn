@@ -8,10 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.nio.file.Path;
+import java.util.*;
 
 public class Branch {
   private static final String INITIAL_REVISION_DIRECTORY_NAME = "initial";
@@ -40,43 +38,38 @@ public class Branch {
     return new Branch(name, revisions, dir);
   }
 
-  static Branch createNewBranch(@NotNull File metadataDirectory, @NotNull String branchName, @NotNull String userName)
-      throws RepositoryIOException {
-    File branchDirectory = new File(metadataDirectory.getAbsoluteFile() + File.separator + branchName);
-    if (!branchDirectory.mkdir()) {
-      throw new RepositoryIOException(String.format("Branch \"%s\" already exists", branchName));
-    }
-
-    File initRevisionDirectory = new File(branchDirectory.getAbsolutePath() + File.separator +
-        INITIAL_REVISION_DIRECTORY_NAME);
-    if (!initRevisionDirectory.mkdir()) {
-      throw new RepositoryIOException("Cannot create directory for initial revision in " +
-          initRevisionDirectory.toString());
-    }
-
-    Revision.createEmptyRevision(initRevisionDirectory, userName);
-    Revision revision = Revision.read(initRevisionDirectory);
-
-    return new Branch(branchName, Collections.singletonList(revision), branchDirectory);
-  }
-
   static Branch createNewBranch(@NotNull File metadataDirectory, @NotNull String name, @NotNull Branch base)
       throws RepositoryIOException {
-    File branchDirectory = new File(metadataDirectory.getAbsoluteFile() + File.separator + name);
+    return createNewBranch(metadataDirectory.toPath(), name, base.getRevisions());
+  }
+
+  static Branch createNewBranch(@NotNull Path metadataDirectory, @NotNull String name,
+                                @NotNull Collection<Revision> revisions) throws RepositoryIOException {
+    File branchDirectory = new File(metadataDirectory.toFile().getAbsolutePath() + File.separator + name);
     if (!branchDirectory.mkdir()) {
       throw new RepositoryIOException(String.format("Branch \"%s\" already exists", name));
     }
 
+
     try {
-      FilesUtil.recursiveCopyDirectory(base.myBranchDirectory.toPath(), branchDirectory.toPath());
+      if (revisions.isEmpty()) {
+        Files.createDirectory(branchDirectory.toPath().resolve(INITIAL_REVISION_DIRECTORY_NAME)).toFile();
+      }
+
+      for (Revision revision : revisions) {
+        Path revisionPath = branchDirectory.toPath().resolve(revision.getHash());
+        Files.createDirectory(revisionPath);
+        FilesUtil.recursiveCopyDirectory(revision.getDirectory(), revisionPath);
+      }
     } catch (IOException e) {
       try {
-        Files.delete(branchDirectory.toPath());
+        if (branchDirectory.exists()) {
+          Files.delete(branchDirectory.toPath());
+        }
       } catch (IOException e1) {
-        throw new RepositoryIOException("Repository corrupted", e1);
+        throw new RepositoryIOException("Repository was corrupted");
       }
-      throw new RepositoryIOException(String.format("Could not recursive copy from %s to %s",
-          base.myBranchDirectory.getAbsolutePath(), branchDirectory.getAbsolutePath()));
+      throw new RepositoryIOException("Cannot copy revisions into" + branchDirectory.getAbsolutePath());
     }
 
     return Branch.read(branchDirectory);

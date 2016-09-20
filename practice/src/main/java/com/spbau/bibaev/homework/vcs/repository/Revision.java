@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.spbau.bibaev.homework.vcs.repository.Repository.DEFAULT_USER_NAME;
+
 public class Revision {
   private static final String REVISION_METADATA_FILENAME = "revision_meta.xml";
   private static final String SNAPSHOT_FILENAME = "snapshot.data";
@@ -37,8 +39,10 @@ public class Revision {
   private final Date myDate;
   private final Map<String, String> myFile2Hash;
   private final RevisionSnapshot mySnapshot;
+  private final Path myRevisionDirectory;
 
-  private Revision(@NotNull Revision.RevisionMetadata meta, @NotNull File snapshotFile) {
+  private Revision(@NotNull Path directory, @NotNull Revision.RevisionMetadata meta, @NotNull File snapshotFile) {
+    myRevisionDirectory = directory;
     myHash = meta.hash;
     myAuthor = meta.author;
     myMessage = meta.message;
@@ -69,7 +73,7 @@ public class Revision {
     if (snapshotFile == null) {
       throw new RepositoryOpeningException("Snapshot file not found for revision " + revisionName);
     }
-    return new Revision(meta, snapshotFile);
+    return new Revision(dir.toPath(), meta, snapshotFile);
   }
 
   public String getHash() {
@@ -101,9 +105,13 @@ public class Revision {
     return revisionHash.equals(hashCode) ? FileState.NOT_CHANGED : FileState.MODIFIED;
   }
 
-  static void createEmptyRevision(@NotNull File revisionDirectory, @NotNull String userName) throws RepositoryIOException {
+  Path getDirectory() {
+    return myRevisionDirectory;
+  }
+
+  static Revision createEmptyRevision(@NotNull File revisionDirectory) throws RepositoryIOException {
     RevisionMetadata meta = new RevisionMetadata();
-    meta.author = userName;
+    meta.author = DEFAULT_USER_NAME;
     meta.date = new Date();
     meta.message = INITIAL_COMMIT_MESSAGE;
     meta.hash = "";
@@ -115,6 +123,8 @@ public class Revision {
     } catch (JAXBException e) {
       throw new RepositoryIOException("Cannot save initial revision metadata", e);
     }
+
+    return read(revisionDirectory);
   }
 
   static String addNewRevision(@NotNull File revisionDirectory, @NotNull String message,
@@ -217,7 +227,7 @@ public class Revision {
     return Pair.makePair(metaRevisionFile, snapshot);
   }
 
-  public void restore(@NotNull Path tmpDirectory) throws IOException {
+  void restore(@NotNull Path tmpDirectory) throws IOException {
     mySnapshot.restore(tmpDirectory);
   }
 
@@ -252,46 +262,6 @@ public class Revision {
       long offset;
       @XmlElement
       long length;
-    }
-  }
-
-  private static class RevisionSnapshot {
-    private final File myFile;
-    private final Map<String, Pair<Long, Long>> myPositionMapping;
-
-    RevisionSnapshot(@NotNull File file, @NotNull Map<String, Pair<Long, Long>> positionsMapping) {
-      myFile = file;
-      myPositionMapping = new HashMap<>(positionsMapping);
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    void restore(@NotNull Path directory) throws IOException {
-      for (String pathSuffix : myPositionMapping.keySet()) {
-        long offset = myPositionMapping.get(pathSuffix).first;
-        long length = myPositionMapping.get(pathSuffix).second;
-
-        File outputFile = new File(directory.toFile(), pathSuffix);
-        outputFile.getParentFile().mkdirs();
-        outputFile.createNewFile();
-
-        FileInputStream stream = new FileInputStream(myFile);
-        stream.skip(Long.BYTES + offset);
-        writeToFile(stream, outputFile, length);
-      }
-    }
-
-    private void writeToFile(@NotNull InputStream in, @NotNull File file, long len) throws IOException {
-      OutputStream out = new FileOutputStream(file);
-
-      byte[] buffer = new byte[4096];
-      long remain = len;
-      while (remain > 0){
-        int readBytes = in.read(buffer, 0, (int) Math.min(buffer.length, remain));
-        out.write(readBytes);
-        remain -= readBytes;
-      }
-
-      out.close();
     }
   }
 }

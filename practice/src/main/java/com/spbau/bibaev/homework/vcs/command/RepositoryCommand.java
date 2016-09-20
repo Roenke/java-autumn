@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.vcs.command;
 
+import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryOpeningException;
 import com.spbau.bibaev.homework.vcs.repository.Repository;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
@@ -17,7 +18,7 @@ public abstract class RepositoryCommand extends CommandBase {
    * @param args command line args
    */
   @Override
-  protected void performImpl(@NotNull List<String> args) {
+  protected void performImpl(@NotNull List<String> args) throws RepositoryException {
     try {
       Repository rep = Repository.open(ourDirectory);
       perform(args, rep);
@@ -27,5 +28,5 @@ public abstract class RepositoryCommand extends CommandBase {
     }
   }
 
-  protected abstract void perform(@NotNull List<String> args, @NotNull Repository repository);
+  protected abstract void perform(@NotNull List<String> args, @NotNull Repository repository) throws RepositoryException;
 }

@@ -16,12 +16,8 @@ public class InitCommand extends CommandBase {
   }
 
   @Override
-  protected void performImpl(@NotNull List<String> args) {
-    try {
-      Repository.createNewRepository(ourDirectory);
-    } catch (RepositoryIOException e) {
-      ConsoleColoredPrinter.println("Could not create repository: " + e.getMessage(), ConsoleColoredPrinter.RED);
-    }
+  protected void performImpl(@NotNull List<String> args) throws RepositoryIOException {
+    Repository.createNewRepository(ourDirectory);
   }
 
   @Override

@@ -110,12 +110,10 @@ public class Project {
     return new Project(projectRootDirectory, files);
   }
 
-  public void clean() throws RepositoryIOException {
-    for(String path : myPath2File.keySet()) {
-      File file = myPath2File.get(path);
-      if(!file.delete()) {
-        throw new RepositoryIOException("Cannot delete file in current project: " + path);
-      }
+  void clean() throws RepositoryIOException {
+    final File[] files = myRootDirectory.listFiles((dir, name) -> !name.equals(Repository.VCS_DIRECTORY_NAME));
+    if(files != null) {
+      Arrays.stream(files).forEach(File::delete);
     }
 
     myPath2File.clear();

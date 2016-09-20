@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
+import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
 import com.spbau.bibaev.homework.vcs.repository.Branch;
 import com.spbau.bibaev.homework.vcs.repository.Repository;
@@ -17,7 +18,7 @@ public class BranchCommand extends RepositoryCommand {
   }
 
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) {
+  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws RepositoryException {
     if (args.size() == 0) {
       String currentBranchName = repository.getCurrentBranchName();
       List<String> branches = repository.getAllBranches().stream().map(Branch::getName).collect(Collectors.toList());
@@ -35,12 +36,8 @@ public class BranchCommand extends RepositoryCommand {
       if (branch != null) {
         ConsoleColoredPrinter.println("Such branch already exists", ConsoleColoredPrinter.RED);
       } else {
-        try {
-          repository.createNewBranch(branchName);
-          ConsoleColoredPrinter.println("Successfully", ConsoleColoredPrinter.GREEN);
-        } catch (RepositoryIOException e) {
-          ConsoleColoredPrinter.println("Error occurred: " + e.getMessage(), ConsoleColoredPrinter.RED);
-        }
+        repository.createNewBranch(branchName);
+        ConsoleColoredPrinter.println("Successfully", ConsoleColoredPrinter.GREEN);
       }
     }
   }

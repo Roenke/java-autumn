@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
-public class RepositoryIOException extends Exception {
+public class RepositoryIOException extends RepositoryException {
   public RepositoryIOException(@NotNull String message) {
     super(message);
   }

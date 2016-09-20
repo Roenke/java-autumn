@@ -13,12 +13,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Repository {
-  private static final String VCS_DIRECTORY_NAME = ".my_vcs";
+  static final String VCS_DIRECTORY_NAME = ".my_vcs";
+  static final String DEFAULT_USER_NAME = System.getProperty("user.name");
   private static final String DEFAULT_BRANCH_NAME = "master";
   private static final String METADATA_FILENAME = "metadata.xml";
-  private static final String DEFAULT_USER_NAME = System.getProperty("user.name");
   private final Map<String, Branch> myName2Branch;
   private final Project myProject;
   private String myCurrentBranchName;
@@ -76,6 +77,13 @@ public class Repository {
     return myName2Branch.getOrDefault(name, null);
   }
 
+  @Nullable
+  public Revision getRevisionByName(@NotNull String hashCode) {
+    List<Revision> revisions = myName2Branch.get(myCurrentBranchName).getRevisions();
+    Optional<Revision> revision = revisions.stream().filter(rev -> rev.getHash().equals(hashCode)).findFirst();
+    return revision.orElse(null);
+  }
+
   @NotNull
   public Branch getCurrentBranch() {
     return myName2Branch.get(myCurrentBranchName);
@@ -96,13 +104,28 @@ public class Repository {
     return myCurrentBranchName;
   }
 
+  public void checkout(@NotNull Branch newBranch) throws RepositoryIOException {
+    checkout(newBranch.getLastRevision());
+  }
+
+  public void checkout(@NotNull Revision revision) throws RepositoryIOException {
+    String newBranchName = myCurrentBranchName + revision.getHash();
+    Branch branch = myName2Branch.get(myCurrentBranchName);
+    Collection<Revision> earlierRevisions = branch.getRevisions().stream()
+        .filter(rev -> rev.getDate().compareTo(revision.getDate()) <= 0)
+        .collect(Collectors.toList());
+    Branch newBranch = Branch.createNewBranch(myRepositoryMetadataDirectory.toPath(), newBranchName, earlierRevisions);
+    myCurrentBranchName = newBranch.getName();
+    save();
+  }
+
   public static void createNewRepository(@NotNull File directory) throws RepositoryIOException {
     File metadataDirectory = new File(directory.getAbsolutePath() + File.separator + VCS_DIRECTORY_NAME);
     if (metadataDirectory.exists() || !metadataDirectory.mkdir()) {
       throw new RepositoryIOException("Repository in \"" + directory.getAbsolutePath() + "\" already exists");
     }
 
-    Branch.createNewBranch(metadataDirectory, DEFAULT_BRANCH_NAME, DEFAULT_USER_NAME);
+    Branch.createNewBranch(metadataDirectory.toPath(), DEFAULT_BRANCH_NAME, Collections.emptyList());
 
     File metadataFile = new File(metadataDirectory.getAbsolutePath() + File.separator + METADATA_FILENAME);
     try {
@@ -147,7 +170,8 @@ public class Repository {
   }
 
   public void createNewBranch(@NotNull String name) throws RepositoryIOException {
-    Branch.createNewBranch(myRepositoryMetadataDirectory, name, myName2Branch.get(myCurrentBranchName));
+    Branch branch = Branch.createNewBranch(myRepositoryMetadataDirectory, name, myName2Branch.get(myCurrentBranchName));
+    myName2Branch.put(name, branch);
   }
 
   public void commitChanges(@NotNull String message) throws RepositoryIOException {

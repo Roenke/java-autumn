@@ -36,6 +36,20 @@ public class ExampleTest {
     }
   }
 
+  @Test
+  public void threadAliveError() {
+    Thread thread = new Thread(() -> {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        throw new RuntimeException();
+      }
+    });
+
+    rule.registerThread(thread);
+    thread.start();
+  }
+
   private static class MyRule implements TestRule {
     private final Collection<Thread> myRegisteredThreads = new CopyOnWriteArrayList<>();
     private final Map<Thread, List<Throwable>> myErrors = new ConcurrentHashMap<>();

@@ -2,7 +2,7 @@ package com.spbau.bibaev.homework.vcs.ex;
 
 import org.jetbrains.annotations.NotNull;
 
-public class RepositoryIllegalStateException extends RepositoryException {
+public class RepositoryIllegalStateException extends RuntimeException {
   public RepositoryIllegalStateException(@NotNull String message) {
     super(message);
   }

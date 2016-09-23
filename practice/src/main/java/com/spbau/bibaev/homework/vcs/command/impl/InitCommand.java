@@ -1,10 +1,8 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
-import com.spbau.bibaev.homework.vcs.ex.RepositoryOpeningException;
-import com.spbau.bibaev.homework.vcs.repository.Repository;
+import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryImpl;
 import com.spbau.bibaev.homework.vcs.command.CommandBase;
-import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -17,7 +15,7 @@ public class InitCommand extends CommandBase {
 
   @Override
   protected void performImpl(@NotNull List<String> args) throws RepositoryIOException {
-    Repository.createNewRepository(ourDirectory);
+    RepositoryImpl.createNewRepository(ourDirectory);
   }
 
   @Override

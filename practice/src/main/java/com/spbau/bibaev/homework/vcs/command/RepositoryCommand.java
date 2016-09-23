@@ -2,12 +2,14 @@ package com.spbau.bibaev.homework.vcs.command;
 
 import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryOpeningException;
-import com.spbau.bibaev.homework.vcs.repository.Repository;
+import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryImpl;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
+
+import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.Color.RED;
 
 public abstract class RepositoryCommand extends CommandBase {
   public RepositoryCommand(@NotNull File directory) {
@@ -20,13 +22,13 @@ public abstract class RepositoryCommand extends CommandBase {
   @Override
   protected void performImpl(@NotNull List<String> args) throws RepositoryException {
     try {
-      Repository rep = Repository.open(ourDirectory);
+      RepositoryImpl rep = RepositoryImpl.open(ourDirectory);
       perform(args, rep);
 
     } catch (RepositoryOpeningException e) {
-      ConsoleColoredPrinter.println("Could not open repository, probably it corrupted", ConsoleColoredPrinter.RED);
+      ConsoleColoredPrinter.println("Could not open repository, probably it corrupted", RED);
     }
   }
 
-  protected abstract void perform(@NotNull List<String> args, @NotNull Repository repository) throws RepositoryException;
+  protected abstract void perform(@NotNull List<String> args, @NotNull RepositoryImpl repository) throws RepositoryException;
 }

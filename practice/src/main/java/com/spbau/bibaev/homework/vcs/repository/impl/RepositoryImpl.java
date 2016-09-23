@@ -1,7 +1,9 @@
-package com.spbau.bibaev.homework.vcs.repository;
+package com.spbau.bibaev.homework.vcs.repository.impl;
 
-import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
-import com.spbau.bibaev.homework.vcs.ex.RepositoryOpeningException;
+import com.spbau.bibaev.homework.vcs.repository.api.Branch;
+import com.spbau.bibaev.homework.vcs.repository.api.Project;
+import com.spbau.bibaev.homework.vcs.repository.api.Repository;
+import com.spbau.bibaev.homework.vcs.repository.api.Revision;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import com.spbau.bibaev.homework.vcs.util.XmlSerializer;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +19,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Repository {
+public class RepositoryImpl implements Repository{
   static final String VCS_DIRECTORY_NAME = ".my_vcs";
   static final String DEFAULT_USER_NAME = System.getProperty("user.name");
   private static final String DEFAULT_BRANCH_NAME = "master";
@@ -26,52 +28,52 @@ public class Repository {
   private final Project myProject;
   private String myCurrentBranchName;
   private String myCurrentUserName;
-  private File myRepositoryMetadataDirectory;
+  private Path myRepositoryMetadataDirectory;
 
   @NotNull
-  public static Repository open(@NotNull File directory) throws RepositoryOpeningException {
+  public static RepositoryImpl open(@NotNull File directory) throws IOException {
     File currentDirectory = directory;
     while (currentDirectory != null && !FilesUtil.isContainsDirectory(currentDirectory, VCS_DIRECTORY_NAME)) {
       currentDirectory = currentDirectory.getParentFile();
     }
 
     if (currentDirectory == null) {
-      throw new RepositoryOpeningException("Could not find repository root in " + directory.getAbsolutePath());
+      throw new IOException("Could not find repository root in " + directory.getAbsolutePath());
     }
 
     return openHere(currentDirectory);
   }
 
-  private static Repository openHere(@NotNull File directory) throws RepositoryOpeningException {
+  private static RepositoryImpl openHere(@NotNull File directory) throws IOException {
     File metadataDirectory = FilesUtil.findDirectoryByName(directory, VCS_DIRECTORY_NAME);
     if (metadataDirectory == null) {
-      throw new RepositoryOpeningException("Could not find repository root in " + directory.getAbsolutePath());
+      throw new IOException("Could not find repository root in " + directory.getAbsolutePath());
     }
 
     File[] branchDirectories = metadataDirectory.listFiles(File::isDirectory);
     if (branchDirectories == null) {
-      throw new RepositoryOpeningException("Could not read any branch information");
+      throw new IOException("Could not read any branch information");
     }
 
     Map<String, Branch> branches = new HashMap<>();
     for (File file : branchDirectories) {
-      Branch branch = Branch.read(file);
+      Branch branch = BranchImpl.read(file);
       branches.put(branch.getName(), branch);
     }
 
     File metadataFile = FilesUtil.findFileByName(metadataDirectory, METADATA_FILENAME);
     if (metadataFile == null) {
-      throw new RepositoryOpeningException("Repository metadata file not found");
+      throw new IOException("RepositoryImpl metadata file not found");
     }
     RepositoryMetadata meta;
     try {
       meta = XmlSerializer.deserialize(metadataFile, RepositoryMetadata.class);
     } catch (JAXBException e) {
-      throw new RepositoryOpeningException("Could not read from repository metadata file");
+      throw new IOException("Could not read from repository metadata file");
     }
 
-    Project project = Project.open(directory, metadataDirectory);
-    return new Repository(metadataDirectory, meta, branches, project);
+    ProjectImpl project = ProjectImpl.open(directory, metadataDirectory);
+    return new RepositoryImpl(metadataDirectory.toPath(), meta, branches, project);
   }
 
   @Nullable
@@ -91,9 +93,42 @@ public class Repository {
     return myName2Branch.get(myCurrentBranchName);
   }
 
+  @Override
+  public Revision checkout(@NotNull Branch branch) throws IOException {
+    Path tmpDirectory = Files.createTempDirectory("revision");
+    branch.getLastRevision().getSnapshot().restore(tmpDirectory);
+    myProject.clean();
+    FilesUtil.recursiveCopyDirectory(tmpDirectory, myProject.getRootDirectory());
+    myCurrentBranchName = branch.getName();
+    save();
+    return branch.getLastRevision();
+  }
+
+  @NotNull
+  @Override
+  public Revision checkout(@NotNull Revision revision) throws IOException {
+    String newBranchName = myCurrentBranchName + revision.getHash();
+    Branch branch = myName2Branch.get(myCurrentBranchName);
+    Collection<Revision> earlierRevisions = branch.getRevisions().stream()
+        .filter(rev -> rev.getDate().compareTo(revision.getDate()) <= 0)
+        .collect(Collectors.toList());
+    Branch newBranch = BranchImpl.createNewBranch(myRepositoryMetadataDirectory, newBranchName, earlierRevisions);
+    myCurrentBranchName = newBranch.getName();
+    myName2Branch.put(myCurrentBranchName, newBranch);
+    checkout(branch);
+
+    return branch.getLastRevision();
+  }
+
   @NotNull
   public Project getProject() {
     return myProject;
+  }
+
+  @NotNull
+  @Override
+  public List<Branch> getBranches() {
+    return myName2Branch.values().stream().collect(Collectors.toList());
   }
 
   @NotNull
@@ -106,55 +141,28 @@ public class Repository {
     return myCurrentBranchName;
   }
 
-  public void checkout(@NotNull Branch newBranch) throws RepositoryIOException {
-    try {
-      Path tmpDirectory = Files.createTempDirectory("revision");
-      newBranch.getLastRevision().restore(tmpDirectory);
-      myProject.clean();
-      FilesUtil.recursiveCopyDirectory(tmpDirectory, myProject.getRootDirectory().toPath());
-      myCurrentBranchName = newBranch.getName();
-      save();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-
-  public void checkout(@NotNull Revision revision) throws RepositoryIOException {
-    String newBranchName = myCurrentBranchName + revision.getHash();
-    Branch branch = myName2Branch.get(myCurrentBranchName);
-    Collection<Revision> earlierRevisions = branch.getRevisions().stream()
-        .filter(rev -> rev.getDate().compareTo(revision.getDate()) <= 0)
-        .collect(Collectors.toList());
-    Branch newBranch = Branch.createNewBranch(myRepositoryMetadataDirectory.toPath(), newBranchName, earlierRevisions);
-    myCurrentBranchName = newBranch.getName();
-    myName2Branch.put(myCurrentBranchName, newBranch);
-    checkout(branch);
-  }
-
-  public static void createNewRepository(@NotNull File directory) throws RepositoryIOException {
+  public static void createNewRepository(@NotNull File directory) throws IOException {
     File metadataDirectory = new File(directory.getAbsolutePath() + File.separator + VCS_DIRECTORY_NAME);
     if (metadataDirectory.exists() || !metadataDirectory.mkdir()) {
-      throw new RepositoryIOException("Repository in \"" + directory.getAbsolutePath() + "\" already exists");
+      throw new IOException("RepositoryImpl in \"" + directory.getAbsolutePath() + "\" already exists");
     }
 
-    Branch.createNewBranch(metadataDirectory.toPath(), DEFAULT_BRANCH_NAME, Collections.emptyList());
+    BranchImpl.createNewBranch(metadataDirectory.toPath(), DEFAULT_BRANCH_NAME, Collections.emptyList());
 
     File metadataFile = new File(metadataDirectory.getAbsolutePath() + File.separator + METADATA_FILENAME);
     try {
       if (!metadataFile.createNewFile()) {
-        throw new RepositoryIOException("Repository metadata file already exists");
+        throw new IOException("RepositoryImpl metadata file already exists");
       }
 
       XmlSerializer.serialize(metadataFile, RepositoryMetadata.class, RepositoryMetadata.defaultMeta());
-    } catch (IOException e) {
-      throw new RepositoryIOException("Could not create repository metadata file", e);
     } catch (JAXBException e) {
-      throw new RepositoryIOException("Could not serialize repository metadata", e);
+      throw new IOException("Could not serialize repository metadata", e);
     }
   }
 
-  private Repository(@NotNull File metaDirectory, @NotNull RepositoryMetadata meta,
-                     @NotNull Map<String, Branch> branches, @NotNull Project project) {
+  private RepositoryImpl(@NotNull Path metaDirectory, @NotNull RepositoryMetadata meta,
+                         @NotNull Map<String, Branch> branches, @NotNull ProjectImpl project) {
     myRepositoryMetadataDirectory = metaDirectory;
     myName2Branch = branches;
     myProject = project;
@@ -162,34 +170,39 @@ public class Repository {
     myCurrentUserName = meta.userName;
   }
 
-  private void save() throws RepositoryIOException {
+  private void save() throws IOException {
     try {
-      File metadataFile = new File(myRepositoryMetadataDirectory.getAbsolutePath() + File.separator +
+      File metadataFile = new File(myRepositoryMetadataDirectory.toAbsolutePath().toString() + File.separator +
           METADATA_FILENAME);
       XmlSerializer.serialize(metadataFile, RepositoryMetadata.class,
           new RepositoryMetadata(myCurrentBranchName, myCurrentUserName));
     } catch (JAXBException e) {
-      throw new RepositoryIOException("Could not save repository meta", e);
+      throw new IOException("Could not save repository meta", e);
     }
   }
 
+  @NotNull
   public String getUserName() {
     return myCurrentUserName;
   }
 
-  public void setUserName(@NotNull String newName) throws RepositoryIOException {
+  public void setUserName(@NotNull String newName) throws IOException {
     myCurrentUserName = newName;
     save();
   }
 
-  public void createNewBranch(@NotNull String name) throws RepositoryIOException {
-    Branch branch = Branch.createNewBranch(myRepositoryMetadataDirectory, name, myName2Branch.get(myCurrentBranchName));
+  public Branch createNewBranch(@NotNull String name) throws IOException {
+    Branch branch = BranchImpl.createNewBranch(myRepositoryMetadataDirectory.toFile(),
+        name, myName2Branch.get(myCurrentBranchName));
     myName2Branch.put(name, branch);
+    return branch;
   }
 
-  public void commitChanges(@NotNull String message) throws RepositoryIOException {
+  public void commitChanges(@NotNull String message) throws IOException {
     Date date = new Date();
     Branch currentBranch = myName2Branch.get(myCurrentBranchName);
+    myProject.makeSnapshot()
+    currentBranch.commitChanges()
     currentBranch.commit(message, date, myCurrentUserName);
   }
 

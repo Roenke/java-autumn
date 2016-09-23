@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.List;
 
+import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.Color.RED;
+
 public abstract class CommandBase implements Command {
   protected final File ourDirectory;
 
@@ -25,8 +27,7 @@ public abstract class CommandBase implements Command {
         ConsoleColoredPrinter.println("Something wrong. " + e.getMessage());
       }
     } else {
-      ConsoleColoredPrinter.println(String.format("Usage: %s %s", EntryPoint.VCS_NAME, getUsage()),
-          ConsoleColoredPrinter.RED);
+      ConsoleColoredPrinter.println(String.format("Usage: %s %s", EntryPoint.VCS_NAME, getUsage()), RED);
     }
   }
 

@@ -2,9 +2,8 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
-import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
-import com.spbau.bibaev.homework.vcs.repository.Branch;
-import com.spbau.bibaev.homework.vcs.repository.Repository;
+import com.spbau.bibaev.homework.vcs.repository.api.Branch;
+import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryImpl;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,26 +17,26 @@ public class BranchCommand extends RepositoryCommand {
   }
 
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws RepositoryException {
+  protected void perform(@NotNull List<String> args, @NotNull RepositoryImpl repository) throws RepositoryException {
     if (args.size() == 0) {
       String currentBranchName = repository.getCurrentBranchName();
       List<String> branches = repository.getAllBranches().stream().map(Branch::getName).collect(Collectors.toList());
       branches.sort(String::compareTo);
       for (String branchName : branches) {
         if (currentBranchName.equals(branchName)) {
-          ConsoleColoredPrinter.println(String.format("* %s", branchName), ConsoleColoredPrinter.GREEN);
+          ConsoleColoredPrinter.println(String.format("* %s", branchName), ConsoleColoredPrinter.Color.GREEN);
         } else {
-          ConsoleColoredPrinter.println(String.format("  %s", branchName), ConsoleColoredPrinter.WHITE);
+          ConsoleColoredPrinter.println(String.format("  %s", branchName), ConsoleColoredPrinter.Color.WHITE);
         }
       }
     } else {
       String branchName = args.get(0);
       Branch branch = repository.getBranchByName(args.get(0));
       if (branch != null) {
-        ConsoleColoredPrinter.println("Such branch already exists", ConsoleColoredPrinter.RED);
+        ConsoleColoredPrinter.println("Such branch already exists", ConsoleColoredPrinter.Color.RED);
       } else {
         repository.createNewBranch(branchName);
-        ConsoleColoredPrinter.println("Successfully", ConsoleColoredPrinter.GREEN);
+        ConsoleColoredPrinter.println("Successfully", ConsoleColoredPrinter.Color.GREEN);
       }
     }
   }

@@ -2,9 +2,9 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
-import com.spbau.bibaev.homework.vcs.repository.Branch;
-import com.spbau.bibaev.homework.vcs.repository.Repository;
-import com.spbau.bibaev.homework.vcs.repository.Revision;
+import com.spbau.bibaev.homework.vcs.repository.impl.BranchImpl;
+import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryImpl;
+import com.spbau.bibaev.homework.vcs.repository.impl.RevisionImpl;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,19 +19,19 @@ public class MergeCommand extends RepositoryCommand {
 
   interface MergeStrategy {
     @NotNull
-    Revision merge(@NotNull Revision from, @NotNull Revision into) throws RepositoryException;
+    RevisionImpl merge(@NotNull RevisionImpl from, @NotNull RevisionImpl into) throws RepositoryException;
   }
 
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws RepositoryException {
-    Branch srcBranch = repository.getBranchByName(args.get(0));
+  protected void perform(@NotNull List<String> args, @NotNull RepositoryImpl repository) throws RepositoryException {
+    BranchImpl srcBranch = repository.getBranchByName(args.get(0));
 
     if(srcBranch == null) {
-      ConsoleColoredPrinter.println("Such branch not found", ConsoleColoredPrinter.RED);
+      ConsoleColoredPrinter.println("Such branch not found", ConsoleColoredPrinter.Color.RED);
       return;
     }
 
-    Branch dstBranch = repository.getCurrentBranch();
+    BranchImpl dstBranch = repository.getCurrentBranch();
     MergeStrategy mergeStrategy = new MyPrimitiveMergeStrategy();
     mergeStrategy.merge(srcBranch.getLastRevision(), dstBranch.getLastRevision());
     ConsoleColoredPrinter.println("Successfully");
@@ -55,7 +55,7 @@ public class MergeCommand extends RepositoryCommand {
   private static class MyPrimitiveMergeStrategy implements MergeStrategy {
     @Override
     @NotNull
-    public Revision merge(@NotNull Revision from, @NotNull Revision into) {
+    public RevisionImpl merge(@NotNull RevisionImpl from, @NotNull RevisionImpl into) {
       return null;
     }
   }

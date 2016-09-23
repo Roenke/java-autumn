@@ -2,25 +2,18 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
-import com.spbau.bibaev.homework.vcs.repository.Branch;
-import com.spbau.bibaev.homework.vcs.repository.Project;
-import com.spbau.bibaev.homework.vcs.repository.Repository;
-import com.spbau.bibaev.homework.vcs.repository.Revision;
+import com.spbau.bibaev.homework.vcs.repository.impl.BranchImpl;
+import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryImpl;
+import com.spbau.bibaev.homework.vcs.repository.impl.RevisionImpl;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import com.spbau.bibaev.homework.vcs.util.Diff;
-import com.spbau.bibaev.homework.vcs.util.FileState;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
+import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.Color.*;
 import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.printListOfFiles;
 
 public class StatusCommand extends RepositoryCommand {
@@ -29,17 +22,17 @@ public class StatusCommand extends RepositoryCommand {
   }
 
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws RepositoryException {
-    Branch currentBranch = repository.getCurrentBranch();
-    Revision lastRevision = currentBranch.getLastRevision();
+  protected void perform(@NotNull List<String> args, @NotNull RepositoryImpl repository) throws RepositoryException {
+    BranchImpl currentBranch = repository.getCurrentBranch();
+    RevisionImpl lastRevision = currentBranch.getLastRevision();
 
     ConsoleColoredPrinter.println("On branch " + currentBranch.getName());
-    ConsoleColoredPrinter.println("Revision: " + lastRevision.getHash(), ConsoleColoredPrinter.GREEN);
+    ConsoleColoredPrinter.println("RevisionImpl: " + lastRevision.getHash(), ConsoleColoredPrinter.Color.GREEN);
 
     Diff diff = repository.getProject().diffWithRevision(repository.getCurrentBranch().getLastRevision());
-    printListOfFiles("New files", ConsoleColoredPrinter.GREEN, FilesUtil.pathsToStrings(diff.getNewFiles()));
-    printListOfFiles("Modified", ConsoleColoredPrinter.YELLOW, FilesUtil.pathsToStrings(diff.getModifiedFiles()));
-    printListOfFiles("Deleted", ConsoleColoredPrinter.RED, FilesUtil.pathsToStrings(diff.getDeletedFiles()));
+    printListOfFiles("New files", GREEN, FilesUtil.pathsToStrings(diff.getNewFiles()));
+    printListOfFiles("Modified", YELLOW, FilesUtil.pathsToStrings(diff.getModifiedFiles()));
+    printListOfFiles("Deleted", RED, FilesUtil.pathsToStrings(diff.getDeletedFiles()));
   }
 
   @Override

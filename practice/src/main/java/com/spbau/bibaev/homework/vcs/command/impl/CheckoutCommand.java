@@ -2,9 +2,9 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
-import com.spbau.bibaev.homework.vcs.repository.Branch;
-import com.spbau.bibaev.homework.vcs.repository.Repository;
-import com.spbau.bibaev.homework.vcs.repository.Revision;
+import com.spbau.bibaev.homework.vcs.repository.impl.BranchImpl;
+import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryImpl;
+import com.spbau.bibaev.homework.vcs.repository.impl.RevisionImpl;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import com.spbau.bibaev.homework.vcs.util.Diff;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
@@ -21,30 +21,30 @@ public class CheckoutCommand extends RepositoryCommand {
   }
 
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws RepositoryException {
+  protected void perform(@NotNull List<String> args, @NotNull RepositoryImpl repository) throws RepositoryException {
     String arg = args.get(0);
     if(repository.getCurrentBranch().getName().equals(arg)) {
-      ConsoleColoredPrinter.println("Already on " + arg, ConsoleColoredPrinter.YELLOW);
+      ConsoleColoredPrinter.println("Already on " + arg, ConsoleColoredPrinter.Color.YELLOW);
       return;
     }
 
-    Branch branch = repository.getBranchByName(arg);
+    BranchImpl branch = repository.getBranchByName(arg);
     Diff diff = repository.getProject().diffWithRevision(repository.getCurrentBranch().getLastRevision());
     Collection<Path> newFiles = diff.getNewFiles();
     Collection<Path> modifiedFiles = diff.getModifiedFiles();
     if (newFiles.size() + modifiedFiles.size() > 0) {
-      ConsoleColoredPrinter.println("Repository contains uncommitted files. Commit/revert it.",
-          ConsoleColoredPrinter.RED);
-      ConsoleColoredPrinter.printListOfFiles("New", ConsoleColoredPrinter.RED, FilesUtil.pathsToStrings(newFiles));
-      ConsoleColoredPrinter.printListOfFiles("Modified", ConsoleColoredPrinter.YELLOW,
+      ConsoleColoredPrinter.println("RepositoryImpl contains uncommitted files. Commit/revert it.",
+          ConsoleColoredPrinter.Color.RED);
+      ConsoleColoredPrinter.printListOfFiles("New", ConsoleColoredPrinter.Color.RED, FilesUtil.pathsToStrings(newFiles));
+      ConsoleColoredPrinter.printListOfFiles("Modified", ConsoleColoredPrinter.Color.YELLOW,
           FilesUtil.pathsToStrings(modifiedFiles));
       return;
     }
 
     if (branch == null) {
-      Revision revision = repository.getRevisionByName(arg);
+      RevisionImpl revision = repository.getRevisionByName(arg);
       if (revision == null) {
-        ConsoleColoredPrinter.println("Such branch or revision not found", ConsoleColoredPrinter.RED);
+        ConsoleColoredPrinter.println("Such branch or revision not found", ConsoleColoredPrinter.Color.RED);
         return;
       }
 

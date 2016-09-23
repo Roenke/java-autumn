@@ -1,34 +1,33 @@
-package com.spbau.bibaev.homework.vcs.repository;
+package com.spbau.bibaev.homework.vcs.repository.impl;
 
+import com.spbau.bibaev.homework.vcs.repository.api.Snapshot;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import com.spbau.bibaev.homework.vcs.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-class RevisionSnapshot {
-  private final File myFile;
+class RevisionSnapshot implements Snapshot {
+  private final Path myPathToSnapshot;
   private final Map<String, Pair<Long, Long>> myPositionMapping;
 
-  RevisionSnapshot(@NotNull File file, @NotNull Map<String, Pair<Long, Long>> positionsMapping) {
-    myFile = file;
+  RevisionSnapshot(@NotNull Path file, @NotNull Map<String, Pair<Long, Long>> positionsMapping) {
+    myPathToSnapshot = file;
     myPositionMapping = new HashMap<>(positionsMapping);
   }
 
-  @SuppressWarnings("ResultOfMethodCallIgnored")
-  void restore(@NotNull Path directory) throws IOException {
+  public void restore(@NotNull Path directory) throws IOException {
     for (String pathSuffix : myPositionMapping.keySet()) {
-      long offset = myPositionMapping.get(pathSuffix).first;
+      long offset  = myPositionMapping.get(pathSuffix).first;
       long length = myPositionMapping.get(pathSuffix).second;
 
       File outputFile = new File(directory.toFile(), pathSuffix);
       FilesUtil.createFile(outputFile);
 
-      FileInputStream stream = new FileInputStream(myFile);
+      FileInputStream stream = new FileInputStream(myPathToSnapshot.toFile());
       stream.skip(offset);
       writeToFile(stream, outputFile, length);
     }

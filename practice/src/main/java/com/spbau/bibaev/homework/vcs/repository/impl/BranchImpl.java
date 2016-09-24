@@ -13,7 +13,6 @@ import java.nio.file.Path;
 import java.util.*;
 
 class BranchImpl implements Branch {
-  private static final String INITIAL_REVISION_DIRECTORY_NAME = "initial";
   private final String myName;
   private final List<RevisionImpl> myRevisions;
   private final File myBranchDirectory;
@@ -53,8 +52,7 @@ class BranchImpl implements Branch {
 
       if (revisions.isEmpty()) {
         File revisionDirectory = Files.createDirectory(branchDirectory.toPath()
-            .resolve(INITIAL_REVISION_DIRECTORY_NAME)).toFile();
-        Files.createDirectory(revisionDirectory.toPath());
+            .resolve(String.valueOf(System.currentTimeMillis()))).toFile();
         RevisionImpl.createEmptyRevision(revisionDirectory);
       }
 
@@ -89,7 +87,7 @@ class BranchImpl implements Branch {
 
   Revision commitChanges(ProjectImpl project, @NotNull String message,
                             @NotNull Date date, @NotNull String userName) throws IOException {
-    Path path = Files.createDirectory(myBranchDirectory.toPath().resolve(String.valueOf(System.nanoTime())));
+    Path path = Files.createDirectory(myBranchDirectory.toPath().resolve(String.valueOf(System.currentTimeMillis())));
     RevisionImpl revision = RevisionImpl.addNewRevision(project, path, message, date, userName);
     myRevisions.add(revision);
 

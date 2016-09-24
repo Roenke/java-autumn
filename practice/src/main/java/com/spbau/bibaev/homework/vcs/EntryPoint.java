@@ -4,6 +4,7 @@ import com.spbau.bibaev.homework.vcs.command.Command;
 import com.spbau.bibaev.homework.vcs.command.CommandFactory;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,7 +29,7 @@ public class EntryPoint {
       return;
     }
 
-    File currentDirectory = new File(System.getProperty("user.dir"));
+    Path currentDirectory = new File(System.getProperty("user.dir")).toPath();
     Command command = CommandFactory.createCommand(currentDirectory, args[0]);
     if (command == null) {
       usage();

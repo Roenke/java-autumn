@@ -4,16 +4,16 @@ import com.spbau.bibaev.homework.vcs.EntryPoint;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.Color.RED;
 
 public abstract class CommandBase implements Command {
-  protected final File ourDirectory;
+  protected final Path ourDirectory;
 
-  public CommandBase(@NotNull File directory) {
+  public CommandBase(@NotNull Path directory) {
     ourDirectory = directory;
   }
 
@@ -24,7 +24,7 @@ public abstract class CommandBase implements Command {
       try {
         performImpl(args);
       } catch (IOException e) {
-        ConsoleColoredPrinter.println("Something wrong. " + e.getMessage());
+        ConsoleColoredPrinter.println("Something wrong. " + e, RED);
       }
     } else {
       ConsoleColoredPrinter.println(String.format("Usage: %s %s", EntryPoint.VCS_NAME, getUsage()), RED);

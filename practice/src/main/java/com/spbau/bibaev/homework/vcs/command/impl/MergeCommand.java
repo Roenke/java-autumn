@@ -7,13 +7,13 @@ import com.spbau.bibaev.homework.vcs.repository.api.Revision;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 public class MergeCommand extends RepositoryCommand {
 
-  public MergeCommand(@NotNull File directory) {
+  public MergeCommand(@NotNull Path directory) {
     super(directory);
   }
 

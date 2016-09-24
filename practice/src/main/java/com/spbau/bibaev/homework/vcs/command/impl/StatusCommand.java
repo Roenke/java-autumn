@@ -9,15 +9,15 @@ import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.Color.*;
 import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.printListOfFiles;
 
 public class StatusCommand extends RepositoryCommand {
-  public StatusCommand(@NotNull File directory) {
+  public StatusCommand(@NotNull Path directory) {
     super(directory);
   }
 
@@ -27,7 +27,7 @@ public class StatusCommand extends RepositoryCommand {
     Revision lastRevision = currentBranch.getLastRevision();
 
     ConsoleColoredPrinter.println("On branch " + currentBranch.getName());
-    ConsoleColoredPrinter.println("RevisionImpl: " + lastRevision.getHash(), ConsoleColoredPrinter.Color.GREEN);
+    ConsoleColoredPrinter.println("Revision: " + lastRevision.getHash(), ConsoleColoredPrinter.Color.GREEN);
 
     Diff diff = repository.getProject().getDiff(repository.getCurrentBranch().getLastRevision());
     printListOfFiles("New files", GREEN, FilesUtil.pathsToStrings(diff.getNewFiles()));

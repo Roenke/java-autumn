@@ -5,12 +5,12 @@ import com.spbau.bibaev.homework.vcs.repository.api.Repository;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 public class RevertCommand extends RepositoryCommand {
-  public RevertCommand(@NotNull File directory) {
+  public RevertCommand(@NotNull Path directory) {
     super(directory);
   }
 

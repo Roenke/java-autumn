@@ -1,12 +1,14 @@
 package com.spbau.bibaev.homework.vcs.repository.impl;
 
-import com.spbau.bibaev.homework.vcs.repository.api.*;
+import com.spbau.bibaev.homework.vcs.repository.api.Branch;
+import com.spbau.bibaev.homework.vcs.repository.api.Project;
+import com.spbau.bibaev.homework.vcs.repository.api.Repository;
+import com.spbau.bibaev.homework.vcs.repository.api.Revision;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import com.spbau.bibaev.homework.vcs.util.XmlSerializer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.File;
@@ -16,7 +18,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RepositoryImpl implements Repository{
+class RepositoryImpl implements Repository {
   static final String VCS_DIRECTORY_NAME = ".my_vcs";
   static final String DEFAULT_USER_NAME = System.getProperty("user.name");
   private static final String DEFAULT_BRANCH_NAME = "master";
@@ -27,21 +29,8 @@ public class RepositoryImpl implements Repository{
   private String myUserName;
   private Path myRepositoryMetadataDirectory;
 
-  @NotNull
-  public static RepositoryImpl open(@NotNull File directory) throws IOException {
-    File currentDirectory = directory;
-    while (currentDirectory != null && !FilesUtil.isContainsDirectory(currentDirectory, VCS_DIRECTORY_NAME)) {
-      currentDirectory = currentDirectory.getParentFile();
-    }
-
-    if (currentDirectory == null) {
-      throw new IOException("Could not find repository root in " + directory.getAbsolutePath());
-    }
-
-    return openHere(currentDirectory);
-  }
-
-  private static RepositoryImpl openHere(@NotNull File directory) throws IOException {
+  @Nullable
+  static RepositoryImpl openHere(@NotNull File directory) throws IOException {
     File metadataDirectory = FilesUtil.findDirectoryByName(directory, VCS_DIRECTORY_NAME);
     if (metadataDirectory == null) {
       throw new IOException("Could not find repository root in " + directory.getAbsolutePath());
@@ -63,11 +52,7 @@ public class RepositoryImpl implements Repository{
       throw new IOException("RepositoryImpl metadata file not found");
     }
     RepositoryMetadata meta;
-    try {
-      meta = XmlSerializer.deserialize(metadataFile, RepositoryMetadata.class);
-    } catch (JAXBException e) {
-      throw new IOException("Could not read from repository metadata file");
-    }
+    meta = XmlSerializer.deserialize(metadataFile, RepositoryMetadata.class);
 
     ProjectImpl project = ProjectImpl.open(directory, metadataDirectory);
     return new RepositoryImpl(metadataDirectory.toPath(), meta, branches, project);
@@ -121,7 +106,7 @@ public class RepositoryImpl implements Repository{
     return myName2Branch.values().stream().collect(Collectors.toList());
   }
 
-  public static void createNewRepository(@NotNull File directory) throws IOException {
+  static RepositoryImpl createNewRepository(@NotNull File directory) throws IOException {
     File metadataDirectory = new File(directory.getAbsolutePath() + File.separator + VCS_DIRECTORY_NAME);
     if (metadataDirectory.exists() || !metadataDirectory.mkdir()) {
       throw new IOException("RepositoryImpl in \"" + directory.getAbsolutePath() + "\" already exists");
@@ -130,15 +115,13 @@ public class RepositoryImpl implements Repository{
     BranchImpl.createNewBranch(metadataDirectory.toPath(), DEFAULT_BRANCH_NAME, Collections.emptyList());
 
     File metadataFile = new File(metadataDirectory.getAbsolutePath() + File.separator + METADATA_FILENAME);
-    try {
-      if (!metadataFile.createNewFile()) {
-        throw new IOException("RepositoryImpl metadata file already exists");
-      }
-
-      XmlSerializer.serialize(metadataFile, RepositoryMetadata.class, RepositoryMetadata.defaultMeta());
-    } catch (JAXBException e) {
-      throw new IOException("Could not serialize repository metadata", e);
+    if (!metadataFile.createNewFile()) {
+      throw new IOException("RepositoryImpl metadata file already exists");
     }
+
+    XmlSerializer.serialize(metadataFile, RepositoryMetadata.class, RepositoryMetadata.defaultMeta());
+
+    return RepositoryImpl.openHere(directory);
   }
 
   private RepositoryImpl(@NotNull Path metaDirectory, @NotNull RepositoryMetadata meta,
@@ -151,14 +134,10 @@ public class RepositoryImpl implements Repository{
   }
 
   private void save() throws IOException {
-    try {
-      File metadataFile = new File(myRepositoryMetadataDirectory.toAbsolutePath().toString() + File.separator +
-          METADATA_FILENAME);
-      XmlSerializer.serialize(metadataFile, RepositoryMetadata.class,
-          new RepositoryMetadata(myCurrentBranchName, myUserName));
-    } catch (JAXBException e) {
-      throw new IOException("Could not save repository meta", e);
-    }
+    File metadataFile = new File(myRepositoryMetadataDirectory.toAbsolutePath().toString() + File.separator +
+        METADATA_FILENAME);
+    XmlSerializer.serialize(metadataFile, RepositoryMetadata.class,
+        new RepositoryMetadata(myCurrentBranchName, myUserName));
   }
 
   @NotNull

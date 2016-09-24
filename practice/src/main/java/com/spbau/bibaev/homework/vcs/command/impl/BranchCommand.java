@@ -6,13 +6,13 @@ import com.spbau.bibaev.homework.vcs.repository.api.Repository;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class BranchCommand extends RepositoryCommand {
-  public BranchCommand(@NotNull File directory) {
+  public BranchCommand(@NotNull Path directory) {
     super(directory);
   }
 

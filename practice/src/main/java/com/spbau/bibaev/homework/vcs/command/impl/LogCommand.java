@@ -7,15 +7,15 @@ import com.spbau.bibaev.homework.vcs.repository.api.Revision;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.Color.GREEN;
 import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.Color.WHITE;
 
 public class LogCommand extends RepositoryCommand {
-  public LogCommand(@NotNull File directory) {
+  public LogCommand(@NotNull Path directory) {
     super(directory);
   }
 

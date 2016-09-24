@@ -5,9 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 public class ConsoleColoredPrinter {
-  public static final String GREEN = "\u001B[32m";
-  public static final String WHITE = "\u001B[37m";
-  public static final String YELLOW = "\u001B[33m";
   private static final String ANSI_RESET = "\u001B[0m";
 
   public enum Color {

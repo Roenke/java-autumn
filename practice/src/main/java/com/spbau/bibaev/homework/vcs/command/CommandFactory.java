@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public class CommandFactory {
   }
 
   @Nullable
-  public static Command createCommand(@NotNull File currentDirectory, @NotNull String name) {
+  public static Command createCommand(@NotNull Path currentDirectory, @NotNull String name) {
     if (!NAME_2_COMMAND_CLASS_MAP.containsKey(name)) {
       return null;
     }
@@ -34,7 +35,7 @@ public class CommandFactory {
     Class<?> clazz = NAME_2_COMMAND_CLASS_MAP.get(name);
     CommandBase instance;
     try {
-      Constructor<?> constructor = clazz.getConstructor(File.class);
+      Constructor<?> constructor = clazz.getConstructor(Path.class);
       instance = (CommandBase) constructor.newInstance(currentDirectory);
     } catch (NoSuchMethodException | IllegalAccessException |
         InstantiationException | InvocationTargetException ignored) {

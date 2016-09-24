@@ -1,6 +1,5 @@
 package com.spbau.bibaev.homework.vcs.repository.impl;
 
-import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
 import com.spbau.bibaev.homework.vcs.repository.api.FileState;
 import com.spbau.bibaev.homework.vcs.repository.api.Revision;
 import com.spbau.bibaev.homework.vcs.repository.api.Snapshot;
@@ -8,27 +7,26 @@ import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import com.spbau.bibaev.homework.vcs.util.Pair;
 import com.spbau.bibaev.homework.vcs.util.XmlSerializer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class RevisionImpl implements Revision {
+class RevisionImpl implements Revision {
   private static final String REVISION_METADATA_FILENAME = "revision_meta.xml";
   private static final String SNAPSHOT_FILENAME = "snapshot.data";
   private static final String INITIAL_COMMIT_MESSAGE = "Initial commit";
@@ -40,7 +38,7 @@ public class RevisionImpl implements Revision {
   private final RevisionSnapshot mySnapshot;
   private final Path myRevisionDirectory;
 
-  private RevisionImpl(@NotNull Path directory, @NotNull RevisionImpl.RevisionMetadata meta, @NotNull File snapshotFile) {
+  private RevisionImpl(@NotNull Path directory, @NotNull RevisionMetadata meta, @NotNull File snapshotFile) {
     myRevisionDirectory = directory;
     myHash = meta.hash;
     myAuthor = meta.author;
@@ -105,7 +103,7 @@ public class RevisionImpl implements Revision {
   @NotNull
   @Override
   public List<Path> getFilePaths() {
-    return myFile2Hash.values().stream().map(s -> Paths.get(s)).collect(Collectors.toList());
+    return myFile2Hash.keySet().stream().map(s -> Paths.get(s)).collect(Collectors.toList());
   }
 
   @NotNull
@@ -119,15 +117,11 @@ public class RevisionImpl implements Revision {
     meta.author = RepositoryImpl.DEFAULT_USER_NAME;
     meta.date = new Date();
     meta.message = INITIAL_COMMIT_MESSAGE;
-    meta.hash = "";
+    meta.hash = "00000000000000000000";
     meta.file2Descriptor = new HashMap<>();
     Pair<File, File> files = createMetaAndSnapshotFiles(revisionDirectory);
     File metaFile = files.first;
-    try {
-      XmlSerializer.serialize(metaFile, RevisionMetadata.class, meta);
-    } catch (JAXBException e) {
-      throw new IOException("Cannot save initial revision metadata", e);
-    }
+    XmlSerializer.serialize(metaFile, RevisionMetadata.class, meta);
 
     return read(revisionDirectory);
   }
@@ -140,11 +134,7 @@ public class RevisionImpl implements Revision {
     }
 
     RevisionMetadata meta;
-    try {
-      meta = XmlSerializer.deserialize(metadataFile, RevisionMetadata.class);
-    } catch (JAXBException e) {
-      throw new IOException("Could not read metadata for revision " + revisionName, e);
-    }
+    meta = XmlSerializer.deserialize(metadataFile, RevisionMetadata.class);
 
     File snapshotFile = FilesUtil.findFileByName(dir, SNAPSHOT_FILENAME);
     if (snapshotFile == null) {
@@ -158,6 +148,7 @@ public class RevisionImpl implements Revision {
     return myRevisionDirectory;
   }
 
+  @Nullable
   static RevisionImpl addNewRevision(@NotNull ProjectImpl project, @NotNull Path revisionDirectory,
                                      @NotNull String message, @NotNull Date date,
                                      @NotNull String user) throws IOException {
@@ -171,95 +162,43 @@ public class RevisionImpl implements Revision {
     Base64.Encoder encoder = Base64.getEncoder();
 
     Path projectRoot = project.getRootDirectory();
+    MessageDigest globalDigest = getMD5Digest();
+    MessageDigest fileDigest = getMD5Digest();
+    if (globalDigest == null || fileDigest == null) {
+      return null;
+    }
+
+    Pair<File, File> files = createMetaAndSnapshotFiles(revisionDirectory.toFile());
+    File metaRevisionFile = files.first;
+    File snapshot = files.second;
+
+    OutputStream snapshotStream = new DigestOutputStream(Files.newOutputStream(snapshot.toPath()), globalDigest);
+
+    long offset = 0;
     for (Path file : project.getAllFiles()) {
       Path fileRelativePath = projectRoot.relativize(file);
-
+      fileDigest.reset();
+      InputStream inputStream = Files.newInputStream(file);
+      DigestInputStream fileStream = new DigestInputStream(inputStream, fileDigest);
+      long length = file.toFile().length();
+      FilesUtil.copy(fileStream, snapshotStream);
+      String fileHash = encoder.encodeToString(fileDigest.digest());
+      path2Hash.put(fileRelativePath, fileHash);
+      path2OffsetAndLength.put(fileRelativePath, Pair.makePair(offset, length));
+      offset += length;
     }
 
+    snapshotStream.close();
+
+    meta.hash = encoder.encodeToString(globalDigest.digest());
+    meta.file2Descriptor = path2Hash.keySet().stream()
+        .collect(Collectors.toMap(Path::toString,
+            p -> new RevisionMetadata.FileDescriptor(path2Hash.get(p),
+                path2OffsetAndLength.get(p).first,
+                path2OffsetAndLength.get(p).second)));
+
+    XmlSerializer.serialize(metaRevisionFile, RevisionMetadata.class, meta);
     return read(revisionDirectory.toFile());
-  }
-
-  static String addNewRevision(@NotNull File revisionDirectory, @NotNull String message,
-                               @NotNull Date date, @NotNull String user) throws RepositoryIOException {
-    RevisionMetadata meta = new RevisionMetadata();
-    meta.author = user;
-    meta.date = date;
-    meta.message = message;
-
-    Map<Path, String> path2Hash = new HashMap<>();
-    Map<Path, Pair<Long, Long>> path2OffsetAndLength = new HashMap<>();
-    Base64.Encoder encoder = Base64.getEncoder();
-    try {
-      MessageDigest globalDigest = MessageDigest.getInstance("MD5");
-      MessageDigest fileDigest = MessageDigest.getInstance("MD5");
-      Pair<File, File> files = createMetaAndSnapshotFiles(revisionDirectory);
-      File metaRevisionFile = files.first;
-      File snapshot = files.second;
-
-      OutputStream snapshotStream = new DigestOutputStream(Files.newOutputStream(snapshot.toPath()), globalDigest);
-      File metadataDirectory = revisionDirectory.getParentFile().getParentFile();
-      File projectDirectory = metadataDirectory.getParentFile();
-      Path projectPath = projectDirectory.toPath();
-      AtomicLong offset = new AtomicLong(0);
-      Files.walkFileTree(projectDirectory.toPath(), new FileVisitor<Path>() {
-        @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-          return dir.equals(metadataDirectory.toPath())
-              ? FileVisitResult.SKIP_SUBTREE
-              : FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          fileDigest.reset();
-          Path relativeFilePath = projectPath.relativize(file);
-          InputStream inputStream = Files.newInputStream(file);
-          DigestInputStream fileStream = new DigestInputStream(inputStream, fileDigest);
-          long length = file.toFile().length();
-          FilesUtil.copy(fileStream, snapshotStream);
-          String fileHash = encoder.encodeToString(fileDigest.digest());
-          path2Hash.put(relativeFilePath, fileHash);
-          path2OffsetAndLength.put(relativeFilePath, Pair.makePair(offset.get(), length));
-          offset.addAndGet(length);
-          return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-          throw exc;
-        }
-
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-          return FileVisitResult.CONTINUE;
-        }
-      });
-
-      // Add date to end of revision
-      ByteBuffer byteBuffer = ByteBuffer.allocate(Long.BYTES);
-      byteBuffer.putLong(date.getTime());
-      snapshotStream.write(byteBuffer.array());
-
-      snapshotStream.close();
-      String globalHash = encoder.encodeToString(globalDigest.digest());
-      meta.hash = globalHash;
-      meta.file2Descriptor = path2Hash.keySet().stream()
-          .collect(Collectors.toMap(Path::toString,
-              p -> new RevisionMetadata.FileDescriptor(path2Hash.get(p),
-                  path2OffsetAndLength.get(p).first,
-                  path2OffsetAndLength.get(p).second)));
-      XmlSerializer.serialize(metaRevisionFile, RevisionMetadata.class, meta);
-      if (!revisionDirectory.renameTo(new File(revisionDirectory.getParentFile().getAbsolutePath() + File.separator + globalHash.replace('/', '-')))) {
-        throw new RepositoryIOException("Snapshot file exists");
-      }
-      return globalHash;
-    } catch (IOException e) {
-      throw new RepositoryIOException("IO exception occurred", e);
-    } catch (NoSuchAlgorithmException e) {
-      throw new RepositoryIOException("Hashing algorithm not found", e);
-    } catch (JAXBException e) {
-      throw new RepositoryIOException("Cannot save revision metadata", e);
-    }
   }
 
   private static Pair<File, File> createMetaAndSnapshotFiles(@NotNull File revisionDirectory) throws IOException {
@@ -307,5 +246,14 @@ public class RevisionImpl implements Revision {
       @XmlElement
       long length;
     }
+  }
+
+  private static MessageDigest getMD5Digest() {
+    try {
+      return MessageDigest.getInstance("MD5");
+    } catch (NoSuchAlgorithmException ignored) {
+    }
+
+    return null;
   }
 }

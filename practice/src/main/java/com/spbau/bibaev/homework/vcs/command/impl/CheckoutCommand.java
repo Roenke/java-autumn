@@ -9,14 +9,13 @@ import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 
 public class CheckoutCommand extends RepositoryCommand {
-  public CheckoutCommand(@NotNull File directory) {
+  public CheckoutCommand(@NotNull Path directory) {
     super(directory);
   }
 

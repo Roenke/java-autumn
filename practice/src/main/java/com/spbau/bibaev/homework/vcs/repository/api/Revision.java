@@ -2,6 +2,7 @@ package com.spbau.bibaev.homework.vcs.repository.api;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
@@ -20,7 +21,9 @@ public interface Revision {
   String getAuthorName();
 
   @NotNull
-  String getHashOfFile(@NotNull String path);
+  FileState getFileState(@NotNull Path relativePath) throws IOException;
+
+  String getHashOfFile(@NotNull String relativePath);
 
   @NotNull
   List<Path> getFilePaths();

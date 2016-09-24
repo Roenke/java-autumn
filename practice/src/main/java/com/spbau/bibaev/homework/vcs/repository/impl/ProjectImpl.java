@@ -1,11 +1,10 @@
 package com.spbau.bibaev.homework.vcs.repository.impl;
 
+import com.spbau.bibaev.homework.vcs.repository.api.Diff;
+import com.spbau.bibaev.homework.vcs.repository.api.FileState;
 import com.spbau.bibaev.homework.vcs.repository.api.Project;
 import com.spbau.bibaev.homework.vcs.repository.api.Revision;
-import com.spbau.bibaev.homework.vcs.repository.api.Snapshot;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
-import com.spbau.bibaev.homework.vcs.util.Diff;
-import com.spbau.bibaev.homework.vcs.util.FileState;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,19 +18,13 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ProjectImpl implements Project {
+class ProjectImpl implements Project {
   private final Map<String, File> myPath2File;
-  private final File myRootDirectory;
+  private final Path myRootDirectory;
 
-  private ProjectImpl(@NotNull File root, @NotNull Map<String, File> files) {
+  private ProjectImpl(@NotNull Path root, @NotNull Map<String, File> files) {
     myRootDirectory = root;
     myPath2File = files;
-  }
-
-  @NotNull
-  @Override
-  public Snapshot makeSnapshot(@NotNull Path directory) {
-    return null;
   }
 
   @Override
@@ -41,7 +34,7 @@ public class ProjectImpl implements Project {
 
   @Override
   public @NotNull Diff getDiff(@NotNull Revision revision) throws IOException {
-    Path projectRoot = myRootDirectory.toPath();
+    Path projectRoot = myRootDirectory;
     Collection<Path> projectFiles = getAllFiles();
     Collection<Path> newFiles = new ArrayList<>();
     Collection<Path> modifiedFiles = new ArrayList<>();
@@ -49,9 +42,8 @@ public class ProjectImpl implements Project {
       for (Path path : projectFiles) {
         File file = path.toFile();
         Path relativePath = projectRoot.relativize(file.toPath());
-        String hash = FilesUtil.evalHashOfFile(file);
         revision.getHashOfFile(relativePath.toString());
-        FileState state = revision.getFileState(relativePath.toString(), hash);
+        FileState state = revision.getFileState(relativePath);
         switch (state) {
           case MODIFIED:
             modifiedFiles.add(relativePath);
@@ -83,7 +75,7 @@ public class ProjectImpl implements Project {
   }
 
   @NotNull
-  public File getRootDirectory() {
+  public Path getRootDirectory() {
     return myRootDirectory;
   }
 
@@ -118,11 +110,12 @@ public class ProjectImpl implements Project {
       }
     });
 
-    return new ProjectImpl(projectRootDirectory, files);
+    return new ProjectImpl(projectRootDirectory.toPath(), files);
   }
 
   public void clean() throws IOException {
-    final File[] files = myRootDirectory.listFiles((dir, name) -> !name.equals(RepositoryImpl.VCS_DIRECTORY_NAME));
+    final File[] files = myRootDirectory.toFile()
+        .listFiles((dir, name) -> !name.equals(RepositoryImpl.VCS_DIRECTORY_NAME));
     if (files != null) {
       for (File f : files) {
         FilesUtil.deleteRecursively(f);

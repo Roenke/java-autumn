@@ -1,11 +1,11 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
-import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
 import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryImpl;
 import com.spbau.bibaev.homework.vcs.command.CommandBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public class InitCommand extends CommandBase {
@@ -14,7 +14,7 @@ public class InitCommand extends CommandBase {
   }
 
   @Override
-  protected void performImpl(@NotNull List<String> args) throws RepositoryIOException {
+  protected void performImpl(@NotNull List<String> args) throws IOException {
     RepositoryImpl.createNewRepository(ourDirectory);
   }
 

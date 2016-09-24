@@ -45,7 +45,7 @@ public class FilesUtil {
 
   public static void deleteRecursively(@NotNull File file) throws IOException {
     if (file.isDirectory()) {
-      FileUtils.deleteDirectory(file);
+      FileUtils.forceDelete(file);
     } else {
       FileUtils.deleteQuietly(file);
     }

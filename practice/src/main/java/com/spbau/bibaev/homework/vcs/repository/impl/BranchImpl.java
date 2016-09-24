@@ -1,8 +1,6 @@
 package com.spbau.bibaev.homework.vcs.repository.impl;
 
-import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryIllegalStateException;
-import com.spbau.bibaev.homework.vcs.ex.RepositoryOpeningException;
 import com.spbau.bibaev.homework.vcs.repository.api.Branch;
 import com.spbau.bibaev.homework.vcs.repository.api.Revision;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
@@ -14,22 +12,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-public class BranchImpl implements Branch {
+class BranchImpl implements Branch {
   private static final String INITIAL_REVISION_DIRECTORY_NAME = "initial";
   private final String myName;
-  private final List<Revision> myRevisions;
+  private final List<RevisionImpl> myRevisions;
   private final File myBranchDirectory;
 
-  private BranchImpl(@NotNull String name, @NotNull List<Revision> revisions, @NotNull File directory) {
+  private BranchImpl(@NotNull String name, @NotNull List<RevisionImpl> revisions, @NotNull File directory) {
     myName = name;
     myRevisions = new ArrayList<>(revisions);
     myBranchDirectory = directory;
     myRevisions.sort((o1, o2) -> o1.getDate().compareTo(o2.getDate()));
   }
 
-  static Branch read(@NotNull File dir) throws IOException {
+  static BranchImpl read(@NotNull File dir) throws IOException {
     String name = dir.getName();
-    List<Revision> revisions = new ArrayList<>();
+    List<RevisionImpl> revisions = new ArrayList<>();
 
     File[] files = dir.listFiles(File::isDirectory);
     if (files != null) {
@@ -41,13 +39,13 @@ public class BranchImpl implements Branch {
     return new BranchImpl(name, revisions, dir);
   }
 
-  static Branch createNewBranch(@NotNull File metadataDirectory, @NotNull String name, @NotNull Branch base)
+  static BranchImpl createNewBranch(@NotNull File metadataDirectory, @NotNull String name, @NotNull BranchImpl base)
       throws IOException {
-    return createNewBranch(metadataDirectory.toPath(), name, base.getRevisions());
+    return createNewBranch(metadataDirectory.toPath(), name, base.getRevisionImpls());
   }
 
-  static Branch createNewBranch(@NotNull Path metadataDirectory, @NotNull String name,
-                                    @NotNull Collection<Revision> revisions) throws IOException {
+  static BranchImpl createNewBranch(@NotNull Path metadataDirectory, @NotNull String name,
+                                    @NotNull Collection<RevisionImpl> revisions) throws IOException {
     File branchDirectory = new File(metadataDirectory.toFile().getAbsolutePath() + File.separator + name);
     if (!branchDirectory.mkdir()) {
       throw new RepositoryIllegalStateException(String.format("BranchImpl \"%s\" already exists", name));
@@ -60,7 +58,7 @@ public class BranchImpl implements Branch {
         RevisionImpl.createEmptyRevision(revisionDirectory);
       }
 
-      for (Revision revision : revisions) {
+      for (RevisionImpl revision : revisions) {
         Path revisionPath = branchDirectory.toPath().resolve(revision.getHash());
         Files.createDirectory(revisionPath);
         revision.getSnapshot().restore(revisionPath);
@@ -71,7 +69,11 @@ public class BranchImpl implements Branch {
   }
 
   @NotNull
-  public List<RevisionImpl> getRevisions() {
+  public List<Revision> getRevisions() {
+    return Collections.unmodifiableList(myRevisions);
+  }
+
+  List<RevisionImpl> getRevisionImpls() {
     return Collections.unmodifiableList(myRevisions);
   }
 
@@ -85,24 +87,12 @@ public class BranchImpl implements Branch {
     return myName;
   }
 
-  void commit(@NotNull String message, @NotNull Date date, String userName) throws RepositoryIOException {
-    File revisionDirectory = new File(myBranchDirectory.getAbsolutePath() + File.separator + date.getTime());
-    if (!revisionDirectory.mkdir()) {
-      throw new RepositoryIOException("Cannot create directory for new revision");
-    }
+  Revision commitChanges(ProjectImpl project, @NotNull String message,
+                            @NotNull Date date, @NotNull String userName) throws IOException {
+    Path path = Files.createDirectory(myBranchDirectory.toPath().resolve(String.valueOf(System.nanoTime())));
+    RevisionImpl revision = RevisionImpl.addNewRevision(project, path, message, date, userName);
+    myRevisions.add(revision);
 
-    try {
-      String hashCode = RevisionImpl.addNewRevision(revisionDirectory, message, date, userName);
-      if (revisionDirectory.renameTo(new File(hashCode))) {
-        throw new RepositoryIOException("Cannot rename revision folder to hash code");
-      }
-    } catch (RepositoryIOException e) {
-      try {
-        Files.delete(revisionDirectory.toPath());
-        throw e;
-      } catch (IOException e1) {
-        throw new RepositoryIOException("RepositoryImpl was corrupted", e1);
-      }
-    }
+    return revision;
   }
 }

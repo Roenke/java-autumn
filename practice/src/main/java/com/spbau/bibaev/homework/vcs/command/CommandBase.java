@@ -1,11 +1,11 @@
 package com.spbau.bibaev.homework.vcs.command;
 
 import com.spbau.bibaev.homework.vcs.EntryPoint;
-import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.Color.RED;
@@ -23,7 +23,7 @@ public abstract class CommandBase implements Command {
     if (getMinArgCount() <= argCount && argCount <= getMaxArgCount()) {
       try {
         performImpl(args);
-      } catch (RepositoryException e) {
+      } catch (IOException e) {
         ConsoleColoredPrinter.println("Something wrong. " + e.getMessage());
       }
     } else {
@@ -31,7 +31,7 @@ public abstract class CommandBase implements Command {
     }
   }
 
-  protected abstract void performImpl(@NotNull List<String> args) throws RepositoryException;
+  protected abstract void performImpl(@NotNull List<String> args) throws IOException;
   protected abstract String getUsage();
 
   protected int getMinArgCount() {

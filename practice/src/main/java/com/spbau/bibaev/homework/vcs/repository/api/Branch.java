@@ -2,7 +2,6 @@ package com.spbau.bibaev.homework.vcs.repository.api;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Path;
 import java.util.List;
 
 public interface Branch {
@@ -14,7 +13,4 @@ public interface Branch {
 
   @NotNull
   String getName();
-
-  @NotNull
-  Revision commitChanges(@NotNull Revision revision);
 }

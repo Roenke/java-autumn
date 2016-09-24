@@ -21,7 +21,7 @@ class RevisionSnapshot implements Snapshot {
 
   public void restore(@NotNull Path directory) throws IOException {
     for (String pathSuffix : myPositionMapping.keySet()) {
-      long offset  = myPositionMapping.get(pathSuffix).first;
+      long offset = myPositionMapping.get(pathSuffix).first;
       long length = myPositionMapping.get(pathSuffix).second;
 
       File outputFile = new File(directory.toFile(), pathSuffix);
@@ -38,7 +38,7 @@ class RevisionSnapshot implements Snapshot {
 
     byte[] buffer = new byte[4096];
     long remain = len;
-    while (remain > 0){
+    while (remain > 0) {
       int readBytes = in.read(buffer, 0, (int) Math.min(buffer.length, remain));
       out.write(buffer, 0, readBytes);
       remain -= readBytes;

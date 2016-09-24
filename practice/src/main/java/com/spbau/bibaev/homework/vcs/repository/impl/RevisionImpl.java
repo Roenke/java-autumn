@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.vcs.repository.impl;
 
 import com.spbau.bibaev.homework.vcs.ex.RepositoryIOException;
+import com.spbau.bibaev.homework.vcs.repository.api.FileState;
 import com.spbau.bibaev.homework.vcs.repository.api.Revision;
 import com.spbau.bibaev.homework.vcs.repository.api.Snapshot;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
@@ -53,28 +54,6 @@ public class RevisionImpl implements Revision {
     mySnapshot = new RevisionSnapshot(snapshotFile.toPath(), file2Pos);
   }
 
-  static Revision read(@NotNull File dir) throws IOException {
-    String revisionName = dir.getName();
-    File metadataFile = FilesUtil.findFileByName(dir, REVISION_METADATA_FILENAME);
-    if (metadataFile == null) {
-      throw new IOException("Metadata file not found for revision" + revisionName);
-    }
-
-    RevisionMetadata meta;
-    try {
-      meta = XmlSerializer.deserialize(metadataFile, RevisionMetadata.class);
-    } catch (JAXBException e) {
-      throw new IOException("Could not read metadata for revision " + revisionName, e);
-    }
-
-    File snapshotFile = FilesUtil.findFileByName(dir, SNAPSHOT_FILENAME);
-    if (snapshotFile == null) {
-      throw new IOException("Snapshot file not found for revision " + revisionName);
-    }
-
-    return new RevisionImpl(dir.toPath(), meta, snapshotFile);
-  }
-
   @NotNull
   public String getHash() {
     return myHash;
@@ -98,8 +77,29 @@ public class RevisionImpl implements Revision {
 
   @NotNull
   @Override
-  public String getHashOfFile(@NotNull String path) {
-    return myFile2Hash.get(path);
+  public FileState getFileState(@NotNull Path relativePath) throws IOException {
+    boolean isFileInRevision = myFile2Hash.containsKey(relativePath.toString());
+    boolean isFileOnDisk = relativePath.toFile().exists();
+    if (!isFileInRevision && isFileOnDisk) {
+      return FileState.NEW;
+    }
+
+    if (isFileInRevision && !isFileOnDisk) {
+      return FileState.DELETED;
+    }
+
+    if (isFileInRevision) {
+      String currentFileHash = FilesUtil.evalHashOfFile(relativePath.toFile());
+      String revisionHash = myFile2Hash.get(relativePath.toString());
+      return currentFileHash.equals(revisionHash) ? FileState.NOT_CHANGED : FileState.MODIFIED;
+    }
+
+    return FileState.UNKNOWN;
+  }
+
+  @Override
+  public String getHashOfFile(@NotNull String relativePath) {
+    return myFile2Hash.get(relativePath);
   }
 
   @NotNull
@@ -112,14 +112,6 @@ public class RevisionImpl implements Revision {
   @Override
   public Snapshot getSnapshot() {
     return mySnapshot;
-  }
-
-  public String getAuthor() {
-    return myAuthor;
-  }
-
-  Path getDirectory() {
-    return myRevisionDirectory;
   }
 
   static Revision createEmptyRevision(@NotNull File revisionDirectory) throws IOException {
@@ -138,6 +130,53 @@ public class RevisionImpl implements Revision {
     }
 
     return read(revisionDirectory);
+  }
+
+  static RevisionImpl read(@NotNull File dir) throws IOException {
+    String revisionName = dir.getName();
+    File metadataFile = FilesUtil.findFileByName(dir, REVISION_METADATA_FILENAME);
+    if (metadataFile == null) {
+      throw new IOException("Metadata file not found for revision" + revisionName);
+    }
+
+    RevisionMetadata meta;
+    try {
+      meta = XmlSerializer.deserialize(metadataFile, RevisionMetadata.class);
+    } catch (JAXBException e) {
+      throw new IOException("Could not read metadata for revision " + revisionName, e);
+    }
+
+    File snapshotFile = FilesUtil.findFileByName(dir, SNAPSHOT_FILENAME);
+    if (snapshotFile == null) {
+      throw new IOException("Snapshot file not found for revision " + revisionName);
+    }
+
+    return new RevisionImpl(dir.toPath(), meta, snapshotFile);
+  }
+
+  Path getDirectory() {
+    return myRevisionDirectory;
+  }
+
+  static RevisionImpl addNewRevision(@NotNull ProjectImpl project, @NotNull Path revisionDirectory,
+                                     @NotNull String message, @NotNull Date date,
+                                     @NotNull String user) throws IOException {
+    RevisionMetadata meta = new RevisionMetadata();
+    meta.author = user;
+    meta.date = date;
+    meta.message = message;
+
+    Map<Path, String> path2Hash = new HashMap<>();
+    Map<Path, Pair<Long, Long>> path2OffsetAndLength = new HashMap<>();
+    Base64.Encoder encoder = Base64.getEncoder();
+
+    Path projectRoot = project.getRootDirectory();
+    for (Path file : project.getAllFiles()) {
+      Path fileRelativePath = projectRoot.relativize(file);
+
+    }
+
+    return read(revisionDirectory.toFile());
   }
 
   static String addNewRevision(@NotNull File revisionDirectory, @NotNull String message,

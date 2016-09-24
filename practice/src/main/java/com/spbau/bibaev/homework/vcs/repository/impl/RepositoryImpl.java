@@ -1,9 +1,6 @@
 package com.spbau.bibaev.homework.vcs.repository.impl;
 
-import com.spbau.bibaev.homework.vcs.repository.api.Branch;
-import com.spbau.bibaev.homework.vcs.repository.api.Project;
-import com.spbau.bibaev.homework.vcs.repository.api.Repository;
-import com.spbau.bibaev.homework.vcs.repository.api.Revision;
+import com.spbau.bibaev.homework.vcs.repository.api.*;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import com.spbau.bibaev.homework.vcs.util.XmlSerializer;
 import org.jetbrains.annotations.NotNull;
@@ -24,10 +21,10 @@ public class RepositoryImpl implements Repository{
   static final String DEFAULT_USER_NAME = System.getProperty("user.name");
   private static final String DEFAULT_BRANCH_NAME = "master";
   private static final String METADATA_FILENAME = "metadata.xml";
-  private final Map<String, Branch> myName2Branch;
-  private final Project myProject;
+  private final Map<String, BranchImpl> myName2Branch;
+  private final ProjectImpl myProject;
   private String myCurrentBranchName;
-  private String myCurrentUserName;
+  private String myUserName;
   private Path myRepositoryMetadataDirectory;
 
   @NotNull
@@ -55,9 +52,9 @@ public class RepositoryImpl implements Repository{
       throw new IOException("Could not read any branch information");
     }
 
-    Map<String, Branch> branches = new HashMap<>();
+    Map<String, BranchImpl> branches = new HashMap<>();
     for (File file : branchDirectories) {
-      Branch branch = BranchImpl.read(file);
+      BranchImpl branch = BranchImpl.read(file);
       branches.put(branch.getName(), branch);
     }
 
@@ -81,13 +78,6 @@ public class RepositoryImpl implements Repository{
     return myName2Branch.getOrDefault(name, null);
   }
 
-  @Nullable
-  public Revision getRevisionByName(@NotNull String hashCode) {
-    List<Revision> revisions = myName2Branch.get(myCurrentBranchName).getRevisions();
-    Optional<Revision> revision = revisions.stream().filter(rev -> rev.getHash().equals(hashCode)).findFirst();
-    return revision.orElse(null);
-  }
-
   @NotNull
   public Branch getCurrentBranch() {
     return myName2Branch.get(myCurrentBranchName);
@@ -108,11 +98,11 @@ public class RepositoryImpl implements Repository{
   @Override
   public Revision checkout(@NotNull Revision revision) throws IOException {
     String newBranchName = myCurrentBranchName + revision.getHash();
-    Branch branch = myName2Branch.get(myCurrentBranchName);
-    Collection<Revision> earlierRevisions = branch.getRevisions().stream()
+    BranchImpl branch = myName2Branch.get(myCurrentBranchName);
+    Collection<RevisionImpl> earlierRevisions = branch.getRevisionImpls().stream()
         .filter(rev -> rev.getDate().compareTo(revision.getDate()) <= 0)
         .collect(Collectors.toList());
-    Branch newBranch = BranchImpl.createNewBranch(myRepositoryMetadataDirectory, newBranchName, earlierRevisions);
+    BranchImpl newBranch = BranchImpl.createNewBranch(myRepositoryMetadataDirectory, newBranchName, earlierRevisions);
     myCurrentBranchName = newBranch.getName();
     myName2Branch.put(myCurrentBranchName, newBranch);
     checkout(branch);
@@ -129,16 +119,6 @@ public class RepositoryImpl implements Repository{
   @Override
   public List<Branch> getBranches() {
     return myName2Branch.values().stream().collect(Collectors.toList());
-  }
-
-  @NotNull
-  public List<Branch> getAllBranches() {
-    return new ArrayList<>(myName2Branch.values());
-  }
-
-  @NotNull
-  public String getCurrentBranchName() {
-    return myCurrentBranchName;
   }
 
   public static void createNewRepository(@NotNull File directory) throws IOException {
@@ -162,12 +142,12 @@ public class RepositoryImpl implements Repository{
   }
 
   private RepositoryImpl(@NotNull Path metaDirectory, @NotNull RepositoryMetadata meta,
-                         @NotNull Map<String, Branch> branches, @NotNull ProjectImpl project) {
+                         @NotNull Map<String, BranchImpl> branches, @NotNull ProjectImpl project) {
     myRepositoryMetadataDirectory = metaDirectory;
     myName2Branch = branches;
     myProject = project;
     myCurrentBranchName = meta.currentBranch;
-    myCurrentUserName = meta.userName;
+    myUserName = meta.userName;
   }
 
   private void save() throws IOException {
@@ -175,7 +155,7 @@ public class RepositoryImpl implements Repository{
       File metadataFile = new File(myRepositoryMetadataDirectory.toAbsolutePath().toString() + File.separator +
           METADATA_FILENAME);
       XmlSerializer.serialize(metadataFile, RepositoryMetadata.class,
-          new RepositoryMetadata(myCurrentBranchName, myCurrentUserName));
+          new RepositoryMetadata(myCurrentBranchName, myUserName));
     } catch (JAXBException e) {
       throw new IOException("Could not save repository meta", e);
     }
@@ -183,27 +163,27 @@ public class RepositoryImpl implements Repository{
 
   @NotNull
   public String getUserName() {
-    return myCurrentUserName;
+    return myUserName;
   }
 
   public void setUserName(@NotNull String newName) throws IOException {
-    myCurrentUserName = newName;
+    myUserName = newName;
     save();
   }
 
+  @NotNull
   public Branch createNewBranch(@NotNull String name) throws IOException {
-    Branch branch = BranchImpl.createNewBranch(myRepositoryMetadataDirectory.toFile(),
+    BranchImpl branch = BranchImpl.createNewBranch(myRepositoryMetadataDirectory.toFile(),
         name, myName2Branch.get(myCurrentBranchName));
     myName2Branch.put(name, branch);
     return branch;
   }
 
-  public void commitChanges(@NotNull String message) throws IOException {
+  @NotNull
+  public Revision commitChanges(@NotNull String message) throws IOException {
     Date date = new Date();
-    Branch currentBranch = myName2Branch.get(myCurrentBranchName);
-    myProject.makeSnapshot()
-    currentBranch.commitChanges()
-    currentBranch.commit(message, date, myCurrentUserName);
+    BranchImpl currentBranch = myName2Branch.get(myCurrentBranchName);
+    return currentBranch.commitChanges(myProject, message, date, myUserName);
   }
 
   @XmlRootElement

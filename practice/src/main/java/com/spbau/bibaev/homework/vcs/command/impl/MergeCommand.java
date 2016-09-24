@@ -1,14 +1,14 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
-import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
-import com.spbau.bibaev.homework.vcs.repository.impl.BranchImpl;
-import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryImpl;
-import com.spbau.bibaev.homework.vcs.repository.impl.RevisionImpl;
+import com.spbau.bibaev.homework.vcs.repository.api.Branch;
+import com.spbau.bibaev.homework.vcs.repository.api.Repository;
+import com.spbau.bibaev.homework.vcs.repository.api.Revision;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 public class MergeCommand extends RepositoryCommand {
@@ -19,19 +19,19 @@ public class MergeCommand extends RepositoryCommand {
 
   interface MergeStrategy {
     @NotNull
-    RevisionImpl merge(@NotNull RevisionImpl from, @NotNull RevisionImpl into) throws RepositoryException;
+    Revision merge(@NotNull Revision from, @NotNull Revision into);
   }
 
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull RepositoryImpl repository) throws RepositoryException {
-    BranchImpl srcBranch = repository.getBranchByName(args.get(0));
+  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
+    Branch srcBranch = repository.getBranchByName(args.get(0));
 
-    if(srcBranch == null) {
+    if (srcBranch == null) {
       ConsoleColoredPrinter.println("Such branch not found", ConsoleColoredPrinter.Color.RED);
       return;
     }
 
-    BranchImpl dstBranch = repository.getCurrentBranch();
+    Branch dstBranch = repository.getCurrentBranch();
     MergeStrategy mergeStrategy = new MyPrimitiveMergeStrategy();
     mergeStrategy.merge(srcBranch.getLastRevision(), dstBranch.getLastRevision());
     ConsoleColoredPrinter.println("Successfully");
@@ -55,8 +55,9 @@ public class MergeCommand extends RepositoryCommand {
   private static class MyPrimitiveMergeStrategy implements MergeStrategy {
     @Override
     @NotNull
-    public RevisionImpl merge(@NotNull RevisionImpl from, @NotNull RevisionImpl into) {
-      return null;
+    public Revision merge(@NotNull Revision from, @NotNull Revision into) {
+      // todo
+      return from;
     }
   }
 }

@@ -1,16 +1,16 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
-import com.spbau.bibaev.homework.vcs.ex.RepositoryException;
-import com.spbau.bibaev.homework.vcs.repository.impl.BranchImpl;
-import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryImpl;
-import com.spbau.bibaev.homework.vcs.repository.impl.RevisionImpl;
+import com.spbau.bibaev.homework.vcs.repository.api.Branch;
+import com.spbau.bibaev.homework.vcs.repository.api.Diff;
+import com.spbau.bibaev.homework.vcs.repository.api.Repository;
+import com.spbau.bibaev.homework.vcs.repository.api.Revision;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
-import com.spbau.bibaev.homework.vcs.util.Diff;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -21,15 +21,15 @@ public class CheckoutCommand extends RepositoryCommand {
   }
 
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull RepositoryImpl repository) throws RepositoryException {
+  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
     String arg = args.get(0);
     if(repository.getCurrentBranch().getName().equals(arg)) {
       ConsoleColoredPrinter.println("Already on " + arg, ConsoleColoredPrinter.Color.YELLOW);
       return;
     }
 
-    BranchImpl branch = repository.getBranchByName(arg);
-    Diff diff = repository.getProject().diffWithRevision(repository.getCurrentBranch().getLastRevision());
+    Branch branch = repository.getBranchByName(arg);
+    Diff diff = repository.getProject().getDiff(repository.getCurrentBranch().getLastRevision());
     Collection<Path> newFiles = diff.getNewFiles();
     Collection<Path> modifiedFiles = diff.getModifiedFiles();
     if (newFiles.size() + modifiedFiles.size() > 0) {
@@ -42,7 +42,8 @@ public class CheckoutCommand extends RepositoryCommand {
     }
 
     if (branch == null) {
-      RevisionImpl revision = repository.getRevisionByName(arg);
+      Revision revision = repository.getCurrentBranch().getRevisions().stream()
+          .filter(rev -> rev.getHash().equals(arg)).findFirst().orElse(null);
       if (revision == null) {
         ConsoleColoredPrinter.println("Such branch or revision not found", ConsoleColoredPrinter.Color.RED);
         return;

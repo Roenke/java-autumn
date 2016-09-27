@@ -24,6 +24,21 @@ class BranchImpl implements Branch {
     myRevisions.sort((o1, o2) -> o1.getDate().compareTo(o2.getDate()));
   }
 
+  @NotNull
+  public List<Revision> getRevisions() {
+    return Collections.unmodifiableList(myRevisions);
+  }
+
+  @NotNull
+  public Revision getLastRevision() {
+    return Collections.max(myRevisions, (r1, r2) -> r1.getDate().compareTo(r2.getDate()));
+  }
+
+  @NotNull
+  public String getName() {
+    return myName;
+  }
+
   static BranchImpl read(@NotNull File dir) throws IOException {
     String name = dir.getName();
     List<RevisionImpl> revisions = new ArrayList<>();
@@ -38,9 +53,9 @@ class BranchImpl implements Branch {
     return new BranchImpl(name, revisions, dir);
   }
 
-  static BranchImpl createNewBranch(@NotNull File metadataDirectory, @NotNull String name, @NotNull BranchImpl base)
+  static BranchImpl createNewBranch(@NotNull Path metadataDirectory, @NotNull String name, @NotNull BranchImpl base)
       throws IOException {
-    return createNewBranch(metadataDirectory.toPath(), name, base.getRevisionImpls());
+    return createNewBranch(metadataDirectory, name, base.getRevisionsImpl());
   }
 
   static BranchImpl createNewBranch(@NotNull Path metadataDirectory, @NotNull String name,
@@ -59,30 +74,14 @@ class BranchImpl implements Branch {
       for (RevisionImpl revision : revisions) {
         Path revisionPath = branchDirectory.toPath().resolve(revision.getHash());
         Files.createDirectory(revisionPath);
-        revision.getSnapshot().restore(revisionPath);
         FilesUtil.recursiveCopyDirectory(revision.getDirectory(), revisionPath);
       }
 
     return BranchImpl.read(branchDirectory);
   }
 
-  @NotNull
-  public List<Revision> getRevisions() {
+  List<RevisionImpl> getRevisionsImpl() {
     return Collections.unmodifiableList(myRevisions);
-  }
-
-  List<RevisionImpl> getRevisionImpls() {
-    return Collections.unmodifiableList(myRevisions);
-  }
-
-  @NotNull
-  public Revision getLastRevision() {
-    return Collections.max(myRevisions, (r1, r2) -> r1.getDate().compareTo(r2.getDate()));
-  }
-
-  @NotNull
-  public String getName() {
-    return myName;
   }
 
   Revision commitChanges(ProjectImpl project, @NotNull String message,

@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.vcs.repository.api;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -23,6 +24,7 @@ public interface Revision {
   @NotNull
   FileState getFileState(@NotNull Path relativePath) throws IOException;
 
+  @Nullable
   String getHashOfFile(@NotNull String relativePath);
 
   @NotNull

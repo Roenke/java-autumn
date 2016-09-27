@@ -54,7 +54,7 @@ class ProjectImpl implements Project {
         }
       }
     } catch (IOException e) {
-      ConsoleColoredPrinter.println("Error occurred: " + e.getMessage());
+      ConsoleColoredPrinter.println("Error occurred: " + e);
     }
 
     Set<String> deletedFileNames = revision.getFilePaths().stream().map(Path::toString).collect(Collectors.toSet());

@@ -95,9 +95,10 @@ class RevisionImpl implements Revision {
     return FileState.UNKNOWN;
   }
 
+  @Nullable
   @Override
   public String getHashOfFile(@NotNull String relativePath) {
-    return myFile2Hash.get(relativePath);
+    return myFile2Hash.getOrDefault(relativePath, null);
   }
 
   @NotNull

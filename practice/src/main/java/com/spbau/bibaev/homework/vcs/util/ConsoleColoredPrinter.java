@@ -14,14 +14,14 @@ public class ConsoleColoredPrinter {
     YELLOW("\u001B[33m");
 
 
-    private final String myAnsiColorSequence;
+    final String myAnsiColorSequence;
 
     Color(@NotNull String color) {
       myAnsiColorSequence = color;
     }
 
     @NotNull
-    private String color() {
+    String color() {
       return myAnsiColorSequence;
     }
   }
@@ -31,7 +31,7 @@ public class ConsoleColoredPrinter {
   }
 
   public static void println(@NotNull String text, @NotNull Color color) {
-    System.out.println(String.format("%s%s%s" , color.color(), text, ANSI_RESET));
+    System.out.println(String.format("%s%s%s", color.color(), text, ANSI_RESET));
   }
 
   public static void printListOfFiles(@NotNull String groupName, @NotNull Color color,

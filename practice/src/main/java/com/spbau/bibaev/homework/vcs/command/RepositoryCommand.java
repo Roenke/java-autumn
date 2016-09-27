@@ -29,7 +29,7 @@ public abstract class RepositoryCommand extends CommandBase {
         perform(args, rep);
       }
     } catch (IOException e) {
-      ConsoleColoredPrinter.println("Error occurred: " + e.getMessage(), ConsoleColoredPrinter.Color.RED);
+      ConsoleColoredPrinter.println("Error occurred: " + e, ConsoleColoredPrinter.Color.RED);
     }
   }
 

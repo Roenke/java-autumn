@@ -6,6 +6,7 @@ import com.spbau.bibaev.homework.vcs.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +25,9 @@ class RevisionSnapshot implements Snapshot {
       long offset = myPositionMapping.get(pathSuffix).first;
       long length = myPositionMapping.get(pathSuffix).second;
 
-      File outputFile = new File(directory.toFile(), pathSuffix);
-      FilesUtil.createFile(outputFile);
+      Path path = directory.resolve(pathSuffix);
+      Files.createDirectories(path.getParent());
+      File outputFile = Files.createFile(path).toFile();
 
       FileInputStream stream = new FileInputStream(myPathToSnapshot.toFile());
       stream.skip(offset);

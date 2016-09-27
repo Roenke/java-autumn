@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 public class FilesUtil {
+  private static Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
+
   public static boolean isContainsDirectory(@NotNull File directory, @NotNull String dirName) {
     return find(directory, File::isDirectory, dirName) != null;
   }
@@ -71,8 +73,6 @@ public class FilesUtil {
   public static Collection<String> pathsToStrings(@NotNull Collection<Path> paths) {
     return paths.stream().map(Path::toString).collect(Collectors.toCollection(ArrayList::new));
   }
-
-  private static Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
 
   public static String evalHashOfFile(@NotNull File file) throws IOException {
     try {

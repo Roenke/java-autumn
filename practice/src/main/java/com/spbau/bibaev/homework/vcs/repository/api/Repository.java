@@ -30,6 +30,7 @@ public interface Repository {
   @NotNull
   Revision commitChanges(@NotNull String message) throws IOException;
 
+  @NotNull
   Revision checkout(@NotNull Branch branch) throws IOException;
 
   @NotNull

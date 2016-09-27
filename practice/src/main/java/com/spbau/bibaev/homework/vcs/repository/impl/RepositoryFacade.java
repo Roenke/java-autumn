@@ -32,7 +32,12 @@ public class RepositoryFacade {
     return RepositoryImpl.openHere(directory.toFile());
   }
 
+  @Nullable
   public Repository initRepository(@NotNull Path directory) throws IOException {
+    if (openRepository(directory) != null) {
+      return null;
+    }
+
     return RepositoryImpl.createNewRepository(directory.toFile());
   }
 }

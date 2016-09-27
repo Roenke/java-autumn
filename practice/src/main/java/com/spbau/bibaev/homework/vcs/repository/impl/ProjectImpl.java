@@ -6,6 +6,7 @@ import com.spbau.bibaev.homework.vcs.repository.api.Project;
 import com.spbau.bibaev.homework.vcs.repository.api.Revision;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -118,7 +119,12 @@ class ProjectImpl implements Project {
         .listFiles((dir, name) -> !name.equals(RepositoryImpl.VCS_DIRECTORY_NAME));
     if (files != null) {
       for (File f : files) {
-        FilesUtil.deleteRecursively(f);
+        if(f.isDirectory()) {
+          FilesUtil.deleteRecursively(f);
+        }
+        else{
+          FileUtils.forceDelete(f);
+        }
       }
     }
 

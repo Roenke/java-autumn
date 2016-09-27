@@ -7,15 +7,15 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.Collections;
 
-public class LogCommandTest extends RepositoryTestCase {
+public class StatusCommandTest extends RepositoryTestCase {
   @Test
   public void noSideEffects() throws IOException {
     Repository repository = openRepository();
-    repository.commitChanges("commit");
+    repository.commitChanges("abc");
 
-    final Repository before = openRepository();
-    new LogCommand(myRule.getRoot().toPath()).perform(Collections.emptyList());
-    final Repository after = openRepository();
+    Repository before = openRepository();
+    new StatusCommand(myRule.getRoot().toPath()).perform(Collections.emptyList());
+    Repository after = openRepository();
 
     checkStateNotChanged(before, after);
   }

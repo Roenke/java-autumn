@@ -46,9 +46,7 @@ class RevisionImpl implements Revision {
     myFile2Hash = meta.file2Descriptor.keySet().stream()
         .collect(Collectors.toMap(Function.identity(), x -> meta.file2Descriptor.get(x).fileHash));
     myDate = meta.date;
-    Map<String, Pair<Long, Long>> file2Pos = meta.file2Descriptor.keySet().stream()
-        .collect(Collectors.toMap(Function.identity(),
-            s -> Pair.makePair(meta.file2Descriptor.get(s).offset, meta.file2Descriptor.get(s).length)));
+    Map<String, FileDescriptor> file2Pos = meta.file2Descriptor;
     mySnapshot = new RevisionSnapshot(snapshotFile.toPath(), file2Pos);
   }
 
@@ -158,8 +156,7 @@ class RevisionImpl implements Revision {
     meta.date = date;
     meta.message = message;
 
-    Map<Path, String> path2Hash = new HashMap<>();
-    Map<Path, Pair<Long, Long>> path2OffsetAndLength = new HashMap<>();
+    Map<Path, FileDescriptor> path2descriptor = new HashMap<>();
     Base64.Encoder encoder = Base64.getEncoder();
 
     Path projectRoot = project.getRootDirectory();
@@ -184,19 +181,19 @@ class RevisionImpl implements Revision {
       long length = file.toFile().length();
       FilesUtil.copy(fileStream, snapshotStream);
       String fileHash = encoder.encodeToString(fileDigest.digest());
-      path2Hash.put(fileRelativePath, fileHash);
-      path2OffsetAndLength.put(fileRelativePath, Pair.makePair(offset, length));
+
+      File currentFile = file.toFile();
+      FileDescriptor descriptor = new FileDescriptor(fileHash, offset, length,
+          currentFile.canRead(), currentFile.canWrite(), currentFile.canExecute());
+      path2descriptor.put(fileRelativePath, descriptor);
       offset += length;
     }
 
     snapshotStream.close();
 
     meta.hash = encoder.encodeToString(globalDigest.digest());
-    meta.file2Descriptor = path2Hash.keySet().stream()
-        .collect(Collectors.toMap(Path::toString,
-            p -> new RevisionMetadata.FileDescriptor(path2Hash.get(p),
-                path2OffsetAndLength.get(p).first,
-                path2OffsetAndLength.get(p).second)));
+    meta.file2Descriptor = path2descriptor.keySet().stream()
+        .collect(Collectors.toMap(Path::toString, path2descriptor::get));
 
     XmlSerializer.serialize(metaRevisionFile, RevisionMetadata.class, meta);
     return read(revisionDirectory.toFile());
@@ -227,26 +224,6 @@ class RevisionImpl implements Revision {
     Date date;
     @XmlElement
     Map<String, FileDescriptor> file2Descriptor;
-
-    @XmlRootElement
-    static class FileDescriptor {
-      @SuppressWarnings("unused")
-      FileDescriptor() {
-      }
-
-      FileDescriptor(@NotNull String hash, long off, long len) {
-        fileHash = hash;
-        offset = off;
-        length = len;
-      }
-
-      @XmlElement
-      String fileHash;
-      @XmlElement
-      long offset;
-      @XmlElement
-      long length;
-    }
   }
 
   private static MessageDigest getMD5Digest() {

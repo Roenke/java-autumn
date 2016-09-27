@@ -12,7 +12,7 @@ import static org.junit.Assert.*;
 
 public class CheckoutCommandTest extends RepositoryTestCase {
   @Test
-  public void checkoutRoExistedBranch() throws IOException {
+  public void checkoutToExistedBranch() throws IOException {
     final String branchName = "develop";
 
     final Repository repository = openRepository();

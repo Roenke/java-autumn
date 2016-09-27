@@ -73,9 +73,10 @@ class RepositoryImpl implements Repository {
   @Override
   public Revision checkout(@NotNull Branch branch) throws IOException {
     Path tmpDirectory = Files.createTempDirectory("revision");
-    branch.getLastRevision().getSnapshot().restore(tmpDirectory);
     myProject.clean();
-    FileUtils.copyDirectory(tmpDirectory.toFile(), myProject.getRootDirectory().toFile());
+    branch.getLastRevision().getSnapshot().restore(myProject.getRootDirectory());
+//    FilesUtil.recursiveCopyDirectory(tmpDirectory, myProject.getRootDirectory());
+//    FileUtils.moveDirectoryToDirectory(tmpDirectory.toFile(), myProject.getRootDirectory().toFile(), false);
     myCurrentBranchName = branch.getName();
     save();
     return branch.getLastRevision();

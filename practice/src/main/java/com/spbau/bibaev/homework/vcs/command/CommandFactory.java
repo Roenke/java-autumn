@@ -4,7 +4,6 @@ import com.spbau.bibaev.homework.vcs.command.impl.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
@@ -25,6 +24,7 @@ public class CommandFactory {
     NAME_2_COMMAND_CLASS_MAP.put("checkout", CheckoutCommand.class);
     NAME_2_COMMAND_CLASS_MAP.put("revert", RevertCommand.class);
     NAME_2_COMMAND_CLASS_MAP.put("merge", MergeCommand.class);
+    NAME_2_COMMAND_CLASS_MAP.put("clean", CleanCommand.class);
   }
 
   @Nullable

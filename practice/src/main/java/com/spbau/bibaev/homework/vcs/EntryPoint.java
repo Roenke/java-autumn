@@ -18,11 +18,20 @@ import java.util.stream.Collectors;
  * log
  * status
  * checkout branch_name|revision_hash
- * revert
- * TODO: merge [branch]
+ * revert TODO: replace to reset
+ * TODO: add [file] [file] ..  {add file/all files to index}
+ * TODO: rm [file] {remove file from index and disk}
+ * TODO: clean  {delete all files which not in repository}
+ * TODO: reset [file] {revert file or revert all files to current revision status}
+ * TODO: merge branch {merge branch into current branch}
+ *
+ * TODO: do not store all project files in each revision
+ *
+ * Solutions:
+ * Store only diff for each commit.
  */
 public class EntryPoint {
-  public static String VCS_NAME = "my_vcs";
+  public static String VCS_NAME = "vcs";
   public static void main(String[] args) {
     if (args.length == 0) {
       usage();

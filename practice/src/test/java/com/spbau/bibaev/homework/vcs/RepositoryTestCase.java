@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 public class RepositoryTestCase {
   @Rule
-  public TemporaryFolder myRule = new TemporaryFolder(new File("E:\\tests")) {
+  public TemporaryFolder myRule = new TemporaryFolder() {
     @Override
     protected void before() throws Throwable {
       super.before();

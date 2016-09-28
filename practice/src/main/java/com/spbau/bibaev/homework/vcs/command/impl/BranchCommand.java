@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
+import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
 import com.spbau.bibaev.homework.vcs.repository.api.Branch;
 import com.spbau.bibaev.homework.vcs.repository.api.Repository;
@@ -12,12 +13,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class BranchCommand extends RepositoryCommand {
+  @SuppressWarnings("WeakerAccess")
   public BranchCommand(@NotNull Path directory) {
     super(directory);
   }
 
+  @NotNull
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
+  protected CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
     if (args.size() == 0) {
       String currentBranchName = repository.getCurrentBranch().getName();
       List<String> branches = repository.getBranches().stream().map(Branch::getName).collect(Collectors.toList());
@@ -34,11 +37,13 @@ public class BranchCommand extends RepositoryCommand {
       Branch branch = repository.getBranchByName(args.get(0));
       if (branch != null) {
         ConsoleColoredPrinter.println("Such branch already exists", ConsoleColoredPrinter.Color.RED);
-      } else {
-        repository.createNewBranch(branchName);
-        ConsoleColoredPrinter.println("Successfully", ConsoleColoredPrinter.Color.GREEN);
+        return CommandResult.FAILED;
       }
+      repository.createNewBranch(branchName);
+      ConsoleColoredPrinter.println("Successfully", ConsoleColoredPrinter.Color.GREEN);
     }
+
+    return CommandResult.SUCCESSFUL;
   }
 
   @Override

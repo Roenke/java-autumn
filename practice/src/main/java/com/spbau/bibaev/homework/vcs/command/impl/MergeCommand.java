@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
+import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
 import com.spbau.bibaev.homework.vcs.repository.api.Branch;
 import com.spbau.bibaev.homework.vcs.repository.api.Repository;
@@ -22,19 +23,20 @@ public class MergeCommand extends RepositoryCommand {
     Revision merge(@NotNull Revision from, @NotNull Revision into);
   }
 
+  @NotNull
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
+  protected CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
     Branch srcBranch = repository.getBranchByName(args.get(0));
 
     if (srcBranch == null) {
       ConsoleColoredPrinter.println("Such branch not found", ConsoleColoredPrinter.Color.RED);
-      return;
+      return CommandResult.FAILED;
     }
 
     Branch dstBranch = repository.getCurrentBranch();
     MergeStrategy mergeStrategy = new MyPrimitiveMergeStrategy();
     mergeStrategy.merge(srcBranch.getLastRevision(), dstBranch.getLastRevision());
-    ConsoleColoredPrinter.println("Successfully");
+    return CommandResult.SUCCESSFUL;
   }
 
   @Override

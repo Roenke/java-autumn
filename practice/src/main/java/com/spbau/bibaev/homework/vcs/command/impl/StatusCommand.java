@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
+import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
 import com.spbau.bibaev.homework.vcs.repository.api.Branch;
 import com.spbau.bibaev.homework.vcs.repository.api.Diff;
@@ -17,12 +18,14 @@ import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.Color.*;
 import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.printListOfFiles;
 
 public class StatusCommand extends RepositoryCommand {
+  @SuppressWarnings("WeakerAccess")
   public StatusCommand(@NotNull Path directory) {
     super(directory);
   }
 
+  @NotNull
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
+  protected CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
     Branch currentBranch = repository.getCurrentBranch();
     Revision lastRevision = currentBranch.getLastRevision();
 
@@ -33,6 +36,8 @@ public class StatusCommand extends RepositoryCommand {
     printListOfFiles("New files", GREEN, FilesUtil.pathsToStrings(diff.getNewFiles()));
     printListOfFiles("Modified", YELLOW, FilesUtil.pathsToStrings(diff.getModifiedFiles()));
     printListOfFiles("Deleted", RED, FilesUtil.pathsToStrings(diff.getDeletedFiles()));
+
+    return CommandResult.SUCCESSFUL;
   }
 
   @Override

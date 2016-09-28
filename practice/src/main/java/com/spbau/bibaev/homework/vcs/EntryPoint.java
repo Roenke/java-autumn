@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
  *
  * TODO: do not store all project files in each revision
  *
+ * TODO: add exceptions
+ *
  * Solutions:
  * Store only diff for each commit.
  */

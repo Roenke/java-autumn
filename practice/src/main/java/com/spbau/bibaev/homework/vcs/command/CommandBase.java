@@ -17,21 +17,25 @@ public abstract class CommandBase implements Command {
     ourDirectory = directory;
   }
 
+  @NotNull
   @Override
-  public void perform(@NotNull List<String> args) {
+  public CommandResult perform(@NotNull List<String> args) {
     int argCount = args.size();
     if (getMinArgCount() <= argCount && argCount <= getMaxArgCount()) {
       try {
-        performImpl(args);
+        return performImpl(args);
       } catch (IOException e) {
         ConsoleColoredPrinter.println("Something wrong. " + e, RED);
       }
     } else {
       ConsoleColoredPrinter.println(String.format("Usage: %s %s", EntryPoint.VCS_NAME, getUsage()), RED);
     }
+
+    return CommandResult.FAILED;
   }
 
-  protected abstract void performImpl(@NotNull List<String> args) throws IOException;
+  @NotNull
+  protected abstract CommandResult performImpl(@NotNull List<String> args) throws IOException;
   protected abstract String getUsage();
 
   protected int getMinArgCount() {

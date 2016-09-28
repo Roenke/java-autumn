@@ -15,6 +15,7 @@ public class CommandFactory {
   private static final Map<String, Class<?>> NAME_2_COMMAND_CLASS_MAP = new HashMap<>();
 
   static {
+    NAME_2_COMMAND_CLASS_MAP.put("add", AddCommand.class);
     NAME_2_COMMAND_CLASS_MAP.put("log", LogCommand.class);
     NAME_2_COMMAND_CLASS_MAP.put("init", InitCommand.class);
     NAME_2_COMMAND_CLASS_MAP.put("user", UserCommand.class);

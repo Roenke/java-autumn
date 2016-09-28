@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
+import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.repository.api.Repository;
 import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryFacade;
 import com.spbau.bibaev.homework.vcs.command.CommandBase;
@@ -15,16 +16,15 @@ public class InitCommand extends CommandBase {
     super(directory);
   }
 
+  @NotNull
   @Override
-  protected void performImpl(@NotNull List<String> args) throws IOException {
+  protected CommandResult performImpl(@NotNull List<String> args) throws IOException {
     if(RepositoryFacade.getInstance().openRepository(ourDirectory) != null) {
       ConsoleColoredPrinter.println("Repository in " + ourDirectory.toString() + " already exists");
     }
 
     Repository repository = RepositoryFacade.getInstance().initRepository(ourDirectory);
-    if(repository != null) {
-      ConsoleColoredPrinter.println("Successfully", ConsoleColoredPrinter.Color.GREEN);
-    }
+    return repository == null ? CommandResult.FAILED : CommandResult.SUCCESSFUL;
   }
 
   @Override

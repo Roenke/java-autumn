@@ -17,6 +17,4 @@ public interface Project {
   Path getRootDirectory();
 
   void clean() throws IOException;
-
-  void rollRevision(@NotNull Revision revision) throws IOException;
 }

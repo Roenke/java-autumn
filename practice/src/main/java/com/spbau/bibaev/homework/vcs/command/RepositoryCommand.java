@@ -19,19 +19,23 @@ public abstract class RepositoryCommand extends CommandBase {
    *
    * @param args command line args
    */
+  @NotNull
   @Override
-  protected void performImpl(@NotNull List<String> args) throws IOException {
+  protected CommandResult performImpl(@NotNull List<String> args) throws IOException {
     try {
       Repository rep = RepositoryFacade.getInstance().openRepository(ourDirectory);
       if (rep == null) {
         ConsoleColoredPrinter.println("Repository not found", ConsoleColoredPrinter.Color.RED);
       } else {
-        perform(args, rep);
+        return perform(args, rep);
       }
     } catch (IOException e) {
       ConsoleColoredPrinter.println("Error occurred: " + e, ConsoleColoredPrinter.Color.RED);
     }
+
+    return CommandResult.FAILED;
   }
 
-  protected abstract void perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException;
+  @NotNull
+  protected abstract CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException;
 }

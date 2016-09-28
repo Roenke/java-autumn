@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
+import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
 import com.spbau.bibaev.homework.vcs.repository.api.Branch;
 import com.spbau.bibaev.homework.vcs.repository.api.Repository;
@@ -19,8 +20,9 @@ public class LogCommand extends RepositoryCommand {
     super(directory);
   }
 
+  @NotNull
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
+  protected CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
     Branch currentBranch = repository.getCurrentBranch();
     List<Revision> revisions = currentBranch.getRevisions();
     for(Revision revision : revisions) {
@@ -31,6 +33,8 @@ public class LogCommand extends RepositoryCommand {
       ConsoleColoredPrinter.println("\t\t" + revision.getMessage() , WHITE);
       ConsoleColoredPrinter.println("", WHITE);
     }
+
+    return CommandResult.SUCCESSFUL;
   }
 
   @Override

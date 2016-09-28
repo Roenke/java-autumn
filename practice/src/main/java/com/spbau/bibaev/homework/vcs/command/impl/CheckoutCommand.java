@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
+import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
 import com.spbau.bibaev.homework.vcs.repository.api.Branch;
 import com.spbau.bibaev.homework.vcs.repository.api.Diff;
@@ -15,16 +16,18 @@ import java.util.Collection;
 import java.util.List;
 
 public class CheckoutCommand extends RepositoryCommand {
+  @SuppressWarnings("WeakerAccess")
   public CheckoutCommand(@NotNull Path directory) {
     super(directory);
   }
 
+  @NotNull
   @Override
-  protected void perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
+  protected CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
     String arg = args.get(0);
     if(repository.getCurrentBranch().getName().equals(arg)) {
       ConsoleColoredPrinter.println("Already on " + arg, ConsoleColoredPrinter.Color.YELLOW);
-      return;
+      return CommandResult.FAILED;
     }
 
     Branch branch = repository.getBranchByName(arg);
@@ -37,7 +40,7 @@ public class CheckoutCommand extends RepositoryCommand {
       ConsoleColoredPrinter.printListOfFiles("New", ConsoleColoredPrinter.Color.RED, FilesUtil.pathsToStrings(newFiles));
       ConsoleColoredPrinter.printListOfFiles("Modified", ConsoleColoredPrinter.Color.YELLOW,
           FilesUtil.pathsToStrings(modifiedFiles));
-      return;
+      return CommandResult.SUCCESSFUL;
     }
 
     if (branch == null) {
@@ -45,13 +48,14 @@ public class CheckoutCommand extends RepositoryCommand {
           .filter(rev -> rev.getHash().equals(arg)).findFirst().orElse(null);
       if (revision == null) {
         ConsoleColoredPrinter.println("Such branch or revision not found", ConsoleColoredPrinter.Color.RED);
-        return;
+        return CommandResult.FAILED;
       }
-
       repository.checkout(revision);
     } else {
       repository.checkout(branch);
     }
+
+    return CommandResult.SUCCESSFUL;
   }
 
   @Override

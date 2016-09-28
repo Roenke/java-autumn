@@ -69,12 +69,6 @@ class ProjectImpl implements Project {
     return new MyDiffImpl(newFiles, deleted, modifiedFiles);
   }
 
-  @Override
-  public void rollRevision(@NotNull Revision revision) throws IOException {
-    clean();
-    revision.getSnapshot().restore(myRootDirectory);
-  }
-
   @NotNull
   public Path getRootDirectory() {
     return myRootDirectory;

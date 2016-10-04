@@ -43,6 +43,7 @@ public class RepositoryImpl implements Repository, Serializable {
   public static RepositoryImpl openRepository(@NotNull Path directory) {
     RepositoryImpl repository = new RepositoryImpl();
     repository.myWorkingDirectory = new WorkingDirectoryImpl(directory);
+    return repository;
   }
 
   public void writeObject(@NotNull Path repositoryFile) throws IOException {

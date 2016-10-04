@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -39,7 +40,9 @@ public class WorkingDirectoryImpl implements WorkingDirectory {
     List<Path> currentFiles = getAllFiles();
     Map<Path, String> currentFile2Hash = new HashMap<>();
     for (Path file : currentFiles) {
-      currentFile2Hash.put(myRootPath.relativize(file), DigestUtils.sha1Hex(Files.newInputStream(file)));
+      try (InputStream is = Files.newInputStream(file)) {
+        currentFile2Hash.put(myRootPath.relativize(file), DigestUtils.sha1Hex(is));
+      }
     }
 
     List<FilePersistentState> repositoryFiles = repositoryState.getFiles();

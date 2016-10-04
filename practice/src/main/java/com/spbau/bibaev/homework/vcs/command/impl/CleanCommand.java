@@ -27,7 +27,7 @@ public class CleanCommand extends RepositoryCommand {
       ConsoleColoredPrinter.println("Already cleaned");
     } else {
       for (Path path : newFiles) {
-        FileUtils.deleteQuietly(path.toFile());
+        FileUtils.forceDelete(path.toFile());
         File[] siblings = path.getParent().toFile().listFiles();
         if (siblings != null && siblings.length == 0) {
           FileUtils.deleteQuietly(path.getParent().toFile());

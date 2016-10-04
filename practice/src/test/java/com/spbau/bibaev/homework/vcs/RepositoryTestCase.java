@@ -14,13 +14,19 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
+@SuppressWarnings("WeakerAccess")
 public class RepositoryTestCase {
-  protected static final String MAKEFILE = "Makefile.txt";
+  protected static final String MAKEFILE = "Makefile";
   protected static final String FILE = "file.txt";
+  protected static final String DIRECTORY = "src";
+  protected static final String NESTED_DIRECTORY = "impl";
+
+  protected static final String NESTED_FILE1 = DIRECTORY + File.separator + "code.cpp";
+  protected static final String NESTED_FILE2 = DIRECTORY + File.separator + "main.cpp";
+  protected static final String NESTED_FILE3 = DIRECTORY + File.separator + "lib.h";
+  protected static final String NESTED_NESTED_FILE = DIRECTORY + File.separator + NESTED_DIRECTORY + File.separator + "impl.txt";
   @Rule
   public TemporaryFolder myRule = new TemporaryFolder() {
     @Override
@@ -31,19 +37,15 @@ public class RepositoryTestCase {
       Files.createFile(testDirectory.resolve(FILE));
       Files.createFile(testDirectory.resolve(MAKEFILE));
 
-      final Path srcDirectory = Files.createDirectory(testDirectory.resolve("src"));
-      Files.createFile(srcDirectory.resolve("code.cpp"));
-      Files.createFile(srcDirectory.resolve("main.cpp"));
-      Files.createFile(srcDirectory.resolve("lib.h"));
+      final Path srcDirectory = Files.createDirectory(testDirectory.resolve(DIRECTORY));
+      Files.createFile(testDirectory.resolve(NESTED_FILE1));
+      Files.createFile(testDirectory.resolve(NESTED_FILE2));
+      Files.createFile(testDirectory.resolve(NESTED_FILE3));
 
-      Path nested = Files.createDirectory(srcDirectory.resolve("impl"));
-      Files.createFile(nested.resolve("impl.txt"));
+      Files.createDirectory(srcDirectory.resolve(NESTED_DIRECTORY));
+      Files.createFile(testDirectory.resolve(NESTED_NESTED_FILE));
     }
   };
-
-  protected Path getDirectory() {
-    return myRule.getRoot().toPath();
-  }
 
   protected Repository openRepository() throws IOException {
     return RepositoryImpl.openRepository(getDirectory());
@@ -75,6 +77,10 @@ public class RepositoryTestCase {
     assertTrue(after.getBranches().stream()
         .allMatch(afterBranch -> before.getBranches().stream()
             .anyMatch(x -> x.getName().equals(afterBranch.getName()))));
+  }
+
+  private Path getDirectory() {
+    return myRule.getRoot().toPath();
   }
 }
 

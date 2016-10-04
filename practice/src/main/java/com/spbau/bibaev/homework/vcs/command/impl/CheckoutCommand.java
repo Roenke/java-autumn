@@ -40,7 +40,7 @@ public class CheckoutCommand extends RepositoryCommand {
       ConsoleColoredPrinter.printListOfFiles("New", ConsoleColoredPrinter.Color.RED, FilesUtil.pathsToStrings(newFiles));
       ConsoleColoredPrinter.printListOfFiles("Modified", ConsoleColoredPrinter.Color.YELLOW,
           FilesUtil.pathsToStrings(modifiedFiles));
-      return CommandResult.SUCCESSFUL;
+      return CommandResult.FAILED;
     }
 
     if (branch == null) {

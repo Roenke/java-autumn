@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.RepositoryTestCase;
+import com.spbau.bibaev.homework.vcs.command.Command;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.repository.impl.v2.RepositoryImpl;
@@ -16,24 +17,25 @@ public class CheckoutCommandTest extends RepositoryTestCase {
   public void checkoutToExistedBranch() throws IOException {
     final String branchName = "develop";
 
-    final Repository repository = RepositoryImpl.openRepository(myRule.getRoot().toPath());
-    assertNotNull(repository);
+    final Repository before = RepositoryImpl.openRepository(myRule.getRoot().toPath());
+    assertNotNull(before);
 
-    repository.createNewBranch(branchName, repository.getCurrentBranch().getCommit());
-    assertNotNull(repository.getBranchByName(branchName));
-    assertNotEquals(repository.getCurrentBranch().getName(), branchName);
+    before.createNewBranch(branchName, before.getCurrentBranch().getCommit());
+    assertNotNull(before.getBranchByName(branchName));
+    assertNotEquals(before.getCurrentBranch().getName(), branchName);
+    before.save();
 
-    final CheckoutCommand checkoutCommand = new CheckoutCommand(myRule.getRoot().toPath());
-    checkoutCommand.perform(Collections.singletonList(branchName), repository);
+    final Command checkoutCommand = createCommand("checkout");
+    checkoutCommand.perform(Collections.singletonList(branchName));
 
-    assertEquals(branchName, repository.getCurrentBranch().getName());
-    assertEquals(openRepository().getCurrentBranch().getName(), branchName);
+    final Repository after = openRepository();
+    assertEquals(branchName, after.getCurrentBranch().getName());
   }
 
   @Test
   public void checkoutToRevision() throws IOException {
     String commitMessage = "message";
-    final Repository repository = RepositoryImpl.openRepository(myRule.getRoot().toPath());
+    final Repository repository = openRepository();
 
     repository.commitChanges(commitMessage);
     Commit prevRevision = repository.getCurrentBranch().getCommit();

@@ -1,6 +1,6 @@
 package com.spbau.bibaev.homework.vcs.repository.impl.v2;
 
-import com.spbau.bibaev.homework.vcs.repository.api.v2.FileState;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.FilePersistentState;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,18 +12,12 @@ import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 
-public class FileStateImpl implements FileState {
-  private static final OutputStream NULL = new OutputStream() {
-    @Override
-    public void write(int b) throws IOException {
-    }
-  };
-
+public class FileStateImpl implements FilePersistentState {
   private final String myRelativePath;
   private final Path mySnapshotFile;
   private final int mySnapshotOffset;
   private final int mySnapshotLength;
-  private transient String hash = "";
+  private String hash = "";
 
   public FileStateImpl(String relativePath, Path snapshotFile, int off, int len) {
     myRelativePath = relativePath;
@@ -38,8 +32,8 @@ public class FileStateImpl implements FileState {
   }
 
   @Override
-  public String getHash() {
-    if(hash.isEmpty()) {
+  public String getHash() throws IOException {
+    if (hash.isEmpty()) {
       return evalHash();
     }
 
@@ -61,24 +55,33 @@ public class FileStateImpl implements FileState {
     MessageDigest digest = DigestUtils.getSha1Digest();
     DigestInputStream dis = new DigestInputStream(is, digest);
     is.skip(mySnapshotOffset);
-    copy(dis, NULL, mySnapshotLength);
+    readAll(dis, mySnapshotLength);
     hash = DigestUtils.sha1Hex(digest.digest());
 
     return hash;
   }
 
-  private static void writeToFile(@NotNull InputStream in, @NotNull Path path, long len) throws IOException {
+  private static void writeToFile(@NotNull InputStream in, @NotNull Path path, int len) throws IOException {
     try (OutputStream out = Files.newOutputStream(path)) {
       copy(in, out, len);
     }
   }
 
-  private static void copy(@NotNull InputStream in, @NotNull OutputStream out, long len) throws IOException {
+  private static void copy(@NotNull InputStream in, @NotNull OutputStream out, int len) throws IOException {
+    byte[] buffer = new byte[4096];
+    int remain = len;
+    while (remain > 0) {
+      int readBytes = in.read(buffer, 0, Math.min(buffer.length, remain));
+      out.write(buffer, 0, readBytes);
+      remain -= readBytes;
+    }
+  }
+
+  private static void readAll(@NotNull InputStream in, int len) throws IOException {
     byte[] buffer = new byte[4096];
     long remain = len;
     while (remain > 0) {
       int readBytes = in.read(buffer, 0, (int) Math.min(buffer.length, remain));
-      out.write(buffer, 0, readBytes);
       remain -= readBytes;
     }
   }

@@ -2,7 +2,7 @@ package com.spbau.bibaev.homework.vcs.repository.impl.v2;
 
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.CommitMeta;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.FileState;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.FilePersistentState;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.RepositoryState;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,13 +11,13 @@ import java.util.stream.Collectors;
 
 public class CommitImpl implements Commit {
   private final List<Commit> myParents;
-  private final List<FileState> myAddedFiles;
-  private final List<FileState> myModifiedFiles;
-  private final List<FileState> myDeletedFiles;
+  private final List<FilePersistentState> myAddedFiles;
+  private final List<FilePersistentState> myModifiedFiles;
+  private final List<FilePersistentState> myDeletedFiles;
   private final CommitMeta myMeta;
 
-  public CommitImpl(@NotNull List<Commit> parents, @NotNull List<FileState> added, @NotNull List<FileState> modified,
-                    @NotNull List<FileState> deleted, @NotNull CommitMeta meta) {
+  public CommitImpl(@NotNull List<Commit> parents, @NotNull List<FilePersistentState> added, @NotNull List<FilePersistentState> modified,
+                    @NotNull List<FilePersistentState> deleted, @NotNull CommitMeta meta) {
     myParents = parents;
     myAddedFiles = added;
     myModifiedFiles = modified;
@@ -36,17 +36,17 @@ public class CommitImpl implements Commit {
   }
 
   @Override
-  public List<FileState> getAddedFiles() {
+  public List<FilePersistentState> getAddedFiles() {
     return Collections.unmodifiableList(myAddedFiles);
   }
 
   @Override
-  public List<FileState> getModifiedFiles() {
+  public List<FilePersistentState> getModifiedFiles() {
     return Collections.unmodifiableList(myModifiedFiles);
   }
 
   @Override
-  public List<FileState> getDeletedFiles() {
+  public List<FilePersistentState> getDeletedFiles() {
     return Collections.unmodifiableList(myDeletedFiles);
   }
 
@@ -60,14 +60,14 @@ public class CommitImpl implements Commit {
       current = parents.isEmpty() ? null : parents.get(0);
     }
 
-    Map<String, FileState> files = new HashMap<>();
+    Map<String, FilePersistentState> files = new HashMap<>();
     for(Commit commit : commits) {
       commit.getAddedFiles().forEach(x -> files.put(x.getRelativePath(), x));
       commit.getModifiedFiles().forEach(x -> files.put(x.getRelativePath(), x));
       commit.getDeletedFiles().forEach(x -> files.remove(x.getRelativePath()));
     }
 
-    List<FileState> states = files.values().stream().collect(Collectors.toList());
+    List<FilePersistentState> states = files.values().stream().collect(Collectors.toList());
     return () -> Collections.unmodifiableList(states);
   }
 }

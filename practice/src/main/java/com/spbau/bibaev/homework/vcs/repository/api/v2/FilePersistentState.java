@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Path;
 
-public interface FileState extends Serializable {
+public interface FilePersistentState {
   String getRelativePath();
 
-  String getHash();
+  String getHash() throws IOException;
 
   void restore(@NotNull Path directory) throws IOException;
 }

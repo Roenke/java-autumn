@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.vcs.repository.impl.v2;
 
+import com.spbau.bibaev.homework.vcs.EntryPoint;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Branch;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
@@ -19,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 
 public class RepositoryImpl implements Repository, Serializable {
+  public static final String REPOSITORY_DIRECTORY_NAME = '.' + EntryPoint.VCS_NAME;
+
   private static final String DEFAULT_USERNAME = System.getProperty("user.name");
   private static final String DEFAULT_BRANCH_NAME = "master";
 

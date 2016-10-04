@@ -8,11 +8,11 @@ public interface Commit extends Serializable {
 
   CommitMeta getMeta();
 
-  List<FileState> getAddedFiles();
+  List<FilePersistentState> getAddedFiles();
 
-  List<FileState> getModifiedFiles();
+  List<FilePersistentState> getModifiedFiles();
 
-  List<FileState> getDeletedFiles();
+  List<FilePersistentState> getDeletedFiles();
 
   RepositoryState getRepositoryState();
 }

@@ -1,7 +1,7 @@
 package com.spbau.bibaev.homework.vcs.command;
 
-import com.spbau.bibaev.homework.vcs.repository.api.Repository;
-import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryFacade;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
+import com.spbau.bibaev.homework.vcs.repository.impl.v2.RepositoryImpl;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +23,7 @@ public abstract class RepositoryCommand extends CommandBase {
   @Override
   protected CommandResult performImpl(@NotNull List<String> args) throws IOException {
     try {
-      Repository rep = RepositoryFacade.getInstance().openRepository(ourDirectory);
+      Repository rep = RepositoryImpl.openRepository(ourDirectory);
       if (rep == null) {
         ConsoleColoredPrinter.println("Repository not found", ConsoleColoredPrinter.Color.RED);
       } else {
@@ -36,6 +36,5 @@ public abstract class RepositoryCommand extends CommandBase {
     return CommandResult.FAILED;
   }
 
-  @NotNull
   protected abstract CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException;
 }

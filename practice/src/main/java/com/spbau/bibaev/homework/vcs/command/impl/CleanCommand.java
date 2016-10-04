@@ -2,8 +2,8 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
-import com.spbau.bibaev.homework.vcs.repository.api.Repository;
-import com.spbau.bibaev.homework.vcs.repository.api.Revision;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -19,11 +19,10 @@ public class CleanCommand extends RepositoryCommand {
     super(directory);
   }
 
-  @NotNull
   @Override
   protected CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
-    Revision lastRevision = repository.getCurrentBranch().getLastRevision();
-    Collection<Path> newFiles = repository.getProject().getDiff(lastRevision).getNewFiles();
+    Commit commit = repository.getCurrentBranch().getCommit();
+    Collection<Path> newFiles = repository.getProject().getDiff(commit.getRepositoryState()).getNewFiles();
     if (newFiles.size() == 0) {
       ConsoleColoredPrinter.println("Already cleaned");
     } else {

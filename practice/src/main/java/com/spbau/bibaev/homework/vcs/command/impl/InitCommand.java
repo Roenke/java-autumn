@@ -1,9 +1,10 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.CommandResult;
-import com.spbau.bibaev.homework.vcs.repository.api.Repository;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryFacade;
 import com.spbau.bibaev.homework.vcs.command.CommandBase;
+import com.spbau.bibaev.homework.vcs.repository.impl.v2.RepositoryImpl;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +24,7 @@ public class InitCommand extends CommandBase {
       ConsoleColoredPrinter.println("Repository in " + ourDirectory.toString() + " already exists");
     }
 
-    Repository repository = RepositoryFacade.getInstance().initRepository(ourDirectory);
+    Repository repository = RepositoryImpl.createRepository(ourDirectory);
     return repository == null ? CommandResult.FAILED : CommandResult.SUCCESSFUL;
   }
 

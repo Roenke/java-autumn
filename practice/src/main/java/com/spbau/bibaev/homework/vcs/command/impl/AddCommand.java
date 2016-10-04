@@ -2,9 +2,8 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
-import com.spbau.bibaev.homework.vcs.repository.api.FileState;
-import com.spbau.bibaev.homework.vcs.repository.api.Repository;
-import com.spbau.bibaev.homework.vcs.repository.api.Revision;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,7 +17,6 @@ public class AddCommand extends RepositoryCommand {
     super(directory);
   }
 
-  @NotNull
   @Override
   protected CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
     List<Path> paths = args.stream().map(ourDirectory::resolve).collect(Collectors.toList());
@@ -29,13 +27,13 @@ public class AddCommand extends RepositoryCommand {
         ConsoleColoredPrinter.println(String.format("File %s not found", path), ConsoleColoredPrinter.Color.RED);
       }
 
-      Revision lastRevision = repository.getCurrentBranch().getLastRevision();
-      FileState fileState = lastRevision.getFileState(ourDirectory.relativize(path));
-      if (fileState != FileState.NEW && fileState != FileState.MODIFIED) {
-        failed = true;
-        ConsoleColoredPrinter.println(String.format("File %s not new or modifier, cannot add to index", path),
-            ConsoleColoredPrinter.Color.RED);
-      }
+      Commit lastRevision = repository.getCurrentBranch().getCommit();
+//      FileState fileState = lastRevision.getFileState(ourDirectory.relativize(path));
+//      if (fileState != FileState.NEW && fileState != FileState.MODIFIED) {
+//        failed = true;
+//        ConsoleColoredPrinter.println(String.format("File %s not new or modifier, cannot add to index", path),
+//            ConsoleColoredPrinter.Color.RED);
+//      }
     }
 
     if(failed) {

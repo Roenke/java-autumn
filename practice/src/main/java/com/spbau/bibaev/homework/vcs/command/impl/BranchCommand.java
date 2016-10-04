@@ -2,8 +2,8 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
-import com.spbau.bibaev.homework.vcs.repository.api.Branch;
-import com.spbau.bibaev.homework.vcs.repository.api.Repository;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Branch;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,7 +18,6 @@ public class BranchCommand extends RepositoryCommand {
     super(directory);
   }
 
-  @NotNull
   @Override
   protected CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
     if (args.size() == 0) {
@@ -39,7 +38,7 @@ public class BranchCommand extends RepositoryCommand {
         ConsoleColoredPrinter.println("Such branch already exists", ConsoleColoredPrinter.Color.RED);
         return CommandResult.FAILED;
       }
-      repository.createNewBranch(branchName);
+      repository.createNewBranch(branchName, repository.getCurrentBranch().getCommit());
       ConsoleColoredPrinter.println("Successfully", ConsoleColoredPrinter.Color.GREEN);
     }
 

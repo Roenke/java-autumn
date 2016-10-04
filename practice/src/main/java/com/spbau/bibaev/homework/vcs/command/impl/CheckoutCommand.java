@@ -2,10 +2,9 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
-import com.spbau.bibaev.homework.vcs.repository.api.Branch;
 import com.spbau.bibaev.homework.vcs.repository.api.Diff;
-import com.spbau.bibaev.homework.vcs.repository.api.Repository;
-import com.spbau.bibaev.homework.vcs.repository.api.Revision;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Branch;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +20,6 @@ public class CheckoutCommand extends RepositoryCommand {
     super(directory);
   }
 
-  @NotNull
   @Override
   protected CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
     String arg = args.get(0);
@@ -31,29 +29,30 @@ public class CheckoutCommand extends RepositoryCommand {
     }
 
     Branch branch = repository.getBranchByName(arg);
-    Diff diff = repository.getProject().getDiff(repository.getCurrentBranch().getLastRevision());
-    Collection<Path> newFiles = diff.getNewFiles();
-    Collection<Path> modifiedFiles = diff.getModifiedFiles();
-    if (newFiles.size() + modifiedFiles.size() > 0) {
-      ConsoleColoredPrinter.println("RepositoryImpl contains uncommitted files. Commit/revert it.",
-          ConsoleColoredPrinter.Color.RED);
-      ConsoleColoredPrinter.printListOfFiles("New", ConsoleColoredPrinter.Color.RED, FilesUtil.pathsToStrings(newFiles));
-      ConsoleColoredPrinter.printListOfFiles("Modified", ConsoleColoredPrinter.Color.YELLOW,
-          FilesUtil.pathsToStrings(modifiedFiles));
-      return CommandResult.SUCCESSFUL;
-    }
 
-    if (branch == null) {
-      Revision revision = repository.getCurrentBranch().getRevisions().stream()
-          .filter(rev -> rev.getHash().equals(arg)).findFirst().orElse(null);
-      if (revision == null) {
-        ConsoleColoredPrinter.println("Such branch or revision not found", ConsoleColoredPrinter.Color.RED);
-        return CommandResult.FAILED;
-      }
-      repository.checkout(revision);
-    } else {
-      repository.checkout(branch);
-    }
+//    Diff diff = repository.getProject().getDiff(branch.getCommit().getRepositoryState());
+//    Collection<Path> newFiles = diff.getNewFiles();
+//    Collection<Path> modifiedFiles = diff.getModifiedFiles();
+//    if (newFiles.size() + modifiedFiles.size() > 0) {
+//      ConsoleColoredPrinter.println("RepositoryImpl contains uncommitted files. Commit/revert it.",
+//          ConsoleColoredPrinter.Color.RED);
+//      ConsoleColoredPrinter.printListOfFiles("New", ConsoleColoredPrinter.Color.RED, FilesUtil.pathsToStrings(newFiles));
+//      ConsoleColoredPrinter.printListOfFiles("Modified", ConsoleColoredPrinter.Color.YELLOW,
+//          FilesUtil.pathsToStrings(modifiedFiles));
+//      return CommandResult.SUCCESSFUL;
+//    }
+//
+//    if (branch == null) {
+//      Revision revision = repository.getCurrentBranch().getRevisions().stream()
+//          .filter(rev -> rev.getHash().equals(arg)).findFirst().orElse(null);
+//      if (revision == null) {
+//        ConsoleColoredPrinter.println("Such branch or revision not found", ConsoleColoredPrinter.Color.RED);
+//        return CommandResult.FAILED;
+//      }
+//      repository.checkout(revision);
+//    } else {
+//      repository.checkout(branch);
+//    }
 
     return CommandResult.SUCCESSFUL;
   }

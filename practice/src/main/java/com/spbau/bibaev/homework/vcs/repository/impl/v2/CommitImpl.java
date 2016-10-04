@@ -2,6 +2,7 @@ package com.spbau.bibaev.homework.vcs.repository.impl.v2;
 
 import com.spbau.bibaev.homework.vcs.repository.api.v2.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -15,8 +16,9 @@ public class CommitImpl implements Commit {
   private final List<FilePersistentState> myDeletedFiles;
   private final CommitMeta myMeta;
 
-  public CommitImpl(@NotNull List<Commit> parents, @NotNull List<FilePersistentState> added, @NotNull List<FilePersistentState> modified,
-                    @NotNull List<FilePersistentState> deleted, @NotNull CommitMeta meta, @NotNull RepositoryImpl repository) {
+  public CommitImpl(@NotNull List<Commit> parents, @NotNull List<FilePersistentState> added,
+                    @NotNull List<FilePersistentState> modified, @NotNull List<FilePersistentState> deleted,
+                    @NotNull CommitMeta meta, @NotNull RepositoryImpl repository) {
     myParents = parents;
     myAddedFiles = added;
     myModifiedFiles = modified;
@@ -32,6 +34,16 @@ public class CommitImpl implements Commit {
   @Override
   public List<Commit> getParents() {
     return Collections.unmodifiableList(myParents);
+  }
+
+  @Nullable
+  @Override
+  public Commit getMainParent() {
+    if (myParents.isEmpty()) {
+      return null;
+    }
+
+    return myParents.get(0);
   }
 
   @Override
@@ -58,14 +70,14 @@ public class CommitImpl implements Commit {
   public RepositoryState getRepositoryState() {
     LinkedList<Commit> commits = new LinkedList<>();
     Commit current = this;
-    while(current != null) {
+    while (current != null) {
       commits.addFirst(current);
       List<Commit> parents = current.getParents();
       current = parents.isEmpty() ? null : parents.get(0);
     }
 
     Map<String, FilePersistentState> files = new HashMap<>();
-    for(Commit commit : commits) {
+    for (Commit commit : commits) {
       commit.getAddedFiles().forEach(x -> files.put(x.getRelativePath(), x));
       commit.getModifiedFiles().forEach(x -> files.put(x.getRelativePath(), x));
       commit.getDeletedFiles().forEach(x -> files.remove(x.getRelativePath()));

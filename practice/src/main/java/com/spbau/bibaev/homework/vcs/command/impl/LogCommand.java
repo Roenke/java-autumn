@@ -2,14 +2,16 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
-import com.spbau.bibaev.homework.vcs.repository.api.Branch;
-import com.spbau.bibaev.homework.vcs.repository.api.Repository;
-import com.spbau.bibaev.homework.vcs.repository.api.Revision;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Branch;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.CommitMeta;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.LinkedList;
 import java.util.List;
 
 import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.Color.GREEN;
@@ -20,17 +22,23 @@ public class LogCommand extends RepositoryCommand {
     super(directory);
   }
 
-  @NotNull
   @Override
   protected CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
     Branch currentBranch = repository.getCurrentBranch();
-    List<Revision> revisions = currentBranch.getRevisions();
-    for(Revision revision : revisions) {
-      ConsoleColoredPrinter.println("commit: " + revision.getHash(), GREEN);
-      ConsoleColoredPrinter.println("user: " + revision.getAuthorName(), WHITE);
-      ConsoleColoredPrinter.println("date: " + revision.getDate(), WHITE);
+    Commit currentCommit = currentBranch.getCommit();
+    LinkedList<Commit> commits = new LinkedList<>();
+    while (currentCommit != null) {
+      commits.addFirst(currentCommit);
+      currentCommit = currentCommit.getMainParent();
+    }
+
+    for(Commit commit : commits) {
+      CommitMeta meta = commit.getMeta();
+      ConsoleColoredPrinter.println("commit: " + meta.getHashcode(), GREEN);
+      ConsoleColoredPrinter.println("user: " + meta.getAuthor(), WHITE);
+      ConsoleColoredPrinter.println("date: " + meta.getDate(), WHITE);
       ConsoleColoredPrinter.println("", WHITE);
-      ConsoleColoredPrinter.println("\t\t" + revision.getMessage() , WHITE);
+      ConsoleColoredPrinter.println("\t\t" + meta.getMessage() , WHITE);
       ConsoleColoredPrinter.println("", WHITE);
     }
 

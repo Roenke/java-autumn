@@ -11,4 +11,6 @@ public interface CommitMeta extends Serializable {
   Date getDate();
 
   String getHashcode();
+
+  String getMessage();
 }

@@ -5,6 +5,7 @@ import com.spbau.bibaev.homework.vcs.repository.api.v2.Branch;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.WorkingDirectory;
+import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,36 +36,39 @@ public class RepositoryImpl implements Repository, Serializable {
   }
 
   private static RepositoryImpl readRepository(@NotNull Path repositoryFile, @NotNull Path repositoryRoot)
-      throws IOException, ClassNotFoundException {
+      throws IOException {
     ObjectInputStream in = new ObjectInputStream(Files.newInputStream(repositoryFile));
 
-    final RepositoryImpl repository = (RepositoryImpl) in.readObject();
+    final RepositoryImpl repository;
+    try {
+      repository = (RepositoryImpl) in.readObject();
+    } catch (ClassNotFoundException e) {
+      throw new IOException("Cannot restore the repository state");
+    }
     repository.myWorkingDirectory = new WorkingDirectoryImpl(repositoryRoot);
 
     return repository;
   }
 
-  public static RepositoryImpl openRepository(@NotNull Path directory) throws IOException, ClassNotFoundException {
-    final Path metadataDirectory = directory.resolve(REPOSITORY_DIRECTORY_NAME);
-    if (!metadataDirectory.toFile().exists()) {
-      throw new IOException("Repository not fount in " + directory);
+  @Nullable
+  public static RepositoryImpl openRepository(@NotNull Path directory) throws IOException {
+    File currentDirectory = directory.toFile();
+    while (currentDirectory != null && !FilesUtil.isContainsDirectory(currentDirectory, REPOSITORY_DIRECTORY_NAME)) {
+      currentDirectory = currentDirectory.getParentFile();
     }
 
-    final Path meta = metadataDirectory.resolve(REPOSITORY_METADATA);
-    if (!meta.toFile().exists()) {
-      throw new IOException("Repository meta file not found");
+    if (currentDirectory == null) {
+      return null;
     }
 
-    final RepositoryImpl repository = readRepository(meta, directory);
-    repository.myWorkingDirectory = new WorkingDirectoryImpl(directory);
-    return repository;
+    return openHere(directory);
   }
 
   public static RepositoryImpl createRepository(@NotNull Path directory) throws IOException {
     final RepositoryImpl repository = new RepositoryImpl(DEFAULT_BRANCH_NAME, new WorkingDirectoryImpl(directory));
     CommitImpl commit = new CommitImpl(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
         Collections.emptyList(), new CommitMetaImpl(String.valueOf(System.currentTimeMillis()),
-        DEFAULT_USERNAME, new Date(), DigestUtils.sha1Hex(new byte[0])), repository);
+        DEFAULT_USERNAME, new Date(), DigestUtils.sha1Hex(new byte[0]), "The initial commit"), repository);
     final Path commitFile = repository.getProject().getRootDirectory()
         .resolve(REPOSITORY_DIRECTORY_NAME).resolve(commit.getMeta().getId());
     Files.createDirectories(commitFile.getParent());
@@ -75,7 +79,19 @@ public class RepositoryImpl implements Repository, Serializable {
     return repository;
   }
 
-  public void writeObject() throws IOException {
+  private static RepositoryImpl openHere(@NotNull Path directory) throws IOException {
+    final Path metadataDirectory = directory.resolve(REPOSITORY_DIRECTORY_NAME);
+    final Path meta = metadataDirectory.resolve(REPOSITORY_METADATA);
+    if (!meta.toFile().exists()) {
+      throw new IOException("Repository meta file not found");
+    }
+
+    final RepositoryImpl repository = readRepository(meta, directory);
+    repository.myWorkingDirectory = new WorkingDirectoryImpl(directory);
+    return repository;
+  }
+
+  private void writeObject() throws IOException {
     Path repositoryFile = myWorkingDirectory.getRootDirectory()
         .resolve(REPOSITORY_DIRECTORY_NAME).resolve(REPOSITORY_METADATA);
     if (!repositoryFile.toFile().exists()) {

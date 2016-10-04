@@ -23,6 +23,8 @@ public interface Repository {
   @Nullable
   Branch getBranchByName(@NotNull String name);
 
+  Commit getCommit(@NotNull String commitId);
+
   RepositoryIndex getIndex();
 
   boolean addFileToIndex(@NotNull Path pathToFile);

@@ -2,6 +2,8 @@ package com.spbau.bibaev.homework.vcs;
 
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
+import com.spbau.bibaev.homework.vcs.repository.impl.v2.RepositoryImpl;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -26,5 +28,13 @@ public class RepositoryTest extends RepositoryTestCase {
 //      assertTrue("File " + relativePath.toString() + " not found in project",
 //          files.contains(rootPath.resolve(relativePath)));
 //    }
+  }
+
+  @Test
+  public void openFromSubdirectory() throws IOException {
+    final Path srcDir = myRule.getRoot().toPath().resolve("src");
+    final RepositoryImpl repo = RepositoryImpl.openRepository(srcDir);
+    assertNotNull(repo);
+    assertEquals(repo.getProject().getRootDirectory(), myRule.getRoot().toPath());
   }
 }

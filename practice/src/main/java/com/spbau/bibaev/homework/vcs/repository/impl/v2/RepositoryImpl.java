@@ -58,7 +58,7 @@ public class RepositoryImpl implements Repository, Serializable {
       return null;
     }
 
-    return openHere(directory);
+    return openHere(currentDirectory.toPath());
   }
 
   public static RepositoryImpl createRepository(@NotNull Path directory) throws IOException {
@@ -126,6 +126,11 @@ public class RepositoryImpl implements Repository, Serializable {
     }
 
     return result;
+  }
+
+  @Override
+  public Commit getCommit(@NotNull String commitId) {
+    return myCommitsIndex.getOrDefault(commitId, null);
   }
 
   @Override

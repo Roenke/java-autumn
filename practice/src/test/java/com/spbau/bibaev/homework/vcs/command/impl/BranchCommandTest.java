@@ -2,8 +2,10 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.RepositoryTestCase;
 import com.spbau.bibaev.homework.vcs.command.Command;
+import com.spbau.bibaev.homework.vcs.command.CommandFactory;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Branch;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -18,7 +20,7 @@ public class BranchCommandTest extends RepositoryTestCase {
     assertNotNull(repository);
     Branch currentBranch = repository.getCurrentBranch();
 
-    Command command = new BranchCommand(repository.getProject().getRootDirectory());
+    Command command = createCommand("branch");
     command.perform(Collections.emptyList());
 
     Repository updated = openRepository();
@@ -29,22 +31,16 @@ public class BranchCommandTest extends RepositoryTestCase {
   public void newBranchTest() throws IOException {
     String branchName = "develop";
 
-    Repository repositoryBefore = openRepository();
-    assertNotNull(repositoryBefore);
-    String currentBranchBefore = repositoryBefore.getCurrentBranch().getName();
-    assertNull(repositoryBefore.getBranchByName(branchName));
+    final Repository before = openRepository();
+    String beforeBranchName = before.getCurrentBranch().getName();
+    assertNotEquals(branchName, beforeBranchName);
 
-    Command command = new BranchCommand(myRule.getRoot().toPath());
-    command.perform(Collections.singletonList(branchName));
+    @NotNull final Command branchCommand = createCommand("branch");
+    branchCommand.perform(Collections.singletonList(branchName));
 
-    Repository updatedRepository = openRepository();
-    assertNotNull(updatedRepository);
-    assertEquals(updatedRepository.getCurrentBranch().getName(), currentBranchBefore);
-
-    Branch newBranch = updatedRepository.getBranchByName(branchName);
-    assertNotNull(newBranch);
-//    assertEquals("Number of revision must be same in HEAD and new branch",
-//        repositoryBefore.getCurrentBranch().getCommit().size(),
-//        newBranch.getRevisions().size());
+    final Repository after = openRepository();
+    assertNotEquals(branchName, after.getCurrentBranch().getName());
+    assertEquals(beforeBranchName, after.getCurrentBranch().getName());
+    assertNotNull(after.getBranchByName(branchName));
   }
 }

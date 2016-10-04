@@ -1,7 +1,11 @@
 package com.spbau.bibaev.homework.vcs;
 
+import com.spbau.bibaev.homework.vcs.command.Command;
+import com.spbau.bibaev.homework.vcs.command.CommandFactory;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.repository.impl.v2.RepositoryImpl;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
@@ -11,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class RepositoryTestCase {
@@ -42,6 +47,13 @@ public class RepositoryTestCase {
 
   protected Repository openRepository() throws IOException {
     return RepositoryImpl.openRepository(getDirectory());
+  }
+
+  @NotNull
+  protected Command createCommand(@NotNull String name) {
+    @Nullable final Command command = CommandFactory.createCommand(getDirectory(), name);
+    assertNotNull(command);
+    return command;
   }
 
   protected void addFile(String name, String content) throws IOException {

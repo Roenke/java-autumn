@@ -33,7 +33,7 @@ public class BranchCommand extends RepositoryCommand {
       }
     } else {
       String branchName = args.get(0);
-      Branch branch = repository.getBranchByName(args.get(0));
+      Branch branch = repository.getBranchByName(branchName);
       if (branch != null) {
         ConsoleColoredPrinter.println("Such branch already exists", ConsoleColoredPrinter.Color.RED);
         return CommandResult.FAILED;

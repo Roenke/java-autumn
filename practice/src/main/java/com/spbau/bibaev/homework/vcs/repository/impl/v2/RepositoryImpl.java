@@ -151,8 +151,13 @@ public class RepositoryImpl implements Repository, Serializable {
     return getBranchByName(name);
   }
 
+  @Nullable
   @Override
-  public @Nullable Branch getBranchByName(@NotNull String branchName) {
+  public Branch getBranchByName(@NotNull String branchName) {
+    if (!myBranches.containsKey(branchName)) {
+      return null;
+    }
+
     Commit commit = myCommitsIndex.get(myBranches.get(branchName));
     return new BranchImpl(branchName, commit);
   }

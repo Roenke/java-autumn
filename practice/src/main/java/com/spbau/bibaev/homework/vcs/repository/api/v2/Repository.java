@@ -23,6 +23,8 @@ public interface Repository {
   @Nullable
   Branch getBranchByName(@NotNull String name);
 
+  RepositoryIndex getIndex();
+
   boolean addFileToIndex(@NotNull Path pathToFile);
 
   Commit commitChanges(@NotNull String message) throws IOException;
@@ -32,4 +34,6 @@ public interface Repository {
   Commit checkout(@NotNull Branch branch) throws IOException;
 
   Commit checkout(@NotNull Commit revision) throws IOException;
+
+  void save() throws IOException;
 }

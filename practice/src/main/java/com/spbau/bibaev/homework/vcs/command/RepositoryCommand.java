@@ -27,7 +27,12 @@ public abstract class RepositoryCommand extends CommandBase {
       if (rep == null) {
         ConsoleColoredPrinter.println("Repository not found", ConsoleColoredPrinter.Color.RED);
       } else {
-        return perform(args, rep);
+        final CommandResult result = perform(args, rep);
+        if(result != CommandResult.FAILED) {
+          rep.save();
+        }
+
+        return result;
       }
     } catch (IOException e) {
       ConsoleColoredPrinter.println("Error occurred: " + e, ConsoleColoredPrinter.Color.RED);

@@ -1,10 +1,7 @@
 package com.spbau.bibaev.homework.vcs.repository.impl.v2;
 
 import com.spbau.bibaev.homework.vcs.EntryPoint;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.Branch;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.WorkingDirectory;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.*;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
@@ -108,6 +105,11 @@ public class RepositoryImpl implements Repository, Serializable {
   }
 
   @Override
+  public void save() throws IOException {
+    writeObject();
+  }
+
+  @Override
   public WorkingDirectory getProject() {
     return myWorkingDirectory;
   }
@@ -153,6 +155,21 @@ public class RepositoryImpl implements Repository, Serializable {
   public @Nullable Branch getBranchByName(@NotNull String branchName) {
     Commit commit = myCommitsIndex.get(myBranches.get(branchName));
     return new BranchImpl(branchName, commit);
+  }
+
+  @Override
+  public RepositoryIndex getIndex() {
+    return new RepositoryIndex() {
+      @Override
+      public Collection<String> added() {
+        return Collections.unmodifiableCollection(myAddedFiles);
+      }
+
+      @Override
+      public Collection<String> removed() {
+        return Collections.unmodifiableCollection(myDeletedFiles);
+      }
+    };
   }
 
   @Override

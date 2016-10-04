@@ -14,6 +14,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class RepositoryTestCase {
+  protected static final String MAKEFILE = "Makefile.txt";
+  protected static final String FILE = "file.txt";
   @Rule
   public TemporaryFolder myRule = new TemporaryFolder() {
     @Override
@@ -21,8 +23,8 @@ public class RepositoryTestCase {
       super.before();
       final Path testDirectory = myRule.getRoot().toPath();
       RepositoryImpl.createRepository(testDirectory);
-      Files.createFile(testDirectory.resolve("file.txt"));
-      Files.createFile(testDirectory.resolve("Makefile.txt"));
+      Files.createFile(testDirectory.resolve(FILE));
+      Files.createFile(testDirectory.resolve(MAKEFILE));
 
       final Path srcDirectory = Files.createDirectory(testDirectory.resolve("src"));
       Files.createFile(srcDirectory.resolve("code.cpp"));
@@ -34,8 +36,12 @@ public class RepositoryTestCase {
     }
   };
 
+  protected Path getDirectory() {
+    return myRule.getRoot().toPath();
+  }
+
   protected Repository openRepository() throws IOException {
-    return RepositoryImpl.openRepository(myRule.getRoot().toPath());
+    return RepositoryImpl.openRepository(getDirectory());
   }
 
   protected void addFile(String name, String content) throws IOException {

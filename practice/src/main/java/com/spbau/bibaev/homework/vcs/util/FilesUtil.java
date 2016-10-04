@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.vcs.util;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,18 +76,9 @@ public class FilesUtil {
   }
 
   public static String evalHashOfFile(@NotNull File file) throws IOException {
-    try {
-      MessageDigest digest = MessageDigest.getInstance("MD5");
-      DigestInputStream stream = new DigestInputStream(Files.newInputStream(file.toPath()), digest);
-      byte[] buffer = new byte[4096];
-      int count = stream.read(buffer);
-      while (count > 0) {
-        count = stream.read(buffer);
-      }
-
-      return BASE64_ENCODER.encodeToString(digest.digest());
-    } catch (NoSuchAlgorithmException ignored) {
-      throw new UnsupportedEncodingException();
+    try (InputStream is = Files.newInputStream(file.toPath())){
+      final byte[] digest = DigestUtils.sha1(is);
+      return DigestUtils.sha1Hex(digest);
     }
   }
 

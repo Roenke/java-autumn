@@ -1,9 +1,7 @@
 package com.spbau.bibaev.homework.vcs;
 
-import com.spbau.bibaev.homework.vcs.repository.api.Branch;
-import com.spbau.bibaev.homework.vcs.repository.api.Repository;
-import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryFacade;
-
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
+import com.spbau.bibaev.homework.vcs.repository.impl.v2.RepositoryImpl;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
@@ -22,7 +20,7 @@ public class RepositoryTestCase {
     protected void before() throws Throwable {
       super.before();
       final Path testDirectory = myRule.getRoot().toPath();
-      RepositoryFacade.getInstance().initRepository(testDirectory);
+      RepositoryImpl.createRepository(testDirectory);
       Files.createFile(testDirectory.resolve("file.txt"));
       Files.createFile(testDirectory.resolve("Makefile.txt"));
 
@@ -37,7 +35,7 @@ public class RepositoryTestCase {
   };
 
   protected Repository openRepository() throws IOException {
-    return RepositoryFacade.getInstance().openRepository(myRule.getRoot().toPath());
+    return RepositoryImpl.openRepository(myRule.getRoot().toPath());
   }
 
   protected void addFile(String name, String content) throws IOException {
@@ -47,10 +45,9 @@ public class RepositoryTestCase {
 
   protected void checkStateNotChanged(Repository before, Repository after) {
     assertEquals(before.getCurrentBranch().getName(), after.getCurrentBranch().getName());
-    assertEquals(before.getCurrentBranch().getLastRevision().getDate(),
-        after.getCurrentBranch().getLastRevision().getDate());
+    assertEquals(before.getCurrentBranch().getCommit().getMeta().getDate(),
+        after.getCurrentBranch().getCommit().getMeta().getDate());
     assertEquals(before.getProject().getAllFiles().size(), after.getProject().getAllFiles().size());
-    assertEquals(before.getCurrentBranch().getRevisions().size(), after.getCurrentBranch().getRevisions().size());
     assertEquals(before.getUserName(), after.getUserName());
 
     assertTrue(before.getBranches().stream()

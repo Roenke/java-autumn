@@ -1,7 +1,7 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.RepositoryTestCase;
-import com.spbau.bibaev.homework.vcs.repository.api.Repository;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -18,6 +18,6 @@ public class CommitCommandTest extends RepositoryTestCase {
     final Repository repository = openRepository();
     assertNotNull(repository);
 
-    assertEquals(commitMessage, repository.getCurrentBranch().getLastRevision().getMessage());
+    assertEquals(commitMessage, repository.getCurrentBranch().getCommit().getMeta().getMessage());
   }
 }

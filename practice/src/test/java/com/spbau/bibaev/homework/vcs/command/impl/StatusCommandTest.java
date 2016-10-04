@@ -1,7 +1,7 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.RepositoryTestCase;
-import com.spbau.bibaev.homework.vcs.repository.api.Repository;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import org.junit.Test;
 
 import java.io.IOException;

@@ -8,6 +8,7 @@ public class BranchImpl implements Branch {
   private Commit myCommit;
   private final String myName;
 
+
   BranchImpl(@NotNull String name, @NotNull Commit commit) {
     myCommit = commit;
     myName = name;

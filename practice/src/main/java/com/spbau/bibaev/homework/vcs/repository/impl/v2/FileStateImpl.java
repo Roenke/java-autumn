@@ -14,14 +14,14 @@ import java.security.MessageDigest;
 
 public class FileStateImpl implements FilePersistentState {
   private final String myRelativePath;
-  private final Path mySnapshotFile;
+  private final CommitImpl myCommit;
   private final int mySnapshotOffset;
   private final int mySnapshotLength;
   private String hash = "";
 
-  public FileStateImpl(String relativePath, Path snapshotFile, int off, int len) {
+  public FileStateImpl(String relativePath, CommitImpl commit, int off, int len) {
     myRelativePath = relativePath;
-    mySnapshotFile = snapshotFile;
+    myCommit = commit;
     mySnapshotOffset = off;
     mySnapshotLength = len;
   }
@@ -42,7 +42,8 @@ public class FileStateImpl implements FilePersistentState {
 
   @Override
   public void restore(@NotNull Path directory) throws IOException {
-    InputStream is = Files.newInputStream(mySnapshotFile);
+    final Path snapshotFile = myCommit.getSnapshotFile();
+    InputStream is = Files.newInputStream(snapshotFile);
     Path fileLocation = directory.resolve(myRelativePath);
     Files.createDirectories(fileLocation.getParent());
     Files.createFile(fileLocation);
@@ -51,7 +52,8 @@ public class FileStateImpl implements FilePersistentState {
   }
 
   private String evalHash() throws IOException {
-    InputStream is = Files.newInputStream(mySnapshotFile);
+    final Path snapshotFile = myCommit.getSnapshotFile();
+    InputStream is = Files.newInputStream(snapshotFile);
     MessageDigest digest = DigestUtils.getSha1Digest();
     DigestInputStream dis = new DigestInputStream(is, digest);
     is.skip(mySnapshotOffset);

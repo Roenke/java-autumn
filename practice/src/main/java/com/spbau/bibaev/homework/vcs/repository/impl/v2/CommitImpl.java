@@ -1,15 +1,14 @@
 package com.spbau.bibaev.homework.vcs.repository.impl.v2;
 
-import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.CommitMeta;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.FilePersistentState;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.RepositoryState;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class CommitImpl implements Commit {
+  private final RepositoryImpl myRepository;
   private final List<Commit> myParents;
   private final List<FilePersistentState> myAddedFiles;
   private final List<FilePersistentState> myModifiedFiles;
@@ -17,12 +16,17 @@ public class CommitImpl implements Commit {
   private final CommitMeta myMeta;
 
   public CommitImpl(@NotNull List<Commit> parents, @NotNull List<FilePersistentState> added, @NotNull List<FilePersistentState> modified,
-                    @NotNull List<FilePersistentState> deleted, @NotNull CommitMeta meta) {
+                    @NotNull List<FilePersistentState> deleted, @NotNull CommitMeta meta, @NotNull RepositoryImpl repository) {
     myParents = parents;
     myAddedFiles = added;
     myModifiedFiles = modified;
     myDeletedFiles = deleted;
     myMeta = meta;
+    myRepository = repository;
+  }
+
+  public Path getSnapshotFile() {
+    return myRepository.getMetaDirectory().resolve(myMeta.getId());
   }
 
   @Override

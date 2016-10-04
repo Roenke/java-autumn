@@ -5,25 +5,21 @@ import com.spbau.bibaev.homework.vcs.repository.api.v2.Branch;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.WorkingDirectory;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RepositoryImpl implements Repository, Serializable {
   public static final String REPOSITORY_DIRECTORY_NAME = '.' + EntryPoint.VCS_NAME;
+  public static final String DEFAULT_BRANCH_NAME = "master";
 
+  private static final String REPOSITORY_METADATA = "repo.meta";
   private static final String DEFAULT_USERNAME = System.getProperty("user.name");
-  private static final String DEFAULT_BRANCH_NAME = "master";
 
   private transient WorkingDirectory myWorkingDirectory;
   private final Map<String, String> myBranches = new HashMap<>();
@@ -33,7 +29,12 @@ public class RepositoryImpl implements Repository, Serializable {
   private String myUserName = DEFAULT_USERNAME;
   private String myCurrentBranchName = DEFAULT_BRANCH_NAME;
 
-  public static RepositoryImpl readRepository(@NotNull Path repositoryFile, @NotNull Path repositoryRoot)
+  private RepositoryImpl(@NotNull String branch, @NotNull WorkingDirectory workingDirectory) {
+    myCurrentBranchName = branch;
+    myWorkingDirectory = workingDirectory;
+  }
+
+  private static RepositoryImpl readRepository(@NotNull Path repositoryFile, @NotNull Path repositoryRoot)
       throws IOException, ClassNotFoundException {
     ObjectInputStream in = new ObjectInputStream(Files.newInputStream(repositoryFile));
 
@@ -43,15 +44,51 @@ public class RepositoryImpl implements Repository, Serializable {
     return repository;
   }
 
-  public static RepositoryImpl openRepository(@NotNull Path directory) {
-    RepositoryImpl repository = new RepositoryImpl();
+  public static RepositoryImpl openRepository(@NotNull Path directory) throws IOException, ClassNotFoundException {
+    final Path metadataDirectory = directory.resolve(REPOSITORY_DIRECTORY_NAME);
+    if (!metadataDirectory.toFile().exists()) {
+      throw new IOException("Repository not fount in " + directory);
+    }
+
+    final Path meta = metadataDirectory.resolve(REPOSITORY_METADATA);
+    if (!meta.toFile().exists()) {
+      throw new IOException("Repository meta file not found");
+    }
+
+    final RepositoryImpl repository = readRepository(meta, directory);
     repository.myWorkingDirectory = new WorkingDirectoryImpl(directory);
     return repository;
   }
 
-  public void writeObject(@NotNull Path repositoryFile) throws IOException {
+  public static RepositoryImpl createRepository(@NotNull Path directory) throws IOException {
+    final RepositoryImpl repository = new RepositoryImpl(DEFAULT_BRANCH_NAME, new WorkingDirectoryImpl(directory));
+    CommitImpl commit = new CommitImpl(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+        Collections.emptyList(), new CommitMetaImpl(String.valueOf(System.currentTimeMillis()),
+        DEFAULT_USERNAME, new Date(), DigestUtils.sha1Hex(new byte[0])), repository);
+    final Path commitFile = repository.getProject().getRootDirectory()
+        .resolve(REPOSITORY_DIRECTORY_NAME).resolve(commit.getMeta().getId());
+    Files.createDirectories(commitFile.getParent());
+    Files.createFile(commitFile);
+    repository.myCommitsIndex.put(commit.getMeta().getId(), commit);
+    repository.myBranches.put(repository.myCurrentBranchName, commit.getMeta().getId());
+    repository.writeObject();
+    return repository;
+  }
+
+  public void writeObject() throws IOException {
+    Path repositoryFile = myWorkingDirectory.getRootDirectory()
+        .resolve(REPOSITORY_DIRECTORY_NAME).resolve(REPOSITORY_METADATA);
+    if (!repositoryFile.toFile().exists()) {
+      Files.createDirectories(repositoryFile.getParent());
+      Files.createFile(repositoryFile);
+    }
+
     ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(repositoryFile));
     out.writeObject(this);
+  }
+
+  public Path getMetaDirectory() {
+    return myWorkingDirectory.getRootDirectory().resolve(REPOSITORY_DIRECTORY_NAME);
   }
 
   @Override

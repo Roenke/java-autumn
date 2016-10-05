@@ -26,6 +26,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Deprecated
 class RevisionImpl implements Revision {
   private static final String REVISION_METADATA_FILENAME = "revision_meta.xml";
   private static final String SNAPSHOT_FILENAME = "snapshot.data";

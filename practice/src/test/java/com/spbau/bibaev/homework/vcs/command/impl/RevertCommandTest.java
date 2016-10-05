@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.RepositoryTestCase;
+import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.junit.Test;
@@ -18,7 +19,9 @@ public class RevertCommandTest extends RepositoryTestCase {
   public void revertSimpleChange() throws IOException {
     final Repository repository = openRepository();
     assertNotNull(repository);
-    repository.commitChanges("commit");
+
+    assertEquals(CommandResult.SUCCESSFUL, createCommand("add").perform(Collections.singletonList(MAKEFILE)));
+    assertEquals(CommandResult.SUCCESSFUL, createCommand("commit").perform(Collections.singletonList("message")));
 
     List<Path> files = repository.getProject().getAllFiles();
     assertNotEquals(0, files.size());

@@ -79,7 +79,7 @@ public class RepositoryTestCase {
             .anyMatch(x -> x.getName().equals(afterBranch.getName()))));
   }
 
-  private Path getDirectory() {
+  protected Path getDirectory() {
     return myRule.getRoot().toPath();
   }
 }

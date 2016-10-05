@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 class RevisionSnapshot implements Snapshot {
   private final Path myPathToSnapshot;
   private final Map<String, FileDescriptor> myPositionMapping;

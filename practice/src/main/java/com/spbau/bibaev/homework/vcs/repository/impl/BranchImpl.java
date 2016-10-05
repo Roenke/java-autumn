@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+@Deprecated
 class BranchImpl implements Branch {
   private final String myName;
   private final List<RevisionImpl> myRevisions;

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+@Deprecated
 public class RepositoryFacade {
   private static class Holder {
     static final RepositoryFacade INSTANCE = new RepositoryFacade();

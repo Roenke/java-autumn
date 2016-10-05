@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+@Deprecated
 public interface Branch {
   @NotNull
   List<Revision> getRevisions();

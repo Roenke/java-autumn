@@ -1,7 +1,7 @@
 package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.RepositoryTestCase;
-import com.spbau.bibaev.homework.vcs.command.Command;
+import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.repository.impl.v2.RepositoryImpl;
@@ -17,19 +17,21 @@ public class CheckoutCommandTest extends RepositoryTestCase {
   public void checkoutToExistedBranch() throws IOException {
     final String branchName = "develop";
 
-    final Repository before = RepositoryImpl.openRepository(myRule.getRoot().toPath());
-    assertNotNull(before);
+    Repository before = openRepository();
+    String oldCommitId = before.getCurrentBranch().getCommit().getMeta().getId();
 
-    before.createNewBranch(branchName, before.getCurrentBranch().getCommit());
-    assertNotNull(before.getBranchByName(branchName));
-    assertNotEquals(before.getCurrentBranch().getName(), branchName);
-    before.save();
+    assertEquals(CommandResult.SUCCESSFUL , createCommand("branch").perform(Collections.singletonList(branchName)));
 
-    final Command checkoutCommand = createCommand("checkout");
-    checkoutCommand.perform(Collections.singletonList(branchName));
+    assertEquals(CommandResult.SUCCESSFUL , createCommand("add").perform(Collections.singletonList(MAKEFILE)));
+    assertEquals(CommandResult.SUCCESSFUL , createCommand("commit").perform(Collections.singletonList(branchName)));
 
-    final Repository after = openRepository();
+    Repository repository = openRepository();
+    assertNotEquals(branchName, repository.getCurrentBranch().getName());
+    assertEquals(CommandResult.SUCCESSFUL, createCommand("checkout").perform(Collections.singletonList(branchName)));
+    Repository after = openRepository();
+
     assertEquals(branchName, after.getCurrentBranch().getName());
+    assertEquals(oldCommitId, after.getCurrentBranch().getCommit().getMeta().getId());
   }
 
   @Test

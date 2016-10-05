@@ -49,7 +49,7 @@ public class WorkingDirectoryImpl implements WorkingDirectory {
     Map<Path, String> repositoryFile2Hash = new HashMap<>();
     for (FilePersistentState state : repositoryFiles) {
       Path relativePath = myRootPath.relativize(myRootPath.resolve(state.getRelativePath()));
-      repositoryFile2Hash.put(relativePath, state.getHash());
+      repositoryFile2Hash.put(relativePath, state.getMyHash());
     }
 
     Map<Path, FileState> relativePath2State = new HashMap<>();
@@ -79,36 +79,38 @@ public class WorkingDirectoryImpl implements WorkingDirectory {
   }
 
   private static class MyDiff implements Diff {
-    private final Collection<Path> myNewFiles;
-    private final Collection<Path> myModifiedFiles;
-    private final Collection<Path> myDeletedFiles;
-
+    private final Map<Path, FileState> myPath2State;
 
     MyDiff(@NotNull Map<Path, FileState> file2State) {
-      myNewFiles = file2State.entrySet().stream()
-          .filter(e -> e.getValue() == FileState.NEW)
-          .map(Map.Entry::getKey).collect(Collectors.toList());
-      myModifiedFiles = file2State.entrySet().stream()
-          .filter(e -> e.getValue() == FileState.MODIFIED)
-          .map(Map.Entry::getKey).collect(Collectors.toList());
-      myDeletedFiles = file2State.entrySet().stream()
-          .filter(e -> e.getValue() == FileState.DELETED)
-          .map(Map.Entry::getKey).collect(Collectors.toList());
+      myPath2State = new HashMap<>(file2State);
     }
 
     @Override
     public Collection<Path> getNewFiles() {
-      return Collections.unmodifiableCollection(myNewFiles);
+      return Collections.unmodifiableCollection(myPath2State.entrySet().stream()
+          .filter(e -> e.getValue() == FileState.NEW)
+          .map(Map.Entry::getKey).collect(Collectors.toList()));
     }
 
     @Override
     public Collection<Path> getDeletedFiles() {
-      return Collections.unmodifiableCollection(myModifiedFiles);
+      return Collections.unmodifiableCollection(myPath2State.entrySet().stream()
+          .filter(e -> e.getValue() == FileState.DELETED)
+          .map(Map.Entry::getKey).collect(Collectors.toList()));
     }
 
     @Override
     public Collection<Path> getModifiedFiles() {
-      return Collections.unmodifiableCollection(myDeletedFiles);
+      return Collections.unmodifiableCollection(myPath2State.entrySet().stream()
+          .filter(e -> e.getValue() == FileState.MODIFIED)
+          .map(Map.Entry::getKey).collect(Collectors.toList()));
+    }
+
+    @Override
+    public FileState getFileState(@NotNull String relativePath) {
+      Path path = myPath2State.keySet().stream().filter(p -> p.toString().equals(relativePath))
+          .findFirst().orElse(null);
+      return path == null ? FileState.UNKNOWN : myPath2State.get(path);
     }
   }
 }

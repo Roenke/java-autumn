@@ -16,15 +16,17 @@ import static org.junit.Assert.*;
 public class BranchCommandTest extends RepositoryTestCase {
   @Test
   public void listBranchesTest() throws IOException {
-    Repository repository = openRepository();
-    assertNotNull(repository);
-    Branch currentBranch = repository.getCurrentBranch();
+    Repository before = openRepository();
+    assertNotNull(before);
+    Branch currentBranch = before.getCurrentBranch();
 
     Command command = createCommand("branch");
     command.perform(Collections.emptyList());
 
-    Repository updated = openRepository();
-    assertEquals(currentBranch.getName(), updated.getCurrentBranch().getName());
+    Repository after = openRepository();
+
+    assertEquals(currentBranch.getName(), after.getCurrentBranch().getName());
+    checkStateNotChanged(before, after);
   }
 
   @Test

@@ -34,10 +34,9 @@ public class CheckoutCommand extends RepositoryCommand {
     Diff diff = repository.getProject().getDiff(repository.getCurrentBranch().getCommit().getRepositoryState());
     Collection<Path> newFiles = diff.getNewFiles();
     Collection<Path> modifiedFiles = diff.getModifiedFiles();
-    if (newFiles.size() + modifiedFiles.size() > 0) {
-      ConsoleColoredPrinter.println("RepositoryImpl contains uncommitted files. Commit/revert it.",
+    if (modifiedFiles.size() > 0) {
+      ConsoleColoredPrinter.println("RepositoryImpl contains uncommitted modified files. Commit/revert it.",
           ConsoleColoredPrinter.Color.RED);
-      ConsoleColoredPrinter.printListOfFiles("New", ConsoleColoredPrinter.Color.RED, FilesUtil.pathsToStrings(newFiles));
       ConsoleColoredPrinter.printListOfFiles("Modified", ConsoleColoredPrinter.Color.YELLOW,
           FilesUtil.pathsToStrings(modifiedFiles));
       return CommandResult.FAILED;

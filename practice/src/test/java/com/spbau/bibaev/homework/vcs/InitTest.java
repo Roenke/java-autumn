@@ -1,7 +1,7 @@
 package com.spbau.bibaev.homework.vcs;
 
-import com.spbau.bibaev.homework.vcs.repository.api.Repository;
-import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryFacade;
+import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
+import com.spbau.bibaev.homework.vcs.repository.impl.v2.RepositoryImpl;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -15,7 +15,7 @@ public class InitTest {
   @Test
   public void simpleInitInEmptyDirectory() throws IOException {
     Path tempDirectory = Files.createTempDirectory("init-test");
-    Repository repository = RepositoryFacade.getInstance().initRepository(tempDirectory);
+    Repository repository = RepositoryImpl.createRepository(tempDirectory);
     checkRepositoryState(repository);
   }
 
@@ -24,7 +24,7 @@ public class InitTest {
     Path tempDirectory = Files.createTempDirectory("init-test-nonempty");
     String filename = "file.txt";
     Path file = Files.createFile(tempDirectory.resolve(filename));
-    Repository repository = RepositoryFacade.getInstance().initRepository(tempDirectory);
+    Repository repository = RepositoryImpl.createRepository(tempDirectory);
     assertNotNull(repository);
     assertEquals(1, repository.getProject().getAllFiles().size());
 
@@ -35,9 +35,10 @@ public class InitTest {
   private void checkRepositoryState(Repository repository) {
     assertNotNull("Repository init failed", repository);
     assertNotNull("Current branch is null", repository.getCurrentBranch());
-    assertNotNull("Snapshot must be not null", repository.getCurrentBranch().getLastRevision().getSnapshot());
     assertEquals("Init branch should be named master", "master", repository.getCurrentBranch().getName());
-    assertEquals("Must be one initial revision", 1, repository.getCurrentBranch().getRevisions().size());
-    assertEquals("No commit any files", 0, repository.getCurrentBranch().getLastRevision().getFilePaths().size());
+    assertNotNull("Must be initial commit not null", repository.getCurrentBranch().getCommit());
+    assertEquals("No commit any files", 0, repository.getCurrentBranch().getCommit().getAddedFiles().size());
+    assertEquals("No commit any files", 0, repository.getCurrentBranch().getCommit().getModifiedFiles().size());
+    assertEquals("No commit any files", 0, repository.getCurrentBranch().getCommit().getDeletedFiles().size());
   }
 }

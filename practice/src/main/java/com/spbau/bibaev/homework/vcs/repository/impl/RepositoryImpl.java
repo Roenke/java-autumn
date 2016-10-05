@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Deprecated
 class RepositoryImpl implements Repository {
   static final String VCS_DIRECTORY_NAME = ".my_vcs";
   static final String DEFAULT_USER_NAME = System.getProperty("user.name");

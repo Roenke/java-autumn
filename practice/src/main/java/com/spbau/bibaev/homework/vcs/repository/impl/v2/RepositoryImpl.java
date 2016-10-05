@@ -1,16 +1,23 @@
 package com.spbau.bibaev.homework.vcs.repository.impl.v2;
 
 import com.spbau.bibaev.homework.vcs.EntryPoint;
+import com.spbau.bibaev.homework.vcs.repository.api.Diff;
+import com.spbau.bibaev.homework.vcs.repository.api.FileState;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.*;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.DigestInputStream;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RepositoryImpl implements Repository, Serializable {
   public static final String REPOSITORY_DIRECTORY_NAME = '.' + EntryPoint.VCS_NAME;
@@ -190,8 +197,65 @@ public class RepositoryImpl implements Repository, Serializable {
 
   @Override
   public Commit commitChanges(@NotNull String message) throws IOException {
-    // TODO
-    return null;
+    Diff diff = getProject().getDiff(getCurrentBranch().getCommit().getRepositoryState());
+    Path root = myWorkingDirectory.getRootDirectory();
+    List<Path> newFiles = new ArrayList<>();
+    List<Path> modifiedFiles = new ArrayList<>();
+    List<String> removedFiles = new ArrayList<>();
+
+    for (String relativePath : myAddedFiles) {
+      FileState fileState = diff.getFileState(relativePath);
+      if (fileState == FileState.NEW) {
+        newFiles.add(root.resolve(relativePath));
+      }
+      if (fileState == FileState.MODIFIED) {
+        modifiedFiles.add(root.resolve(relativePath));
+      }
+    }
+
+    for (String relativePath : myDeletedFiles) {
+      FileState fileState = diff.getFileState(relativePath);
+      if (fileState == FileState.DELETED) {
+        removedFiles.add(root.resolve(relativePath).toString());
+      }
+    }
+
+    Commit commit = commitFiles(newFiles, modifiedFiles, removedFiles, message);
+    myAddedFiles.clear();
+    myDeletedFiles.clear();
+    myCommitsIndex.put(commit.getMeta().getId(), commit);
+    myBranches.put(myCurrentBranchName, commit.getMeta().getId());
+    return commit;
+  }
+
+  private Commit commitFiles(@NotNull List<Path> newFiles, @NotNull List<Path> modifiedFiles,
+                             @NotNull List<String> removedFiles, @NotNull String message) throws IOException {
+    Commit current = getCurrentBranch().getCommit();
+
+    Path snapshot = Files.createFile(myWorkingDirectory.getRootDirectory().resolve(REPOSITORY_DIRECTORY_NAME)
+        .resolve(String.valueOf(System.currentTimeMillis())));
+    MessageDigest globalDigest = DigestUtils.getSha1Digest();
+
+    List<FileStateImpl> newStatesImpl = new ArrayList<>();
+    List<FileStateImpl> modifiedStatesImpl = new ArrayList<>();
+
+    try (OutputStream os = new DigestOutputStream(Files.newOutputStream(snapshot), globalDigest)) {
+      addFilesToSnapshot(modifiedFiles, os, addFilesToSnapshot(newFiles, os, 0, newStatesImpl), modifiedStatesImpl);
+    }
+
+    String commitHash = DigestUtils.sha1Hex(globalDigest.digest());
+    snapshot.toFile().renameTo(snapshot.getParent().resolve(commitHash).toFile());
+
+    List<FilePersistentState> newStates = newStatesImpl.stream().collect(Collectors.toList());
+    List<FilePersistentState> modifiedStates = modifiedStatesImpl.stream().collect(Collectors.toList());
+
+    CommitImpl commit = new CommitImpl(Collections.singletonList(current), newStates, modifiedStates, removedFiles,
+        new CommitMetaImpl(commitHash, myUserName, new Date(), commitHash, message), this);
+
+    newStatesImpl.forEach(x -> x.setCommit(commit));
+    modifiedStatesImpl.forEach(x -> x.setCommit(commit));
+
+    return commit;
   }
 
   @Override
@@ -220,5 +284,22 @@ public class RepositoryImpl implements Repository, Serializable {
 
   private String getCommitBranchName(@NotNull String commitId) {
     return String.format("commit_%s", commitId);
+  }
+
+  private int addFilesToSnapshot(@NotNull List<Path> files, @NotNull OutputStream snapshotStream,
+                                                 int offset, @NotNull List<FileStateImpl> result) throws IOException {
+    Path root = myWorkingDirectory.getRootDirectory();
+    for (Path file : files) {
+      MessageDigest fileDigest = DigestUtils.getSha1Digest();
+      try (InputStream is = new DigestInputStream(Files.newInputStream(file), fileDigest)) {
+        int len = IOUtils.copy(is, snapshotStream);
+        String fileHash = DigestUtils.sha1Hex(fileDigest.digest());
+        FileStateImpl state = new FileStateImpl(root.relativize(file).toString(), null, fileHash, offset, len);
+        result.add(state);
+        offset += len;
+      }
+    }
+
+    return offset;
   }
 }

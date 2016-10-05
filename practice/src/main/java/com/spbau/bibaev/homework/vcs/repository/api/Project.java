@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+@Deprecated
 public interface Project {
   @NotNull
   List<Path> getAllFiles();

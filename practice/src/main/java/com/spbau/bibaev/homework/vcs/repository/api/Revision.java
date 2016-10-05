@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
 
+@Deprecated
 public interface Revision {
   @NotNull
   String getHash();

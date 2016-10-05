@@ -19,6 +19,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Deprecated
 class ProjectImpl implements Project {
   private final Map<String, File> myPath2File;
   private final Path myRootDirectory;
@@ -125,6 +126,7 @@ class ProjectImpl implements Project {
     myPath2File.clear();
   }
 
+  @Deprecated
   private static class MyDiffImpl implements Diff {
     private final Collection<Path> myNew;
     private final Collection<Path> myDeleted;
@@ -154,6 +156,11 @@ class ProjectImpl implements Project {
     @NotNull
     public Collection<Path> getModifiedFiles() {
       return Collections.unmodifiableCollection(myModified);
+    }
+
+    @Override
+    public FileState getFileState(@NotNull String relativePath) {
+      return null;
     }
   }
 }

@@ -17,7 +17,7 @@ public interface Commit extends Serializable {
 
   List<FilePersistentState> getModifiedFiles();
 
-  List<FilePersistentState> getDeletedFiles();
+  List<String> getDeletedFiles();
 
   RepositoryState getRepositoryState();
 }

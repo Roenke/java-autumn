@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 public interface Repository {
-  WorkingDirectory getProject();
+  WorkingDirectory getWorkingDirectory();
 
   List<Branch> getBranches();
 

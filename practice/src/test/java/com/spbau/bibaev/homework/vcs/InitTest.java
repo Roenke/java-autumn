@@ -26,9 +26,9 @@ public class InitTest {
     Path file = Files.createFile(tempDirectory.resolve(filename));
     Repository repository = RepositoryImpl.createRepository(tempDirectory);
     assertNotNull(repository);
-    assertEquals(1, repository.getProject().getAllFiles().size());
+    assertEquals(1, repository.getWorkingDirectory().getAllFiles().size());
 
-    assertEquals(file, repository.getProject().getAllFiles().get(0));
+    assertEquals(file, repository.getWorkingDirectory().getAllFiles().get(0));
     checkRepositoryState(repository);
   }
 

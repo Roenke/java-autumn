@@ -1,12 +1,10 @@
 package com.spbau.bibaev.homework.vcs.serialization;
 
 import com.spbau.bibaev.homework.vcs.repository.impl.v2.RepositoryImpl;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,7 +35,7 @@ public class RepositorySerialization {
     RepositoryImpl repository = RepositoryImpl.openRepository(myRule.getRoot().toPath());
     assertEquals(myRule.getRoot().toPath(), repository.getMetaDirectory().getParent());
     assertEquals(RepositoryImpl.REPOSITORY_DIRECTORY_NAME, repository.getMetaDirectory().getFileName().toString());
-    assertEquals(myRule.getRoot().toPath(), repository.getProject().getRootDirectory());
+    assertEquals(myRule.getRoot().toPath(), repository.getWorkingDirectory().getRootDirectory());
     assertTrue(repository.getMetaDirectory().toFile().exists());
     assertEquals(RepositoryImpl.DEFAULT_BRANCH_NAME, repository.getCurrentBranch().getName());
   }

@@ -2,12 +2,11 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.RepositoryTestCase;
 import com.spbau.bibaev.homework.vcs.command.CommandResult;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
-import com.spbau.bibaev.homework.vcs.repository.impl.v2.RepositoryImpl;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.Assert.*;
@@ -37,19 +36,20 @@ public class CheckoutCommandTest extends RepositoryTestCase {
   @Test
   public void checkoutToRevision() throws IOException {
     String commitMessage = "message";
+
+    final Repository before = openRepository();
+    final String commitId = before.getCurrentBranch().getCommit().getMeta().getId();
+    final String oldBranchName = before.getCurrentBranch().getName();
+
+    createCommand("add").perform(Arrays
+        .asList(MAKEFILE, FILE, NESTED_FILE1, NESTED_FILE2, NESTED_FILE3, NESTED_NESTED_FILE));
     final Repository repository = openRepository();
+    assertEquals(6, repository.getIndex().added().size());
+    createCommand("commit").perform(Collections.singletonList(commitMessage));
+    assertEquals(CommandResult.SUCCESSFUL, createCommand("checkout").perform(Collections.singletonList(commitId)));
 
-    repository.commitChanges(commitMessage);
-    Commit prevRevision = repository.getCurrentBranch().getCommit();
-    addFile("newFile.cpp", "hello");
-    repository.commitChanges(commitMessage + "2");
-    Commit lastRevision = repository.getCurrentBranch().getCommit();
-    String oldBranchName = repository.getCurrentBranch().getName();
-
-    new CheckoutCommand(myRule.getRoot().toPath()).perform(Collections.singletonList(lastRevision.getMeta().getHashcode()));
-    Repository updated = RepositoryImpl.openRepository(myRule.getRoot().toPath());
-    assertNotNull(updated);
-    assertNotEquals(oldBranchName, updated.getCurrentBranch().getName());
-    assertEquals(prevRevision.getMeta().getDate(), updated.getCurrentBranch().getCommit().getMeta().getDate());
+    final Repository after = openRepository();
+    assertNotEquals(oldBranchName, after.getCurrentBranch().getName());
+    assertEquals(0, repository.getWorkingDirectory().getAllFiles().size());
   }
 }

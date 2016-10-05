@@ -31,7 +31,7 @@ public class CheckoutCommand extends RepositoryCommand {
 
     Branch branch = repository.getBranchByName(arg);
 
-    Diff diff = repository.getProject().getDiff(repository.getCurrentBranch().getCommit().getRepositoryState());
+    Diff diff = repository.getWorkingDirectory().getDiff(repository.getCurrentBranch().getCommit().getRepositoryState());
     Collection<Path> newFiles = diff.getNewFiles();
     Collection<Path> modifiedFiles = diff.getModifiedFiles();
     if (modifiedFiles.size() > 0) {

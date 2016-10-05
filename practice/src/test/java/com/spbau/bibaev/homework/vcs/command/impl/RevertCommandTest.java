@@ -23,7 +23,7 @@ public class RevertCommandTest extends RepositoryTestCase {
     assertEquals(CommandResult.SUCCESSFUL, createCommand("add").perform(Collections.singletonList(MAKEFILE)));
     assertEquals(CommandResult.SUCCESSFUL, createCommand("commit").perform(Collections.singletonList("message")));
 
-    List<Path> files = repository.getProject().getAllFiles();
+    List<Path> files = repository.getWorkingDirectory().getAllFiles();
     assertNotEquals(0, files.size());
     final Path file = files.get(0);
     final String hashBeforeChange = FilesUtil.evalHashOfFile(file.toFile());
@@ -33,7 +33,7 @@ public class RevertCommandTest extends RepositoryTestCase {
 
     new RevertCommand(myRule.getRoot().toPath()).perform(Collections.emptyList());
     final Repository updated = openRepository();
-    final Path updatedPath = updated.getProject().getAllFiles().stream()
+    final Path updatedPath = updated.getWorkingDirectory().getAllFiles().stream()
         .filter(path -> path.toString().equals(file.toString())).findFirst().orElse(null);
 
     String hashAfterRevert = FilesUtil.evalHashOfFile(updatedPath.toFile());

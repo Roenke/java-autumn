@@ -32,7 +32,7 @@ public class AddCommand extends RepositoryCommand {
     final List<FilePersistentState> files = currentCommit.getRepositoryState().getFiles();
     Map<String, String> relativePath2Hash = new HashMap<>();
     for (FilePersistentState fileState : files) {
-      relativePath2Hash.put(fileState.getRelativePath(), fileState.getMyHash());
+      relativePath2Hash.put(fileState.getRelativePath(), fileState.getHash());
     }
 
     Collection<String> added = repository.getIndex().added();

@@ -22,11 +22,13 @@ public class CleanCommand extends RepositoryCommand {
   @Override
   protected CommandResult perform(@NotNull List<String> args, @NotNull Repository repository) throws IOException {
     Commit commit = repository.getCurrentBranch().getCommit();
-    Collection<Path> newFiles = repository.getProject().getDiff(commit.getRepositoryState()).getNewFiles();
+    Collection<Path> newFiles = repository.getWorkingDirectory().getDiff(commit.getRepositoryState()).getNewFiles();
     if (newFiles.size() == 0) {
       ConsoleColoredPrinter.println("Already cleaned");
     } else {
+      Path root = repository.getWorkingDirectory().getRootDirectory();
       for (Path path : newFiles) {
+        path = root.resolve(path);
         FileUtils.forceDelete(path.toFile());
         File[] siblings = path.getParent().toFile().listFiles();
         if (siblings != null && siblings.length == 0) {

@@ -31,7 +31,7 @@ public class StatusCommand extends RepositoryCommand {
     ConsoleColoredPrinter.println("On branch " + currentBranch.getName());
     ConsoleColoredPrinter.println("Revision: " + lastCommit.getMeta().getHashcode(), ConsoleColoredPrinter.Color.GREEN);
 
-    Diff diff = repository.getProject().getDiff(repository.getCurrentBranch().getCommit().getRepositoryState());
+    Diff diff = repository.getWorkingDirectory().getDiff(repository.getCurrentBranch().getCommit().getRepositoryState());
     printListOfFiles("New files", GREEN, FilesUtil.pathsToStrings(diff.getNewFiles()));
     printListOfFiles("Modified", YELLOW, FilesUtil.pathsToStrings(diff.getModifiedFiles()));
     printListOfFiles("Deleted", RED, FilesUtil.pathsToStrings(diff.getDeletedFiles()));

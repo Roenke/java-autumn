@@ -16,6 +16,6 @@ public class RepositoryTest extends RepositoryTestCase {
     final Path srcDir = myRule.getRoot().toPath().resolve("src");
     final RepositoryImpl repo = RepositoryImpl.openRepository(srcDir);
     assertNotNull(repo);
-    assertEquals(repo.getProject().getRootDirectory(), myRule.getRoot().toPath());
+    assertEquals(repo.getWorkingDirectory().getRootDirectory(), myRule.getRoot().toPath());
   }
 }

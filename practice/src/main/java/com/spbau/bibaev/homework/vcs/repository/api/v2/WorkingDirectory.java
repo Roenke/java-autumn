@@ -13,4 +13,6 @@ public interface WorkingDirectory {
   Diff getDiff(@NotNull RepositoryState state) throws IOException;
 
   Path getRootDirectory();
+
+  void clean();
 }

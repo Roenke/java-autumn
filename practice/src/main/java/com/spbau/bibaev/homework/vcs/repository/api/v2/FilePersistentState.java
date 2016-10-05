@@ -9,7 +9,7 @@ import java.nio.file.Path;
 public interface FilePersistentState {
   String getRelativePath();
 
-  String getMyHash() throws IOException;
+  String getHash() throws IOException;
 
   void restore(@NotNull Path directory) throws IOException;
 }

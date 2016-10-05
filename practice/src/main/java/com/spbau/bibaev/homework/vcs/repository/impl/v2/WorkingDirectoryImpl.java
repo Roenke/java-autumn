@@ -7,6 +7,7 @@ import com.spbau.bibaev.homework.vcs.repository.api.v2.RepositoryState;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.WorkingDirectory;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,6 +16,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,8 +43,10 @@ public class WorkingDirectoryImpl implements WorkingDirectory {
     List<Path> currentFiles = getAllFiles();
     Map<Path, String> currentFile2Hash = new HashMap<>();
     for (Path file : currentFiles) {
-      try (InputStream is = Files.newInputStream(file)) {
-        currentFile2Hash.put(myRootPath.relativize(file), DigestUtils.sha1Hex(is));
+      final MessageDigest sha1Digest = DigestUtils.getSha1Digest();
+      try (InputStream is = new DigestInputStream(Files.newInputStream(file), sha1Digest)) {
+        DigestUtils.sha1Hex(is);
+        currentFile2Hash.put(myRootPath.relativize(file), DigestUtils.sha1Hex(sha1Digest.digest()));
       }
     }
 
@@ -49,11 +54,12 @@ public class WorkingDirectoryImpl implements WorkingDirectory {
     Map<Path, String> repositoryFile2Hash = new HashMap<>();
     for (FilePersistentState state : repositoryFiles) {
       Path relativePath = myRootPath.relativize(myRootPath.resolve(state.getRelativePath()));
-      repositoryFile2Hash.put(relativePath, state.getMyHash());
+      repositoryFile2Hash.put(relativePath, state.getHash());
     }
 
     Map<Path, FileState> relativePath2State = new HashMap<>();
     for (Path file : currentFiles) {
+      file = myRootPath.relativize(file);
       FileState state;
       String fileHash = currentFile2Hash.get(file);
       if (!repositoryFile2Hash.containsKey(file)) {
@@ -76,6 +82,18 @@ public class WorkingDirectoryImpl implements WorkingDirectory {
   @Override
   public Path getRootDirectory() {
     return myRootPath;
+  }
+
+  @Override
+  public void clean() {
+    getAllFiles().forEach(x -> FileUtils.deleteQuietly(x.toFile()));
+    final File[] files = myRootPath.toFile()
+        .listFiles((dir, name) -> !RepositoryImpl.REPOSITORY_DIRECTORY_NAME.equals(name));
+    if (files != null) {
+      for (File file : files) {
+        FileUtils.deleteQuietly(file);
+      }
+    }
   }
 
   private class MyDiff implements Diff {
@@ -108,7 +126,7 @@ public class WorkingDirectoryImpl implements WorkingDirectory {
 
     @Override
     public FileState getFileState(@NotNull String relativePath) {
-      Path path = myPath2State.keySet().stream().filter(p -> myRootPath.relativize(p).toString().equals(relativePath))
+      Path path = myPath2State.keySet().stream().filter(p -> p.toString().equals(relativePath))
           .findFirst().orElse(null);
       return path == null ? FileState.UNKNOWN : myPath2State.get(path);
     }

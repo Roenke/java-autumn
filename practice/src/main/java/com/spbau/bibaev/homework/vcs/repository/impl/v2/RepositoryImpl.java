@@ -1,11 +1,13 @@
 package com.spbau.bibaev.homework.vcs.repository.impl.v2;
 
 import com.spbau.bibaev.homework.vcs.EntryPoint;
+import com.spbau.bibaev.homework.vcs.ex.RepositoryIllegalStateException;
 import com.spbau.bibaev.homework.vcs.repository.api.Diff;
 import com.spbau.bibaev.homework.vcs.repository.api.FileState;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.*;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,9 +73,8 @@ public class RepositoryImpl implements Repository, Serializable {
   public static RepositoryImpl createRepository(@NotNull Path directory) throws IOException {
     final RepositoryImpl repository = new RepositoryImpl(DEFAULT_BRANCH_NAME, new WorkingDirectoryImpl(directory));
     CommitImpl commit = new CommitImpl(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-        Collections.emptyList(), new CommitMetaImpl(String.valueOf(System.currentTimeMillis()),
-        DEFAULT_USERNAME, new Date(), DigestUtils.sha1Hex(new byte[0]), "The initial commit"), repository);
-    final Path commitFile = repository.getProject().getRootDirectory()
+        Collections.emptyList(), new CommitMetaImpl(DigestUtils.sha1Hex(new byte[0]), "The initial commit", DEFAULT_USERNAME, new Date()), repository);
+    final Path commitFile = repository.getWorkingDirectory().getRootDirectory()
         .resolve(REPOSITORY_DIRECTORY_NAME).resolve(commit.getMeta().getId());
     Files.createDirectories(commitFile.getParent());
     Files.createFile(commitFile);
@@ -117,7 +118,7 @@ public class RepositoryImpl implements Repository, Serializable {
   }
 
   @Override
-  public WorkingDirectory getProject() {
+  public WorkingDirectory getWorkingDirectory() {
     return myWorkingDirectory;
   }
 
@@ -197,7 +198,7 @@ public class RepositoryImpl implements Repository, Serializable {
 
   @Override
   public Commit commitChanges(@NotNull String message) throws IOException {
-    Diff diff = getProject().getDiff(getCurrentBranch().getCommit().getRepositoryState());
+    Diff diff = getWorkingDirectory().getDiff(getCurrentBranch().getCommit().getRepositoryState());
     Path root = myWorkingDirectory.getRootDirectory();
     List<Path> newFiles = new ArrayList<>();
     List<Path> modifiedFiles = new ArrayList<>();
@@ -230,11 +231,14 @@ public class RepositoryImpl implements Repository, Serializable {
 
   private Commit commitFiles(@NotNull List<Path> newFiles, @NotNull List<Path> modifiedFiles,
                              @NotNull List<String> removedFiles, @NotNull String message) throws IOException {
+    Date now = new Date();
     Commit current = getCurrentBranch().getCommit();
 
     Path snapshot = Files.createFile(myWorkingDirectory.getRootDirectory().resolve(REPOSITORY_DIRECTORY_NAME)
         .resolve(String.valueOf(System.currentTimeMillis())));
     MessageDigest globalDigest = DigestUtils.getSha1Digest();
+    globalDigest.update(message.getBytes());
+    globalDigest.update(now.toString().getBytes());
 
     List<FileStateImpl> newStatesImpl = new ArrayList<>();
     List<FileStateImpl> modifiedStatesImpl = new ArrayList<>();
@@ -244,13 +248,13 @@ public class RepositoryImpl implements Repository, Serializable {
     }
 
     String commitHash = DigestUtils.sha1Hex(globalDigest.digest());
-    snapshot.toFile().renameTo(snapshot.getParent().resolve(commitHash).toFile());
+    FileUtils.moveFile(snapshot.toFile(), snapshot.getParent().resolve(commitHash).toFile());
 
     List<FilePersistentState> newStates = newStatesImpl.stream().collect(Collectors.toList());
     List<FilePersistentState> modifiedStates = modifiedStatesImpl.stream().collect(Collectors.toList());
 
     CommitImpl commit = new CommitImpl(Collections.singletonList(current), newStates, modifiedStates, removedFiles,
-        new CommitMetaImpl(commitHash, myUserName, new Date(), commitHash, message), this);
+        new CommitMetaImpl(commitHash, message, myUserName, now), this);
 
     newStatesImpl.forEach(x -> x.setCommit(commit));
     modifiedStatesImpl.forEach(x -> x.setCommit(commit));
@@ -267,6 +271,17 @@ public class RepositoryImpl implements Repository, Serializable {
   @Override
   public Commit checkout(@NotNull Branch branch) throws IOException {
     myCurrentBranchName = branch.getName();
+    final Diff diff = myWorkingDirectory.getDiff(getCurrentBranch().getCommit().getRepositoryState());
+    if(diff.getNewFiles().isEmpty() && diff.getDeletedFiles().isEmpty() && diff.getModifiedFiles().isEmpty()) {
+      throw new RepositoryIllegalStateException("Repository contains uncommitted new/modified files");
+    }
+
+    myWorkingDirectory.clean();
+    final List<FilePersistentState> files = branch.getCommit().getRepositoryState().getFiles();
+    for(FilePersistentState state : files) {
+      state.restore(myWorkingDirectory.getRootDirectory());
+    }
+
     return branch.getCommit();
   }
 
@@ -274,12 +289,11 @@ public class RepositoryImpl implements Repository, Serializable {
   public Commit checkout(@NotNull Commit commit) throws IOException {
     String branchName = getCommitBranchName(commit.getMeta().getId());
     Branch branch = getBranchByName(branchName);
-    myCurrentBranchName = branchName;
-    if (branch != null) {
-      return branch.getCommit();
+    if (branch == null) {
+      branch = createNewBranch(branchName, commit);
     }
 
-    return createNewBranch(branchName, commit).getCommit();
+    return checkout(branch);
   }
 
   private String getCommitBranchName(@NotNull String commitId) {

@@ -67,7 +67,7 @@ public class RepositoryTestCase {
     assertEquals(before.getCurrentBranch().getName(), after.getCurrentBranch().getName());
     assertEquals(before.getCurrentBranch().getCommit().getMeta().getDate(),
         after.getCurrentBranch().getCommit().getMeta().getDate());
-    assertEquals(before.getProject().getAllFiles().size(), after.getProject().getAllFiles().size());
+    assertEquals(before.getWorkingDirectory().getAllFiles().size(), after.getWorkingDirectory().getAllFiles().size());
     assertEquals(before.getUserName(), after.getUserName());
 
     assertTrue(before.getBranches().stream()

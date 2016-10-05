@@ -78,7 +78,7 @@ public class WorkingDirectoryImpl implements WorkingDirectory {
     return myRootPath;
   }
 
-  private static class MyDiff implements Diff {
+  private class MyDiff implements Diff {
     private final Map<Path, FileState> myPath2State;
 
     MyDiff(@NotNull Map<Path, FileState> file2State) {
@@ -108,7 +108,7 @@ public class WorkingDirectoryImpl implements WorkingDirectory {
 
     @Override
     public FileState getFileState(@NotNull String relativePath) {
-      Path path = myPath2State.keySet().stream().filter(p -> p.toString().equals(relativePath))
+      Path path = myPath2State.keySet().stream().filter(p -> myRootPath.relativize(p).toString().equals(relativePath))
           .findFirst().orElse(null);
       return path == null ? FileState.UNKNOWN : myPath2State.get(path);
     }

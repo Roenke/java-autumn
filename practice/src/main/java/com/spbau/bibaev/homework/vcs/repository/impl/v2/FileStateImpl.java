@@ -6,10 +6,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class FileStateImpl implements FilePersistentState {
+public class FileStateImpl implements FilePersistentState, Serializable {
   private final String myRelativePath;
   private final int mySnapshotOffset;
   private final int mySnapshotLength;

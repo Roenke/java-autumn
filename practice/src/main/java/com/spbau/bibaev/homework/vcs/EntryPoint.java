@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
  * status
  * checkout branch_name|revision_hash
  * revert TODO: replace for reset
- * TODO: rm [file] {remove file from index and disk}
  * TODO: reset [file] {revert file or revert all files to current revision status}
  * TODO: merge branch {merge branch into current branch}
  *

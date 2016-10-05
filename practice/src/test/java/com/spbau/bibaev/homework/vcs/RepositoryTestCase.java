@@ -4,6 +4,7 @@ import com.spbau.bibaev.homework.vcs.command.Command;
 import com.spbau.bibaev.homework.vcs.command.CommandFactory;
 import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
 import com.spbau.bibaev.homework.vcs.repository.impl.v2.RepositoryImpl;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Rule;
@@ -34,16 +35,16 @@ public class RepositoryTestCase {
       super.before();
       final Path testDirectory = myRule.getRoot().toPath();
       RepositoryImpl.createRepository(testDirectory);
-      Files.createFile(testDirectory.resolve(FILE));
-      Files.createFile(testDirectory.resolve(MAKEFILE));
+      write(Files.createFile(testDirectory.resolve(FILE)), "text");
+      write(Files.createFile(testDirectory.resolve(MAKEFILE)), "makefile content");
 
       final Path srcDirectory = Files.createDirectory(testDirectory.resolve(DIRECTORY));
-      Files.createFile(testDirectory.resolve(NESTED_FILE1));
-      Files.createFile(testDirectory.resolve(NESTED_FILE2));
-      Files.createFile(testDirectory.resolve(NESTED_FILE3));
+      write(Files.createFile(testDirectory.resolve(NESTED_FILE1)), "void main (int argc, char** argv) {}");
+      write(Files.createFile(testDirectory.resolve(NESTED_FILE2)), "int id(int n) {return n;}");
+      write(Files.createFile(testDirectory.resolve(NESTED_FILE3)), "#include <stream>");
 
       Files.createDirectory(srcDirectory.resolve(NESTED_DIRECTORY));
-      Files.createFile(testDirectory.resolve(NESTED_NESTED_FILE));
+      write(Files.createFile(testDirectory.resolve(NESTED_NESTED_FILE)), "some impl");
     }
   };
 
@@ -56,11 +57,6 @@ public class RepositoryTestCase {
     @Nullable final Command command = CommandFactory.createCommand(getDirectory(), name);
     assertNotNull(command);
     return command;
-  }
-
-  protected void addFile(String name, String content) throws IOException {
-    final File file = myRule.newFile(name);
-    Files.write(file.toPath(), content.getBytes());
   }
 
   protected void checkStateNotChanged(Repository before, Repository after) {
@@ -77,6 +73,10 @@ public class RepositoryTestCase {
     assertTrue(after.getBranches().stream()
         .allMatch(afterBranch -> before.getBranches().stream()
             .anyMatch(x -> x.getName().equals(afterBranch.getName()))));
+  }
+
+  private void write(Path file, String data) throws IOException {
+    FileUtils.write(file.toFile(), data, "UTF-8", true);
   }
 
   protected Path getDirectory() {

@@ -79,6 +79,11 @@ public class AddCommand extends RepositoryCommand {
 
   @Override
   protected String getUsage() {
-    return "add {[file]}";
+    return "add {file}+";
+  }
+
+  @Override
+  protected int getMinArgCount() {
+    return 1;
   }
 }

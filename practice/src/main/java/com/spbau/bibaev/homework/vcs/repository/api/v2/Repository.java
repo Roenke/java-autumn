@@ -29,6 +29,8 @@ public interface Repository {
 
   boolean addFileToIndex(@NotNull Path pathToFile);
 
+  boolean removeFileFromIndex(@NotNull Path pathToFile);
+
   Commit commitChanges(@NotNull String message) throws IOException;
 
   Commit merge(@NotNull Commit commit, @Nullable String message);

@@ -74,7 +74,7 @@ public class RepositoryImpl implements Repository, Serializable {
     final RepositoryImpl repository = new RepositoryImpl(DEFAULT_BRANCH_NAME, new WorkingDirectoryImpl(directory));
     CommitImpl commit = new CommitImpl(Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
         Collections.emptyList(), new CommitMetaImpl(DigestUtils.sha1Hex(new byte[0]), "The initial commit", DEFAULT_USERNAME, new Date()), repository);
-    final Path commitFile = repository.getWorkingDirectory().getRootDirectory()
+    final Path commitFile = repository.getWorkingDirectory().getRootPath()
         .resolve(REPOSITORY_DIRECTORY_NAME).resolve(commit.getMeta().getId());
     Files.createDirectories(commitFile.getParent());
     Files.createFile(commitFile);
@@ -97,7 +97,7 @@ public class RepositoryImpl implements Repository, Serializable {
   }
 
   private void writeObject() throws IOException {
-    Path repositoryFile = myWorkingDirectory.getRootDirectory()
+    Path repositoryFile = myWorkingDirectory.getRootPath()
         .resolve(REPOSITORY_DIRECTORY_NAME).resolve(REPOSITORY_METADATA);
     if (!repositoryFile.toFile().exists()) {
       Files.createDirectories(repositoryFile.getParent());
@@ -109,7 +109,7 @@ public class RepositoryImpl implements Repository, Serializable {
   }
 
   public Path getMetaDirectory() {
-    return myWorkingDirectory.getRootDirectory().resolve(REPOSITORY_DIRECTORY_NAME);
+    return myWorkingDirectory.getRootPath().resolve(REPOSITORY_DIRECTORY_NAME);
   }
 
   @Override
@@ -192,14 +192,21 @@ public class RepositoryImpl implements Repository, Serializable {
 
   @Override
   public boolean addFileToIndex(@NotNull Path pathToFile) {
-    String relativePath = myWorkingDirectory.getRootDirectory().relativize(pathToFile).toString();
+    String relativePath = myWorkingDirectory.getRootPath().relativize(pathToFile).toString();
     return !myAddedFiles.contains(relativePath) && myAddedFiles.add(relativePath);
+  }
+
+  @Override
+  public boolean removeFileFromIndex(@NotNull Path pathToFile) {
+    String relativePath = myWorkingDirectory.getRootPath().relativize(pathToFile).toString();
+    myAddedFiles.remove(relativePath);
+    return !myDeletedFiles.contains(relativePath) && myDeletedFiles.add(relativePath);
   }
 
   @Override
   public Commit commitChanges(@NotNull String message) throws IOException {
     Diff diff = getWorkingDirectory().getDiff(getCurrentBranch().getCommit().getRepositoryState());
-    Path root = myWorkingDirectory.getRootDirectory();
+    Path root = myWorkingDirectory.getRootPath();
     List<Path> newFiles = new ArrayList<>();
     List<Path> modifiedFiles = new ArrayList<>();
     List<String> removedFiles = new ArrayList<>();
@@ -234,7 +241,7 @@ public class RepositoryImpl implements Repository, Serializable {
     Date now = new Date();
     Commit current = getCurrentBranch().getCommit();
 
-    Path snapshot = Files.createFile(myWorkingDirectory.getRootDirectory().resolve(REPOSITORY_DIRECTORY_NAME)
+    Path snapshot = Files.createFile(myWorkingDirectory.getRootPath().resolve(REPOSITORY_DIRECTORY_NAME)
         .resolve(String.valueOf(System.currentTimeMillis())));
     MessageDigest globalDigest = DigestUtils.getSha1Digest();
     globalDigest.update(message.getBytes());
@@ -279,7 +286,7 @@ public class RepositoryImpl implements Repository, Serializable {
     myWorkingDirectory.clean();
     final List<FilePersistentState> files = branch.getCommit().getRepositoryState().getFiles();
     for(FilePersistentState state : files) {
-      state.restore(myWorkingDirectory.getRootDirectory());
+      state.restore(myWorkingDirectory.getRootPath());
     }
 
     return branch.getCommit();
@@ -302,7 +309,7 @@ public class RepositoryImpl implements Repository, Serializable {
 
   private int addFilesToSnapshot(@NotNull List<Path> files, @NotNull OutputStream snapshotStream,
                                                  int offset, @NotNull List<FileStateImpl> result) throws IOException {
-    Path root = myWorkingDirectory.getRootDirectory();
+    Path root = myWorkingDirectory.getRootPath();
     for (Path file : files) {
       MessageDigest fileDigest = DigestUtils.getSha1Digest();
       try (InputStream is = new DigestInputStream(Files.newInputStream(file), fileDigest)) {

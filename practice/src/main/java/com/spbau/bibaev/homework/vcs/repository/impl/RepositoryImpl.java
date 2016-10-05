@@ -75,8 +75,8 @@ class RepositoryImpl implements Repository {
     Path tmpDirectory = Files.createTempDirectory("revision");
     myProject.clean();
     branch.getLastRevision().getSnapshot().restore(myProject.getRootDirectory());
-//    FilesUtil.recursiveCopyDirectory(tmpDirectory, myProject.getRootDirectory());
-//    FileUtils.moveDirectoryToDirectory(tmpDirectory.toFile(), myProject.getRootDirectory().toFile(), false);
+//    FilesUtil.recursiveCopyDirectory(tmpDirectory, myProject.getRootPath());
+//    FileUtils.moveDirectoryToDirectory(tmpDirectory.toFile(), myProject.getRootPath().toFile(), false);
     myCurrentBranchName = branch.getName();
     save();
     return branch.getLastRevision();

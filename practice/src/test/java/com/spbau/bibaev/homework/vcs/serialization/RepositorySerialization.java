@@ -35,7 +35,7 @@ public class RepositorySerialization {
     RepositoryImpl repository = RepositoryImpl.openRepository(myRule.getRoot().toPath());
     assertEquals(myRule.getRoot().toPath(), repository.getMetaDirectory().getParent());
     assertEquals(RepositoryImpl.REPOSITORY_DIRECTORY_NAME, repository.getMetaDirectory().getFileName().toString());
-    assertEquals(myRule.getRoot().toPath(), repository.getWorkingDirectory().getRootDirectory());
+    assertEquals(myRule.getRoot().toPath(), repository.getWorkingDirectory().getRootPath());
     assertTrue(repository.getMetaDirectory().toFile().exists());
     assertEquals(RepositoryImpl.DEFAULT_BRANCH_NAME, repository.getCurrentBranch().getName());
   }

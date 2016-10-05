@@ -80,7 +80,7 @@ public class WorkingDirectoryImpl implements WorkingDirectory {
   }
 
   @Override
-  public Path getRootDirectory() {
+  public Path getRootPath() {
     return myRootPath;
   }
 

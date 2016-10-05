@@ -19,13 +19,9 @@ import java.util.stream.Collectors;
  * status
  * checkout branch_name|revision_hash
  * revert TODO: replace for reset
- * TODO: add [file] [file] ..  {add file/all files to index}
  * TODO: rm [file] {remove file from index and disk}
- * TODO: clean {delete all files which not in repository}
  * TODO: reset [file] {revert file or revert all files to current revision status}
  * TODO: merge branch {merge branch into current branch}
- *
- * TODO: do not store all project files in each revision
  *
  * TODO: add exceptions
  *

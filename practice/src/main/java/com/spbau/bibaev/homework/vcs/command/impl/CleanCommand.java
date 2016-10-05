@@ -26,7 +26,7 @@ public class CleanCommand extends RepositoryCommand {
     if (newFiles.size() == 0) {
       ConsoleColoredPrinter.println("Already cleaned");
     } else {
-      Path root = repository.getWorkingDirectory().getRootDirectory();
+      Path root = repository.getWorkingDirectory().getRootPath();
       for (Path path : newFiles) {
         path = root.resolve(path);
         FileUtils.forceDelete(path.toFile());

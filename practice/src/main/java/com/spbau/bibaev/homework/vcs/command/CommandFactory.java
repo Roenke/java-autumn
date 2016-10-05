@@ -23,6 +23,7 @@ public class CommandFactory {
     NAME_2_COMMAND_CLASS_MAP.put("status", StatusCommand.class);
     NAME_2_COMMAND_CLASS_MAP.put("checkout", CheckoutCommand.class);
     NAME_2_COMMAND_CLASS_MAP.put("revert", RevertCommand.class);
+    NAME_2_COMMAND_CLASS_MAP.put("rm", RmCommand.class);
     NAME_2_COMMAND_CLASS_MAP.put("merge", MergeCommand.class);
     NAME_2_COMMAND_CLASS_MAP.put("clean", CleanCommand.class);
   }

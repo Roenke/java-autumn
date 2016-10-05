@@ -6,16 +6,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-@Deprecated
-public interface Project {
-  @NotNull
+public interface WorkingDirectory {
   List<Path> getAllFiles();
 
-  @NotNull
-  Diff getDiff(@NotNull Revision revision) throws IOException;
+  Diff getDiff(@NotNull RepositoryState state) throws IOException;
 
-  @NotNull
-  Path getRootDirectory();
+  Path getRootPath();
 
-  void clean() throws IOException;
+  void clean();
 }

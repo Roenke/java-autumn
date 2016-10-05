@@ -2,16 +2,10 @@ package com.spbau.bibaev.homework.vcs.repository.api;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
-@Deprecated
 public interface Branch {
-  @NotNull
-  List<Revision> getRevisions();
+  Commit getCommit();
 
-  @NotNull
-  Revision getLastRevision();
+  void moveTo(@NotNull Commit commit);
 
-  @NotNull
   String getName();
 }

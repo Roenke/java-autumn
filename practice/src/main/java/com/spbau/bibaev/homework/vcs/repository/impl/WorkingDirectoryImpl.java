@@ -1,13 +1,12 @@
-package com.spbau.bibaev.homework.vcs.repository.impl.v2;
+package com.spbau.bibaev.homework.vcs.repository.impl;
 
 import com.spbau.bibaev.homework.vcs.repository.api.Diff;
 import com.spbau.bibaev.homework.vcs.repository.api.FileState;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.FilePersistentState;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.RepositoryState;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.WorkingDirectory;
+import com.spbau.bibaev.homework.vcs.repository.api.FilePersistentState;
+import com.spbau.bibaev.homework.vcs.repository.api.RepositoryState;
+import com.spbau.bibaev.homework.vcs.repository.api.WorkingDirectory;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.jetbrains.annotations.NotNull;
 

@@ -1,6 +1,6 @@
-package com.spbau.bibaev.homework.vcs.repository.impl.v2;
+package com.spbau.bibaev.homework.vcs.repository.impl;
 
-import com.spbau.bibaev.homework.vcs.repository.api.v2.FilePersistentState;
+import com.spbau.bibaev.homework.vcs.repository.api.FilePersistentState;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

@@ -2,9 +2,8 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.RepositoryTestCase;
 import com.spbau.bibaev.homework.vcs.command.Command;
-import com.spbau.bibaev.homework.vcs.command.CommandFactory;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.Branch;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
+import com.spbau.bibaev.homework.vcs.repository.api.Branch;
+import com.spbau.bibaev.homework.vcs.repository.api.Repository;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 

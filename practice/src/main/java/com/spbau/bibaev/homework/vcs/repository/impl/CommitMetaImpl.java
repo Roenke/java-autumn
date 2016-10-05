@@ -1,6 +1,6 @@
-package com.spbau.bibaev.homework.vcs.repository.impl.v2;
+package com.spbau.bibaev.homework.vcs.repository.impl;
 
-import com.spbau.bibaev.homework.vcs.repository.api.v2.CommitMeta;
+import com.spbau.bibaev.homework.vcs.repository.api.CommitMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;

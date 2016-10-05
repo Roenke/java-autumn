@@ -2,8 +2,8 @@ package com.spbau.bibaev.homework.vcs;
 
 import com.spbau.bibaev.homework.vcs.command.Command;
 import com.spbau.bibaev.homework.vcs.command.CommandFactory;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
-import com.spbau.bibaev.homework.vcs.repository.impl.v2.RepositoryImpl;
+import com.spbau.bibaev.homework.vcs.repository.api.Repository;
+import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryImpl;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

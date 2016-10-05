@@ -2,8 +2,8 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
+import com.spbau.bibaev.homework.vcs.repository.api.Commit;
+import com.spbau.bibaev.homework.vcs.repository.api.Repository;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;

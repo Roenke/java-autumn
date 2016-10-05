@@ -2,9 +2,9 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.RepositoryTestCase;
 import com.spbau.bibaev.homework.vcs.command.CommandResult;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.Commit;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.Repository;
-import com.spbau.bibaev.homework.vcs.repository.api.v2.RepositoryIndex;
+import com.spbau.bibaev.homework.vcs.repository.api.Commit;
+import com.spbau.bibaev.homework.vcs.repository.api.Repository;
+import com.spbau.bibaev.homework.vcs.repository.api.RepositoryIndex;
 import org.junit.Test;
 
 import java.io.IOException;

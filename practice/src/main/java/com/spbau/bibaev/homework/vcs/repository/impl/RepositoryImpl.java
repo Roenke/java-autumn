@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.vcs.repository.impl;
 
 import com.spbau.bibaev.homework.vcs.EntryPoint;
+import com.spbau.bibaev.homework.vcs.ex.MergeException;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryIllegalStateException;
 import com.spbau.bibaev.homework.vcs.repository.api.*;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
@@ -17,6 +18,7 @@ import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class RepositoryImpl implements Repository, Serializable {
@@ -268,22 +270,38 @@ public class RepositoryImpl implements Repository, Serializable {
   }
 
   @Override
-  public Commit merge(@NotNull Commit commit, @Nullable String message) {
-    // TODO
-    return null;
+  public Commit merge(@NotNull Commit otherCommit, @Nullable String message) {
+    Commit currentCommit = getCurrentBranch().getCommit();
+    String currentCommitId = getCurrentBranch().getCommit().getMeta().getId();
+    if (currentCommitId.equals(otherCommit.getMeta().getId())) {
+      throw new MergeException("commit must be another");
+    }
+
+    Commit lca = findLCA(currentCommit, otherCommit);
+
+    if(lca == null) {
+      throw new RepositoryIllegalStateException(String.format("Cannot find lca for commits \"%s\" and \"%s\"",
+          currentCommit.getMeta().getId(), otherCommit.getMeta().getId()));
+    }
+
+    Commit mergeCommit = mergeImpl(currentCommit, otherCommit, lca, message);
+
+    myCommitsIndex.put(mergeCommit.getMeta().getId(), mergeCommit);
+    myBranches.put(myCurrentBranchName, mergeCommit.getMeta().getId());
+    return mergeCommit;
   }
 
   @Override
   public Commit checkout(@NotNull Branch branch) throws IOException {
     myCurrentBranchName = branch.getName();
     final Diff diff = myWorkingDirectory.getDiff(getCurrentBranch().getCommit().getRepositoryState());
-    if(diff.getNewFiles().isEmpty() && diff.getDeletedFiles().isEmpty() && diff.getModifiedFiles().isEmpty()) {
+    if (diff.getNewFiles().isEmpty() && diff.getDeletedFiles().isEmpty() && diff.getModifiedFiles().isEmpty()) {
       throw new RepositoryIllegalStateException("Repository contains uncommitted new/modified files");
     }
 
     myWorkingDirectory.clean();
     final List<FilePersistentState> files = branch.getCommit().getRepositoryState().getFiles();
-    for(FilePersistentState state : files) {
+    for (FilePersistentState state : files) {
       state.restore(myWorkingDirectory.getRootPath());
     }
 
@@ -301,12 +319,28 @@ public class RepositoryImpl implements Repository, Serializable {
     return checkout(branch);
   }
 
+  private Commit findLCA(@NotNull Commit currentCommit, @NotNull Commit targetCommit) {
+    Commit current = currentCommit.getMainParent();
+    Set<Commit> parents = new HashSet<>();
+    while (current != null) {
+      parents.add(current);
+      current = currentCommit.getMainParent();
+    }
+
+    Commit lca = targetCommit;
+    while (lca != null && !parents.contains(lca)) {
+      lca = lca.getMainParent();
+    }
+
+    return lca;
+  }
+
   private String getCommitBranchName(@NotNull String commitId) {
     return String.format("commit_%s", commitId);
   }
 
   private int addFilesToSnapshot(@NotNull List<Path> files, @NotNull OutputStream snapshotStream,
-                                                 int offset, @NotNull List<FileStateImpl> result) throws IOException {
+                                 int offset, @NotNull List<FileStateImpl> result) throws IOException {
     Path root = myWorkingDirectory.getRootPath();
     for (Path file : files) {
       MessageDigest fileDigest = DigestUtils.getSha1Digest();
@@ -320,5 +354,33 @@ public class RepositoryImpl implements Repository, Serializable {
     }
 
     return offset;
+  }
+
+  private Commit mergeImpl(Commit base, Commit target, Commit lca, String message) {
+    Map<String, FilePersistentState> baseState = getStateIndex(base);
+    Map<String, FilePersistentState> targetIndex = getStateIndex(target);
+    Map<String, FilePersistentState> lcaIndex = getStateIndex(lca);
+
+    List<FilePersistentState> added = new ArrayList<>();
+    List<FilePersistentState> modified = new ArrayList<>();
+    List<String> removed = new ArrayList<>();
+
+    // todo: fill added, removed, modified arrays
+
+    MessageDigest commitDigest = DigestUtils.getSha1Digest();
+    Date now = new Date();
+    commitDigest.update(now.toString().getBytes());
+    added.forEach(x -> commitDigest.update(x.getHash().getBytes()));
+    modified.forEach(x -> commitDigest.update(x.getHash().getBytes()));
+    removed.forEach(x -> commitDigest.update(x.getBytes()));
+
+    String commitHash = DigestUtils.sha1Hex(commitDigest.digest());
+    CommitMetaImpl meta = new CommitMetaImpl(commitHash, message, myUserName, now);
+    return new CommitImpl(Arrays.asList(base, target), added, modified, removed, meta, this);
+  }
+
+  private Map<String, FilePersistentState> getStateIndex(Commit commit) {
+    return commit.getRepositoryState().getFiles()
+        .stream().collect(Collectors.toMap(FilePersistentState::getRelativePath, Function.identity()));
   }
 }

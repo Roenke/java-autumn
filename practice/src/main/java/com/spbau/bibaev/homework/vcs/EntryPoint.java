@@ -18,8 +18,7 @@ import java.util.stream.Collectors;
  * log
  * status
  * checkout branch_name|revision_hash
- * revert TODO: replace for reset
- * TODO: reset [file] {revert file or revert all files to current revision status}
+ * reset [file] {revert file or revert all files to current revision status}
  * TODO: merge branch {merge branch into current branch}
  *
  * TODO: add exceptions

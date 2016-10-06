@@ -2,7 +2,7 @@ package com.spbau.bibaev.homework.vcs.ex;
 
 import org.jetbrains.annotations.NotNull;
 
-public class RepositoryException extends Exception {
+public class RepositoryException extends RuntimeException {
   public RepositoryException(@NotNull String message) {
     super(message);
   }

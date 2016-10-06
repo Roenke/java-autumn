@@ -30,7 +30,7 @@ public class FileStateImpl implements FilePersistentState, Serializable {
     return myRelativePath;
   }
 
-  public String getHash() throws IOException {
+  public String getHash() {
     return myHash;
   }
 

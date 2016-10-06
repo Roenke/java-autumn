@@ -26,9 +26,8 @@ public class MergeCommand extends RepositoryCommand {
       return CommandResult.FAILED;
     }
 
-//    Branch dstBranch = repository.getCurrentBranch();
-//    MergeStrategy mergeStrategy = new MyPrimitiveMergeStrategy();
-//    mergeStrategy.merge(srcBranch.getLastRevision(), dstBranch.getLastRevision());
+
+    repository.merge(srcBranch.getCommit(), String.format("Merge with %s", srcBranch.getCommit().getMeta().getId()));
     return CommandResult.SUCCESSFUL;
   }
 

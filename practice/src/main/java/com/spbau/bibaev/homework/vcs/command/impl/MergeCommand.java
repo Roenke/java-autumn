@@ -2,7 +2,10 @@ package com.spbau.bibaev.homework.vcs.command.impl;
 
 import com.spbau.bibaev.homework.vcs.command.CommandResult;
 import com.spbau.bibaev.homework.vcs.command.RepositoryCommand;
+import com.spbau.bibaev.homework.vcs.ex.MergeException;
 import com.spbau.bibaev.homework.vcs.repository.api.Branch;
+import com.spbau.bibaev.homework.vcs.repository.api.MergeConflictResolver;
+import com.spbau.bibaev.homework.vcs.repository.api.MergeResolvingResult;
 import com.spbau.bibaev.homework.vcs.repository.api.Repository;
 import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import org.jetbrains.annotations.NotNull;
@@ -10,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Scanner;
 
 public class MergeCommand extends RepositoryCommand {
 
@@ -26,8 +30,12 @@ public class MergeCommand extends RepositoryCommand {
       return CommandResult.FAILED;
     }
 
+    try {
+      repository.merge(srcBranch.getCommit(), String.format("Merge with %s", srcBranch.getCommit().getMeta().getId()), );
+    } catch (MergeException me) {
+      ConsoleColoredPrinter.println("Merge failed", ConsoleColoredPrinter.Color.RED);
+    }
 
-    repository.merge(srcBranch.getCommit(), String.format("Merge with %s", srcBranch.getCommit().getMeta().getId()));
     return CommandResult.SUCCESSFUL;
   }
 
@@ -44,5 +52,29 @@ public class MergeCommand extends RepositoryCommand {
   @Override
   protected int getMaxArgCount() {
     return 1;
+  }
+
+  private static class MyUserConflictResolver implements MergeConflictResolver {
+    private final Scanner myScanner = new Scanner(System.in);
+    @Override
+    public MergeResolvingResult resolve(@NotNull Path file, @NotNull Repository repository) {
+      ConsoleColoredPrinter.println("conflict found", ConsoleColoredPrinter.Color.YELLOW);
+      String conflictDescription = String.format("\t%s", file);
+      ConsoleColoredPrinter.println(conflictDescription, ConsoleColoredPrinter.Color.RED);
+      ConsoleColoredPrinter.println("Press \"base\" (base) for current commit version, \"o\" (override) for replace, \"q\" (quit) for cancel");
+      while (true) {
+        char userInput = myScanner.next().charAt(0);
+        switch (userInput) {
+          case 'q':
+            return MergeResolvingResult.STOP_MERGE;
+          case 'b':
+            return MergeResolvingResult.BASE_FILE;
+          case 'o':
+            return MergeResolvingResult.TARGET_FILE;
+          default:
+            ConsoleColoredPrinter.println("No such solution, try again");
+        }
+      }
+    }
   }
 }

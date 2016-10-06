@@ -33,7 +33,7 @@ public interface Repository {
 
   Commit commitChanges(@NotNull String message) throws IOException;
 
-  Commit merge(@NotNull Commit commit, @Nullable String message);
+  Commit merge(@NotNull Commit commit, @Nullable String message, @NotNull MergeConflictResolver resolver);
 
   Commit checkout(@NotNull Branch branch) throws IOException;
 

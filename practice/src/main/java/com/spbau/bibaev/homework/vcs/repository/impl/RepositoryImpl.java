@@ -270,7 +270,7 @@ public class RepositoryImpl implements Repository, Serializable {
   }
 
   @Override
-  public Commit merge(@NotNull Commit otherCommit, @Nullable String message) {
+  public Commit merge(@NotNull Commit otherCommit, @Nullable String message, @NotNull MergeConflictResolver resolver) {
     Commit currentCommit = getCurrentBranch().getCommit();
     String currentCommitId = getCurrentBranch().getCommit().getMeta().getId();
     if (currentCommitId.equals(otherCommit.getMeta().getId())) {
@@ -284,7 +284,7 @@ public class RepositoryImpl implements Repository, Serializable {
           currentCommit.getMeta().getId(), otherCommit.getMeta().getId()));
     }
 
-    Commit mergeCommit = mergeImpl(currentCommit, otherCommit, lca, message);
+    Commit mergeCommit = mergeImpl(currentCommit, otherCommit, lca, message, resolver);
 
     myCommitsIndex.put(mergeCommit.getMeta().getId(), mergeCommit);
     myBranches.put(myCurrentBranchName, mergeCommit.getMeta().getId());
@@ -356,7 +356,7 @@ public class RepositoryImpl implements Repository, Serializable {
     return offset;
   }
 
-  private Commit mergeImpl(Commit base, Commit target, Commit lca, String message) {
+  private Commit mergeImpl(Commit base, Commit target, Commit lca, String message, MergeConflictResolver resolver) {
     Map<String, FilePersistentState> baseState = getStateIndex(base);
     Map<String, FilePersistentState> targetIndex = getStateIndex(target);
     Map<String, FilePersistentState> lcaIndex = getStateIndex(lca);

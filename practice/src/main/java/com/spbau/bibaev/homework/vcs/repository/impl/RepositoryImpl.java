@@ -4,6 +4,7 @@ import com.spbau.bibaev.homework.vcs.EntryPoint;
 import com.spbau.bibaev.homework.vcs.ex.MergeException;
 import com.spbau.bibaev.homework.vcs.ex.RepositoryIllegalStateException;
 import com.spbau.bibaev.homework.vcs.repository.api.*;
+import com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter;
 import com.spbau.bibaev.homework.vcs.util.FilesUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
@@ -279,12 +280,16 @@ public class RepositoryImpl implements Repository, Serializable {
 
     Commit lca = findLCA(currentCommit, otherCommit);
 
-    if(lca == null) {
+    if (lca == null) {
       throw new RepositoryIllegalStateException(String.format("Cannot find lca for commits \"%s\" and \"%s\"",
           currentCommit.getMeta().getId(), otherCommit.getMeta().getId()));
     }
 
     Commit mergeCommit = mergeImpl(currentCommit, otherCommit, lca, message, resolver);
+
+    if (mergeCommit == null) {
+      return null;
+    }
 
     myCommitsIndex.put(mergeCommit.getMeta().getId(), mergeCommit);
     myBranches.put(myCurrentBranchName, mergeCommit.getMeta().getId());
@@ -319,6 +324,7 @@ public class RepositoryImpl implements Repository, Serializable {
     return checkout(branch);
   }
 
+  @Nullable
   private Commit findLCA(@NotNull Commit currentCommit, @NotNull Commit targetCommit) {
     Commit current = currentCommit.getMainParent();
     Set<Commit> parents = new HashSet<>();
@@ -356,6 +362,7 @@ public class RepositoryImpl implements Repository, Serializable {
     return offset;
   }
 
+  @Nullable
   private Commit mergeImpl(Commit base, Commit target, Commit lca, String message, MergeConflictResolver resolver) {
     Map<String, FilePersistentState> baseState = getStateIndex(base);
     Map<String, FilePersistentState> targetIndex = getStateIndex(target);
@@ -365,7 +372,35 @@ public class RepositoryImpl implements Repository, Serializable {
     List<FilePersistentState> modified = new ArrayList<>();
     List<String> removed = new ArrayList<>();
 
-    // todo: fill added, removed, modified arrays
+    for (String targetFilePath : targetIndex.keySet()) {
+      MergeResolvingResult resolvingResult = MergeResolvingResult.BASE_FILE;
+      final FilePersistentState targetFile = targetIndex.get(targetFilePath);
+      final FilePersistentState lcaFile = lcaIndex.getOrDefault(targetFilePath, null);
+      if (lcaFile != null && !targetFile.getHash().equals(lcaFile.getHash())) { // file is modified
+        resolvingResult = MergeResolvingResult.TARGET_FILE;
+        if (!baseState.containsKey(targetFilePath) ||
+            !baseState.get(targetFilePath).getHash().equals(lcaFile.getHash())) {
+          resolvingResult = resolver.resolve(myWorkingDirectory.getRootPath().resolve(targetFilePath), this);
+        }
+      }
+
+      if (lcaFile == null) { // file is new.
+        resolvingResult = baseState.containsKey(targetFilePath)
+            ? resolver.resolve(myWorkingDirectory.getRootPath().resolve(targetFilePath), this)
+            : MergeResolvingResult.TARGET_FILE;
+      }
+
+      if (resolvingResult == MergeResolvingResult.TARGET_FILE) {
+        if (lcaFile == null) {
+          added.add(targetFile);
+        } else {
+          modified.add(targetFile);
+        }
+      } else if (resolvingResult == MergeResolvingResult.STOP_MERGE) {
+        ConsoleColoredPrinter.println("Merging canceled", ConsoleColoredPrinter.Color.YELLOW);
+        return null;
+      }
+    }
 
     MessageDigest commitDigest = DigestUtils.getSha1Digest();
     Date now = new Date();

@@ -1,0 +1,34 @@
+package homework.ftp.server.handlers;
+
+import homework.ftp.server.handlers.ex.QueryHandlerException;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.nio.file.Path;
+
+public abstract class FtpHandler extends Handler.AbstractHandler {
+  private final Path myPath;
+  public FtpHandler(@NotNull Socket socket, @NotNull Path path) {
+    super(socket);
+    myPath = path;
+  }
+
+  @Override
+  public void handle(@NotNull Socket clientSocket) throws QueryHandlerException {
+    try {
+      handle(clientSocket, myPath);
+    } catch (IOException e) {
+      System.err.println("Input/output error happened: " + e.toString());
+      try {
+        onIoError(clientSocket, e);
+      } catch (IOException e1) {
+        System.err.println("Cannot close socket" + clientSocket.toString());
+      }
+    }
+  }
+
+  protected abstract void handle(@NotNull Socket socket, @NotNull Path directory) throws QueryHandlerException, IOException;
+
+  protected abstract void onIoError(@NotNull Socket socket, @NotNull IOException ex) throws IOException;
+}

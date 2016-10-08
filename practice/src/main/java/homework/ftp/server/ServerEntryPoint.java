@@ -1,5 +1,6 @@
 package homework.ftp.server;
 
+import homework.ftp.server.ex.ServerException;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.*;
@@ -19,8 +20,13 @@ public class ServerEntryPoint {
       Namespace parseResult = parser.parseArgs(args);
       Path directory = parseResult.get(DIRECTORY_ARGUMENT_NAME);
       int port = parseResult.get(PORT_ARGUMENT_NAME);
-      System.out.println(directory.toAbsolutePath());
-      System.out.println(port);
+      FtpServer server = new FtpServer(directory, port);
+      try {
+        server.start();
+      } catch (ServerException e) {
+        System.out.println("Server execution failed. " + e.getMessage());
+        System.err.print(e.toString());
+      }
     } catch (ArgumentParserException e) {
       parser.handleError(e);
     }

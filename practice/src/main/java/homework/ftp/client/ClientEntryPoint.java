@@ -22,8 +22,11 @@ public class ClientEntryPoint {
       Namespace parseResult = parser.parseArgs(args);
       String action = parseResult.get(ACTION_ARGUMENT_NAME);
       int port = parseResult.get(PORT_ARGUMENT_NAME);
-      Path Path = parseResult.get(PATH_ARGUMENT_NAME);
+      Path path = parseResult.get(PATH_ARGUMENT_NAME);
       InetAddress address = parseResult.get(ADDRESS_ARGUMENT_NAME);
+      System.out.println(port);
+      System.out.println(path);
+      System.out.println(address);
       switch (action) {
         case "get":
           break;
@@ -37,7 +40,7 @@ public class ClientEntryPoint {
 
   private static ArgumentParser createParser() {
     ArgumentParser parser = ArgumentParsers.newArgumentParser("client")
-        .description("Yet another ftp client")
+        .description("Yet another FTP client")
         .defaultHelp(true);
 
     parser.addArgument("-a", String.format("--%s", ADDRESS_ARGUMENT_NAME))

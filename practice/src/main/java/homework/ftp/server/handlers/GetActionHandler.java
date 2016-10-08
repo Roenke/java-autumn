@@ -24,7 +24,7 @@ public class GetActionHandler extends FtpHandler {
         os.writeLong(ProtocolDetail.ErrorCodes.SUCH_FILE_NOT_FOUND);
       } else {
         if (!targetFile.canRead()) {
-          os.writeLong(ProtocolDetail.ErrorCodes.ACCEESS_DENIED);
+          os.writeLong(ProtocolDetail.ErrorCodes.ACCESS_DENIED);
         } else {
           long fileLength = targetFile.length();
           os.writeLong(fileLength);

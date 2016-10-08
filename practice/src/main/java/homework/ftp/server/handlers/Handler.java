@@ -10,7 +10,7 @@ public interface Handler extends Runnable {
   abstract class AbstractHandler implements Handler {
     private final Socket mySocket;
 
-    public AbstractHandler(@NotNull Socket socket) {
+    AbstractHandler(@NotNull Socket socket) {
       mySocket = socket;
     }
 

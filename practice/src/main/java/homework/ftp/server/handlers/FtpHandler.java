@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Path;
 
-public abstract class FtpHandler extends Handler.AbstractHandler {
+abstract class FtpHandler extends Handler.AbstractHandler {
   private final Path myPath;
 
-  public FtpHandler(@NotNull Socket socket, @NotNull Path path) {
+  FtpHandler(@NotNull Socket socket, @NotNull Path path) {
     super(socket);
     myPath = path;
   }

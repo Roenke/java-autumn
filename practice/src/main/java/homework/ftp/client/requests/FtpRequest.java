@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.net.Socket;
 
-public abstract class FtpRequest<R> implements Request<R> {
+abstract class FtpRequest<R> implements Request<R> {
   @Nullable
   @Override
   public R execute(@NotNull Socket socket) throws RequestException {

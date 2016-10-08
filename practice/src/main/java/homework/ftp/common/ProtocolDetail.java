@@ -9,6 +9,6 @@ public class ProtocolDetail {
   public static class ErrorCodes {
     public static long SUCH_FILE_NOT_FOUND = -1;
     public static long SUCH_DIRECTORY_NOT_FOUND = -2;
-    public static long ACCEESS_DENIED = -3;
+    public static long ACCESS_DENIED = -3;
   }
 }

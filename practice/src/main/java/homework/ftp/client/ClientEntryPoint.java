@@ -50,7 +50,7 @@ public class ClientEntryPoint {
           break;
         case "list":
           List<ListFilesRequest.RemoteFile> requestResult = new ListFilesRequest(path.toString()).execute(socket);
-          if (requestResult.isEmpty()) {
+          if (requestResult == null || requestResult.isEmpty()) {
             System.out.println("Directory is empty");
           } else {
             System.out.println("Content of " + path);

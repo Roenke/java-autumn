@@ -61,7 +61,7 @@ public class ServerEntryPoint {
           throw new ArgumentParserException(String.format("Path %s does not exists", value), parser, arg);
         }
 
-        if(!path.toFile().canRead()) {
+        if (!path.toFile().canRead()) {
           throw new ArgumentParserException(String.format("Access denied to %s", value), parser, arg);
         }
 

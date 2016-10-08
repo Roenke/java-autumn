@@ -33,7 +33,7 @@ public class GetFileRequest extends FtpRequest<Void> {
         if (result == ProtocolDetail.ErrorCodes.SUCH_FILE_NOT_FOUND) {
           throw new RemoteFileNotFoundException(myRemotePath);
         }
-        if(result == ProtocolDetail.ErrorCodes.ACCEESS_DENIED) {
+        if (result == ProtocolDetail.ErrorCodes.ACCESS_DENIED) {
           throw new RemoteAccessDeniedException(myRemotePath);
         }
 
@@ -44,7 +44,7 @@ public class GetFileRequest extends FtpRequest<Void> {
       OutputStream out = Files.newOutputStream(myLocalPath);
 
       byte[] buffer = new byte[BUFFER_SIZE];
-      while(remain > 0) {
+      while (remain > 0) {
         int read = is.read(buffer, 0, (int) Math.min(remain, BUFFER_SIZE));
         out.write(buffer, 0, read);
         remain -= read;

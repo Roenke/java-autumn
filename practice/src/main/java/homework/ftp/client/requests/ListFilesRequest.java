@@ -22,6 +22,7 @@ public class ListFilesRequest extends FtpRequest<List<ListFilesRequest.RemoteFil
 
   public interface RemoteFile {
     String getName();
+
     boolean isDirectory();
   }
 
@@ -37,7 +38,7 @@ public class ListFilesRequest extends FtpRequest<List<ListFilesRequest.RemoteFil
         if (result == ProtocolDetail.ErrorCodes.SUCH_DIRECTORY_NOT_FOUND) {
           throw new RemoteFileNotFoundException(String.format("Remote directory %s not found.", myRemotePath));
         }
-        if (result == ProtocolDetail.ErrorCodes.ACCEESS_DENIED) {
+        if (result == ProtocolDetail.ErrorCodes.ACCESS_DENIED) {
           throw new RemoteAccessDeniedException(String
               .format("Cannot read from remote file %s. Access denied.", myRemotePath));
         }
@@ -59,6 +60,7 @@ public class ListFilesRequest extends FtpRequest<List<ListFilesRequest.RemoteFil
   private static class RemoteFileImpl implements RemoteFile {
     private final String myFilename;
     private final boolean myIsDirectory;
+
     RemoteFileImpl(String filename, boolean isDirectory) {
       myFilename = filename;
       myIsDirectory = isDirectory;

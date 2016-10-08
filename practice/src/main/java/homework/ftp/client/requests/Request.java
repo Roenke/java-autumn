@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.Socket;
 
-public interface Request<R> {
+interface Request<R> {
 
   @Nullable
   R execute(@NotNull Socket socket) throws RequestException;

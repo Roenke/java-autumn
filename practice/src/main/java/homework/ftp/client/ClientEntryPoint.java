@@ -1,16 +1,17 @@
 package homework.ftp.client;
 
 import homework.ftp.client.ex.RequestException;
+import homework.ftp.client.requests.GetFileRequest;
 import homework.ftp.client.requests.ListFilesRequest;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.*;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,6 +38,17 @@ public class ClientEntryPoint {
       Socket socket = new Socket(address, port);
       switch (action) {
         case "get":
+
+          Path localFilePath = Paths.get(System.getProperty("user.dif")).resolve(path.getFileName());
+          if(localFilePath.toFile().exists()) {
+            System.err.println("Local file with such name already exists, please, move or delete it.");
+            break;
+          }
+
+          Files.createFile(localFilePath);
+          new GetFileRequest(path.toString(), localFilePath).execute(socket);
+          System.out.println("Complete");
+
           break;
         case "list":
           List<ListFilesRequest.RemoteFile> requestResult = new ListFilesRequest(path.toString()).execute(socket);
@@ -44,16 +56,16 @@ public class ClientEntryPoint {
             System.out.println("Directory is empty");
           } else {
             System.out.println("Content of " + path);
-            requestResult.forEach(file -> System.out.println(file.getName() + (file.isDirectory() ? "/" : "")));
+            requestResult.forEach(file -> System.out.println('\t' + file.getName() + (file.isDirectory() ? "/" : "")));
           }
           break;
       }
     } catch (ArgumentParserException e) {
       parser.handleError(e);
     } catch (IOException e) {
-      System.err.println(e.getMessage());
+      System.err.println("Cannot open socket:" + e);
     } catch (RequestException e) {
-      e.printStackTrace();
+      System.out.println(e.getMessage());
     }
   }
 

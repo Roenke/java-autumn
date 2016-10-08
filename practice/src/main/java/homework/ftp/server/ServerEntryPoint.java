@@ -1,5 +1,6 @@
 package homework.ftp.server;
 
+import homework.ftp.common.ProtocolDetail;
 import homework.ftp.server.ex.ServerException;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
@@ -45,7 +46,7 @@ public class ServerEntryPoint {
     parser.addArgument("-p", String.format("--%s", PORT_ARGUMENT_NAME))
         .type(Integer.class)
         .choices(Arguments.range(0, (1 << 16) - 1))
-        .setDefault(21)
+        .setDefault(ProtocolDetail.DEFAULT_PORT_NUMBER)
         .help("specify the port for connections");
 
     return parser;

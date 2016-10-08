@@ -50,8 +50,10 @@ class FtpServer implements Server {
       Socket clientSocket;
       try {
         clientSocket = socket.accept();
+        System.out.println("Connection received");
         DataInputStream dataStream = new DataInputStream(clientSocket.getInputStream());
         actionId = dataStream.readInt();
+        System.out.println("Action id = " + actionId);
       } catch (IOException e) {
         System.err.println("Connection failed. " + e.toString());
         continue;

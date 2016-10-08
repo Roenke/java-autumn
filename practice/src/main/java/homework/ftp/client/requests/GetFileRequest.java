@@ -23,12 +23,11 @@ public class GetFileRequest extends FtpRequest<Void> {
 
   @Override
   protected Void executeImpl(@NotNull Socket socket) throws IOException, RequestException {
-    try (DataOutputStream os = new DataOutputStream(socket.getOutputStream())) {
-      os.writeLong(ProtocolDetail.GET_ACTION_ID);
+    try (DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+         DataInputStream is = new DataInputStream(socket.getInputStream())) {
+      os.writeInt(ProtocolDetail.GET_ACTION_ID);
       os.writeUTF(myRemotePath);
-    }
 
-    try (DataInputStream is = new DataInputStream(socket.getInputStream())) {
       long result = is.readLong();
       if (result < 0) {
         if (result == ProtocolDetail.ErrorCodes.SUCH_FILE_NOT_FOUND) {
@@ -42,12 +41,12 @@ public class GetFileRequest extends FtpRequest<Void> {
       }
 
       long remain = result;
-      OutputStream os = Files.newOutputStream(myLocalPath);
+      OutputStream out = Files.newOutputStream(myLocalPath);
 
       byte[] buffer = new byte[BUFFER_SIZE];
-      while(remain >= 0) {
+      while(remain > 0) {
         int read = is.read(buffer, 0, (int) Math.min(remain, BUFFER_SIZE));
-        os.write(buffer, 0, read);
+        out.write(buffer, 0, read);
         remain -= read;
       }
     }

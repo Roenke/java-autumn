@@ -3,6 +3,7 @@ package homework.ftp.client;
 import homework.ftp.client.ex.RequestException;
 import homework.ftp.client.requests.GetFileRequest;
 import homework.ftp.client.requests.ListFilesRequest;
+import homework.ftp.common.ProtocolDetail;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.*;
@@ -31,15 +32,12 @@ public class ClientEntryPoint {
       int port = parseResult.get(PORT_ARGUMENT_NAME);
       Path path = parseResult.get(PATH_ARGUMENT_NAME);
       InetAddress address = parseResult.get(ADDRESS_ARGUMENT_NAME);
-      System.out.println(port);
-      System.out.println(path);
-      System.out.println(address);
 
       Socket socket = new Socket(address, port);
       switch (action) {
         case "get":
 
-          Path localFilePath = Paths.get(System.getProperty("user.dif")).resolve(path.getFileName());
+          Path localFilePath = Paths.get(System.getProperty("user.dir")).resolve(path.getFileName());
           if(localFilePath.toFile().exists()) {
             System.err.println("Local file with such name already exists, please, move or delete it.");
             break;
@@ -82,7 +80,7 @@ public class ClientEntryPoint {
     parser.addArgument("-p", String.format("--%s", PORT_ARGUMENT_NAME))
         .type(Integer.class)
         .choices(Arguments.range(0, (1 << 16) - 1))
-        .setDefault(21)
+        .setDefault(ProtocolDetail.DEFAULT_PORT_NUMBER)
         .help("the server port");
 
     parser.addArgument(ACTION_ARGUMENT_NAME)

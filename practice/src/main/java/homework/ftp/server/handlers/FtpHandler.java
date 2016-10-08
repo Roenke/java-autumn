@@ -9,6 +9,7 @@ import java.nio.file.Path;
 
 public abstract class FtpHandler extends Handler.AbstractHandler {
   private final Path myPath;
+
   public FtpHandler(@NotNull Socket socket, @NotNull Path path) {
     super(socket);
     myPath = path;
@@ -20,15 +21,12 @@ public abstract class FtpHandler extends Handler.AbstractHandler {
       handle(clientSocket, myPath);
     } catch (IOException e) {
       System.err.println("Input/output error happened: " + e.toString());
-      try {
-        onIoError(clientSocket, e);
-      } catch (IOException e1) {
-        System.err.println("Cannot close socket" + clientSocket.toString());
-      }
+      onIoError(clientSocket, e);
     }
   }
 
-  protected abstract void handle(@NotNull Socket socket, @NotNull Path directory) throws QueryHandlerException, IOException;
+  protected abstract void handle(@NotNull Socket socket, @NotNull Path directory)
+      throws QueryHandlerException, IOException;
 
-  protected abstract void onIoError(@NotNull Socket socket, @NotNull IOException ex) throws IOException;
+  protected abstract void onIoError(@NotNull Socket socket, @NotNull IOException ex);
 }

@@ -19,7 +19,7 @@ public class ListActionHandler extends FtpHandler {
   }
 
   @Override
-  protected void onIoError(@NotNull Socket socket, @NotNull IOException ex) throws IOException {
+  protected void onIoError(@NotNull Socket socket, @NotNull IOException ex) {
 
   }
 }

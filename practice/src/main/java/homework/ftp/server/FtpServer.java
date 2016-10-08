@@ -1,5 +1,6 @@
 package homework.ftp.server;
 
+import homework.ftp.common.ProtocolDetail;
 import homework.ftp.server.ex.OpenSocketException;
 import homework.ftp.server.ex.ServerException;
 import homework.ftp.server.handlers.GetActionHandler;
@@ -25,8 +26,8 @@ class FtpServer implements Server {
   private static final Map<Integer, BiFunction<Socket, Path, Handler>> HANDLER_SUPPLIERS = new HashMap<>();
 
   static {
-    HANDLER_SUPPLIERS.put(1, ListActionHandler::new);
-    HANDLER_SUPPLIERS.put(2, GetActionHandler::new);
+    HANDLER_SUPPLIERS.put(ProtocolDetail.LIST_ACTION_ID, ListActionHandler::new);
+    HANDLER_SUPPLIERS.put(ProtocolDetail.GET_ACTION_ID, GetActionHandler::new);
   }
 
   FtpServer(@NotNull Path path, int port) {

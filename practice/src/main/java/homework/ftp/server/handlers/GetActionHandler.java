@@ -15,17 +15,21 @@ import java.nio.file.Path;
 public class GetActionHandler extends FtpHandler {
   @Override
   protected void handle(@NotNull Socket socket, @NotNull Path directory) throws QueryHandlerException, IOException {
-    try(DataInputStream is = new DataInputStream(socket.getInputStream()) ;
-        DataOutputStream os = new DataOutputStream(socket.getOutputStream())) {
+    try (DataInputStream is = new DataInputStream(socket.getInputStream());
+         DataOutputStream os = new DataOutputStream(socket.getOutputStream())) {
       String path = is.readUTF();
 
       File targetFile = directory.resolve(path).toFile();
       if (!targetFile.exists() || targetFile.isDirectory()) {
-        os.writeLong(ProtocolDetail.ErrorCodes.FILE_NOT_FOUND);
+        os.writeLong(ProtocolDetail.ErrorCodes.SUCH_FILE_NOT_FOUND);
       } else {
-        long fileLength = targetFile.length();
-        os.writeLong(fileLength);
-        FileUtils.copyFile(targetFile, os);
+        if (!targetFile.canRead()) {
+          os.writeLong(ProtocolDetail.ErrorCodes.ACCEESS_DENIED);
+        } else {
+          long fileLength = targetFile.length();
+          os.writeLong(fileLength);
+          FileUtils.copyFile(targetFile, os);
+        }
       }
     }
   }

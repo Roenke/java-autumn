@@ -36,14 +36,7 @@ class FtpServer implements Server {
   }
 
   @Override
-  public void start() throws ServerException {
-    ServerSocket socket;
-    try {
-      socket = new ServerSocket(myPort);
-    } catch (IOException e) {
-      throw new OpenSocketException(e);
-    }
-
+  public void start(@NotNull ServerSocket socket) {
     //noinspection InfiniteLoopStatement
     while (true) {
       int actionId;

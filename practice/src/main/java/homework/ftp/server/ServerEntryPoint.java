@@ -23,7 +23,7 @@ public class ServerEntryPoint {
       Namespace parseResult = parser.parseArgs(args);
       Path directory = parseResult.get(DIRECTORY_ARGUMENT_NAME);
       int port = parseResult.get(PORT_ARGUMENT_NAME);
-      Server server = new FtpServer(directory, port);
+      Server server = new FtpServer(directory);
       try {
         ServerSocket socket = new ServerSocket(port);
         server.start(socket);

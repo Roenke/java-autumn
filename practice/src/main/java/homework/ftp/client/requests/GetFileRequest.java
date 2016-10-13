@@ -41,13 +41,13 @@ public class GetFileRequest extends FtpRequest<Void> {
       }
 
       long remain = result;
-      OutputStream out = Files.newOutputStream(myLocalPath);
-
-      byte[] buffer = new byte[BUFFER_SIZE];
-      while (remain > 0) {
-        int read = is.read(buffer, 0, (int) Math.min(remain, BUFFER_SIZE));
-        out.write(buffer, 0, read);
-        remain -= read;
+      try(OutputStream out = Files.newOutputStream(myLocalPath)) {
+        byte[] buffer = new byte[BUFFER_SIZE];
+        while (remain > 0) {
+          int read = is.read(buffer, 0, (int) Math.min(remain, BUFFER_SIZE));
+          out.write(buffer, 0, read);
+          remain -= read;
+        }
       }
     }
 

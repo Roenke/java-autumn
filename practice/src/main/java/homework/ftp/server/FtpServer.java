@@ -19,9 +19,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.BiFunction;
 
-class FtpServer implements Server {
+public class FtpServer implements Server {
   private final Path myPath;
-  private final int myPort;
   private final ExecutorService myThreadPool = Executors.newCachedThreadPool();
   private static final Map<Integer, BiFunction<Socket, Path, Handler>> HANDLER_SUPPLIERS = new HashMap<>();
 
@@ -30,19 +29,21 @@ class FtpServer implements Server {
     HANDLER_SUPPLIERS.put(ProtocolDetail.GET_ACTION_ID, GetActionHandler::new);
   }
 
-  FtpServer(@NotNull Path path, int port) {
+  public FtpServer(@NotNull Path path) {
     myPath = path;
-    myPort = port;
   }
 
   @Override
   public void start(@NotNull ServerSocket socket) {
     //noinspection InfiniteLoopStatement
-    while (true) {
+    while (!socket.isClosed()) {
       int actionId;
       Socket clientSocket;
       try {
         clientSocket = socket.accept();
+        if(clientSocket.isClosed()) {
+          continue;
+        }
         System.out.println("Connection received");
         DataInputStream dataStream = new DataInputStream(clientSocket.getInputStream());
         actionId = dataStream.readInt();

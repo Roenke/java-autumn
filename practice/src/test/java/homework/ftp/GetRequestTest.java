@@ -22,6 +22,7 @@ public class GetRequestTest extends RunningServerTestCase {
       assertNotNull(files);
       assertNotEquals(0, files.length);
       String content = FileUtils.readFileToString(files[0], "UTF-8");
+      assertFalse(RunningServerTestCase.DIRECTORY_NAME.isEmpty());
       assertEquals(RunningServerTestCase.README_CONTENT, content);
       socket.close();
     }

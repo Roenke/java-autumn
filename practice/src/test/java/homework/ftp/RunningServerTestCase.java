@@ -1,6 +1,7 @@
 package homework.ftp;
 
 import homework.ftp.server.FtpServer;
+import homework.ftp.server.ex.ServerException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -48,6 +49,8 @@ public abstract class RunningServerTestCase {
           ftpServer.start(myServerSocket);
         } catch (IOException e) {
           System.err.println("Could not start server");
+        } catch (ServerException e) {
+          System.err.println("Something went wrong" + e.toString());
         }
       }).start();
     }

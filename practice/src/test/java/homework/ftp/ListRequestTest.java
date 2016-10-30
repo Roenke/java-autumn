@@ -4,20 +4,26 @@ import homework.ftp.client.ex.RequestException;
 import homework.ftp.client.requests.ListFilesRequest;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class ListRequestTest extends RunningServerTestCase {
   @Test
   public void listForCurrentDirectory() throws IOException, RequestException {
     final List<ListFilesRequest.RemoteFile> remoteFiles = listInternal(".");
     assertEquals(3, remoteFiles.size());
-    for(ListFilesRequest.RemoteFile file : remoteFiles) {
-
+    Collection<String> expected = Arrays.asList(README, MAKEFILE, DIRECTORY_NAME);
+    for (ListFilesRequest.RemoteFile file : remoteFiles) {
+      assertTrue(expected.contains(file.getName()));
+      if(file.getName().endsWith("/")) {
+        assertTrue(file.isDirectory());
+      }
     }
   }
 

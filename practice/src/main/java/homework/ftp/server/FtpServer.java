@@ -33,21 +33,25 @@ public class FtpServer implements Server {
 
   @Override
   public void start(@NotNull ServerSocket socket) {
+    //noinspection InfiniteLoopStatement
     while (!socket.isClosed()) {
       int actionId;
-      try (Socket clientSocket = socket.accept()) {
+      Socket clientSocket;
+      try {
+        clientSocket = socket.accept();
         System.out.println("Connection received");
         DataInputStream dataStream = new DataInputStream(clientSocket.getInputStream());
         actionId = dataStream.readInt();
         System.out.println("Action id = " + actionId);
-
-        if (HANDLER_SUPPLIERS.containsKey(actionId)) {
-          myThreadPool.execute(HANDLER_SUPPLIERS.get(actionId).apply(clientSocket, myPath));
-        } else {
-          System.err.println("Protocol error: unknown action with id = " + String.valueOf(actionId));
-        }
       } catch (IOException e) {
         System.err.println("Connection failed. " + e.toString());
+        continue;
+      }
+
+      if (HANDLER_SUPPLIERS.containsKey(actionId)) {
+        myThreadPool.execute(HANDLER_SUPPLIERS.get(actionId).apply(clientSocket, myPath));
+      } else {
+        System.err.println("Protocol error: unknown action with id = " + String.valueOf(actionId));
       }
     }
   }

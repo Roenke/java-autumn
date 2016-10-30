@@ -11,8 +11,8 @@ abstract class FtpRequest<R> implements Request<R> {
   @Nullable
   @Override
   public R execute(@NotNull Socket socket) throws RequestException {
-    try {
-      return executeImpl(socket);
+    try(Socket closingSocket = socket) {
+      return executeImpl(closingSocket);
     } catch (IOException e) {
       throw new RequestException(e);
     }

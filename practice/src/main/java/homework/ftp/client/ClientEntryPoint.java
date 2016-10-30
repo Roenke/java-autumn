@@ -33,37 +33,37 @@ public class ClientEntryPoint {
       Path path = parseResult.get(PATH_ARGUMENT_NAME);
       InetAddress address = parseResult.get(ADDRESS_ARGUMENT_NAME);
 
-      Socket socket = new Socket(address, port);
-      switch (action) {
-        case "get":
+      try (Socket socket = new Socket(address, port)) {
+        switch (action) {
+          case "get":
+            Path localFilePath = Paths.get(System.getProperty("user.dir")).resolve(path.getFileName());
+            if (localFilePath.toFile().exists()) {
+              System.err.println("Local file with such name already exists, please, move or delete it.");
+              break;
+            }
 
-          Path localFilePath = Paths.get(System.getProperty("user.dir")).resolve(path.getFileName());
-          if(localFilePath.toFile().exists()) {
-            System.err.println("Local file with such name already exists, please, move or delete it.");
+            Files.createFile(localFilePath);
+            new GetFileRequest(path.toString(), localFilePath).execute(socket);
+            System.out.println("Complete");
+
             break;
-          }
-
-          Files.createFile(localFilePath);
-          new GetFileRequest(path.toString(), localFilePath).execute(socket);
-          System.out.println("Complete");
-
-          break;
-        case "list":
-          List<ListFilesRequest.RemoteFile> requestResult = new ListFilesRequest(path.toString()).execute(socket);
-          if (requestResult == null || requestResult.isEmpty()) {
-            System.out.println("Directory is empty");
-          } else {
-            System.out.println("Content of " + path);
-            requestResult.forEach(file -> System.out.println('\t' + file.getName() + (file.isDirectory() ? "/" : "")));
-          }
-          break;
+          case "list":
+            List<ListFilesRequest.RemoteFile> requestResult = new ListFilesRequest(path.toString()).execute(socket);
+            if (requestResult == null || requestResult.isEmpty()) {
+              System.out.println("Directory is empty");
+            } else {
+              System.out.println("Content of " + path);
+              requestResult.forEach(file -> System.out.println('\t' + file.getName() + (file.isDirectory() ? "/" : "")));
+            }
+            break;
+        }
+      } catch (IOException e) {
+        System.err.println("Cannot open socket:" + e);
+      } catch (RequestException e) {
+        System.out.println(e.getMessage());
       }
     } catch (ArgumentParserException e) {
       parser.handleError(e);
-    } catch (IOException e) {
-      System.err.println("Cannot open socket:" + e);
-    } catch (RequestException e) {
-      System.out.println(e.getMessage());
     }
   }
 

@@ -1,9 +1,9 @@
 package homework.ftp.server.handlers.ex;
 
-import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 public class QueryHandlerException extends Exception {
-  QueryHandlerException(@NonNls String message) {
-    super(message);
+  QueryHandlerException(@NotNull Throwable cause) {
+    super(cause);
   }
 }

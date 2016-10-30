@@ -17,7 +17,7 @@ public class GetActionHandler extends FtpHandler {
   protected void handle(@NotNull Socket socket, @NotNull Path directory) throws QueryHandlerException, IOException {
     try (DataInputStream is = new DataInputStream(socket.getInputStream());
          DataOutputStream os = new DataOutputStream(socket.getOutputStream())) {
-      String path = is.readUTF();
+      String path = readString(is);
 
       File targetFile = directory.resolve(path).toFile();
       if (!targetFile.exists() || targetFile.isDirectory()) {
@@ -36,11 +36,6 @@ public class GetActionHandler extends FtpHandler {
 
   @Override
   protected void onIoError(@NotNull Socket socket, @NotNull IOException ex) {
-    try {
-      socket.close();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   public GetActionHandler(@NotNull Socket socket, @NotNull Path path) {

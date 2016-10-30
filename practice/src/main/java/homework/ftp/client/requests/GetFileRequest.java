@@ -3,7 +3,9 @@ package homework.ftp.client.requests;
 import homework.ftp.client.ex.RemoteAccessDeniedException;
 import homework.ftp.client.ex.RemoteFileNotFoundException;
 import homework.ftp.client.ex.RequestException;
+import homework.ftp.client.ex.WrongDataLengthException;
 import homework.ftp.common.ProtocolDetail;
+import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -12,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class GetFileRequest extends FtpRequest<Void> {
-  private static final int BUFFER_SIZE = 4096;
   private final String myRemotePath;
   private final Path myLocalPath;
 
@@ -40,13 +41,12 @@ public class GetFileRequest extends FtpRequest<Void> {
         throw new RequestException("Unknown remote error.");
       }
 
-      long remain = result;
-      try(OutputStream out = Files.newOutputStream(myLocalPath)) {
-        byte[] buffer = new byte[BUFFER_SIZE];
-        while (remain > 0) {
-          int read = is.read(buffer, 0, (int) Math.min(remain, BUFFER_SIZE));
-          out.write(buffer, 0, read);
-          remain -= read;
+      try (OutputStream out = Files.newOutputStream(myLocalPath)) {
+        long copied = IOUtils.copyLarge(is, out);
+        if (copied != result) {
+          throw new WrongDataLengthException(
+              String.format("Length of received data not matched with expected: expect: %d, received: %d",
+                  result, copied));
         }
       }
     }

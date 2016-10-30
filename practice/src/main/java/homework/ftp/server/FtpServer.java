@@ -51,6 +51,12 @@ public class FtpServer implements Server {
       if (HANDLER_SUPPLIERS.containsKey(actionId)) {
         myThreadPool.execute(HANDLER_SUPPLIERS.get(actionId).apply(clientSocket, myPath));
       } else {
+        try {
+          socket.close();
+        } catch (IOException e) {
+          // practically inaccessible code
+          throw new RuntimeException("Cannot close socket for " + socket.getInetAddress());
+        }
         System.err.println("Protocol error: unknown action with id = " + String.valueOf(actionId));
       }
     }

@@ -20,7 +20,7 @@ abstract class FtpHandler extends Handler.AbstractHandler {
     try {
       handle(clientSocket, myPath);
     } catch (IOException e) {
-      System.err.println("Input/output error happened: " + e.toString());
+      System.err.println("Input/output error occurred: " + e.toString());
       onIoError(clientSocket, e);
     }
   }

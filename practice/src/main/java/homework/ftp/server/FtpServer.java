@@ -1,8 +1,6 @@
 package homework.ftp.server;
 
 import homework.ftp.common.ProtocolDetail;
-import homework.ftp.server.ex.OpenSocketException;
-import homework.ftp.server.ex.ServerException;
 import homework.ftp.server.handlers.GetActionHandler;
 import homework.ftp.server.handlers.Handler;
 import homework.ftp.server.handlers.ListActionHandler;
@@ -35,28 +33,21 @@ public class FtpServer implements Server {
 
   @Override
   public void start(@NotNull ServerSocket socket) {
-    //noinspection InfiniteLoopStatement
     while (!socket.isClosed()) {
       int actionId;
-      Socket clientSocket;
-      try {
-        clientSocket = socket.accept();
-        if(clientSocket.isClosed()) {
-          continue;
-        }
+      try (Socket clientSocket = socket.accept()) {
         System.out.println("Connection received");
         DataInputStream dataStream = new DataInputStream(clientSocket.getInputStream());
         actionId = dataStream.readInt();
         System.out.println("Action id = " + actionId);
+
+        if (HANDLER_SUPPLIERS.containsKey(actionId)) {
+          myThreadPool.execute(HANDLER_SUPPLIERS.get(actionId).apply(clientSocket, myPath));
+        } else {
+          System.err.println("Protocol error: unknown action with id = " + String.valueOf(actionId));
+        }
       } catch (IOException e) {
         System.err.println("Connection failed. " + e.toString());
-        continue;
-      }
-
-      if (HANDLER_SUPPLIERS.containsKey(actionId)) {
-        myThreadPool.execute(HANDLER_SUPPLIERS.get(actionId).apply(clientSocket, myPath));
-      } else {
-        System.err.println("Protocol error: unknown action with id = " + String.valueOf(actionId));
       }
     }
   }

@@ -1,6 +1,8 @@
 package homework.ftp.server;
 
 import homework.ftp.common.ProtocolDetail;
+import homework.ftp.server.ex.CannotCloseClientSocket;
+import homework.ftp.server.ex.ServerException;
 import homework.ftp.server.handlers.GetActionHandler;
 import homework.ftp.server.handlers.Handler;
 import homework.ftp.server.handlers.ListActionHandler;
@@ -32,7 +34,7 @@ public class FtpServer implements Server {
   }
 
   @Override
-  public void start(@NotNull ServerSocket socket) {
+  public void start(@NotNull ServerSocket socket) throws ServerException {
     while (!socket.isClosed()) {
       int actionId;
       Socket clientSocket;
@@ -53,8 +55,7 @@ public class FtpServer implements Server {
         try {
           socket.close();
         } catch (IOException e) {
-          // practically inaccessible code
-          throw new RuntimeException("Cannot close socket for " + socket.getInetAddress());
+          throw new CannotCloseClientSocket(e);
         }
         System.err.println("Protocol error: unknown action with id = " + String.valueOf(actionId));
       }

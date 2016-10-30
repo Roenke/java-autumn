@@ -33,7 +33,6 @@ public class FtpServer implements Server {
 
   @Override
   public void start(@NotNull ServerSocket socket) {
-    //noinspection InfiniteLoopStatement
     while (!socket.isClosed()) {
       int actionId;
       Socket clientSocket;
@@ -44,7 +43,7 @@ public class FtpServer implements Server {
         actionId = dataStream.readInt();
         System.out.println("Action id = " + actionId);
       } catch (IOException e) {
-        System.err.println("Connection failed. " + e.toString());
+        System.err.println("Something went wrong. " + e.toString());
         continue;
       }
 

@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.torrent.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spbau.bibaev.homework.torrent.common.FileInfo;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -9,18 +10,21 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-public class ServerStateTest {
+/**
+ * @author Vitaliy.Bibaev
+ */
+public class FileStorageTest {
   @Test
   public void serialize() throws IOException {
     Map<Integer, FileInfo> map = new HashMap<>();
     map.put(1, new FileInfo("name1", 10));
     map.put(2, new FileInfo("name2", 20));
-    ServerState serverState = new ServerState(map);
+    FileStorage serverState = new FileStorage(map);
 
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(serverState);
     System.out.println(json);
-    ServerState after = mapper.readValue(json, ServerState.class);
+    FileStorage after = mapper.readValue(json, FileStorage.class);
 
     assertNotSame(serverState, after);
     assertTrue(after.fileExists(1));

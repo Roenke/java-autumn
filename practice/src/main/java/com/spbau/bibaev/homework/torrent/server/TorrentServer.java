@@ -2,12 +2,7 @@ package com.spbau.bibaev.homework.torrent.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spbau.bibaev.homework.torrent.common.Details;
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
+import com.spbau.bibaev.homework.torrent.server.handler.*;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -18,14 +13,33 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class TorrentServer {
   private static final Logger LOG = LogManager.getLogger(TorrentServer.class);
   private final int myPort;
-  private final ServerState myState;
+  private final ServerStateEx myState;
+  private static final Map<Byte, RequestHandler> myCommandId2HandlerMap;
+
+  static {
+    Map<Byte, RequestHandler> handlers = new HashMap<>();
+    handlers.put((byte) 1, new ListHandler());
+    handlers.put((byte) 2, new UploadHandler());
+    handlers.put((byte) 3, new SourcesHandler());
+    handlers.put((byte) 4, new UpdateHandler());
+
+    myCommandId2HandlerMap = Collections.unmodifiableMap(handlers);
+  }
 
   public static void main(String[] args) {
     ArgumentParser parser = createParser();
@@ -40,12 +54,12 @@ public class TorrentServer {
     Integer port = parsingResult.getInt("port");
     String config = parsingResult.getString("config");
     Path path = Paths.get(config);
-    ServerState state;
+    FileStorage storage;
     if (path.toFile().exists()) {
       ObjectMapper mapper = new ObjectMapper();
       try {
         LOG.info("Loading files information from: " + path.toAbsolutePath().toString());
-        state = mapper.readValue(path.toFile(), ServerState.class);
+        storage = mapper.readValue(path.toFile(), FileStorage.class);
       } catch (IOException e) {
         LOG.error("Configuration file parsing failed. " + e.toString());
         parser.printHelp();
@@ -53,33 +67,43 @@ public class TorrentServer {
       }
     } else {
       LOG.info("Start with empty files information");
-      state = new ServerState(Collections.emptyMap());
+      storage = new FileStorage(Collections.emptyMap());
     }
 
+    ServerStateEx state = new ServerStateImpl(storage);
+
     TorrentServer server = new TorrentServer(port, state);
-    server.run();
+    try {
+      server.run();
+    } catch (IOException e) {
+      LOG.fatal("Something went wrong", e);
+    }
   }
 
-  private TorrentServer(int port, @NotNull ServerState state) {
+  private TorrentServer(int port, @NotNull ServerStateEx state) {
     myPort = port;
     myState = state;
   }
 
-  private void run() {
+  private void run() throws IOException {
     LOG.info("Starting the torrent server on " + myPort + " port");
-    EventLoopGroup acceptor = new NioEventLoopGroup(1);
-    EventLoopGroup workersGroup = new NioEventLoopGroup();
-    ServerBootstrap bootstrap = new ServerBootstrap();
-    bootstrap.option(ChannelOption.TCP_NODELAY, true)
-        .option(ChannelOption.SO_KEEPALIVE, false)
-        .group(acceptor, workersGroup)
-        .childHandler(new ChannelInitializer<SocketChannel>() {
-          @Override
-          protected void initChannel(SocketChannel ch) throws Exception {
-            ChannelPipeline pipeline = ch.pipeline();
-            pipeline.addLast();
-          }
-        });
+    final ExecutorService requestsThreadPool = Executors.newFixedThreadPool(Details.Server.REQUEST_HANDLING_WORKERS);
+    final ScheduledExecutorService actualClientTask = Executors.newScheduledThreadPool(1);
+    actualClientTask.execute(new ConnectedClientsRefresher(myState, actualClientTask));
+    try (ServerSocket socket = new ServerSocket(Details.DEFAULT_PORT)) {
+      while (!socket.isClosed()) {
+        // TODO: close the client socket
+        final Socket clientSocket = socket.accept();
+        final InputStream inputStream = clientSocket.getInputStream();
+        byte commandId = (byte) inputStream.read();
+        if (!myCommandId2HandlerMap.containsKey(commandId)) {
+          LOG.warn("Unknown request received. Id = " + commandId);
+        } else {
+          final RequestHandler requestHandler = myCommandId2HandlerMap.get(commandId);
+          requestsThreadPool.execute(() -> requestHandler.handle(clientSocket, myState));
+        }
+      }
+    }
   }
 
   private static ArgumentParser createParser() {

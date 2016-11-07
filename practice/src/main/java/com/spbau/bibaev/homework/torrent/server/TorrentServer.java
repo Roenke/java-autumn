@@ -92,7 +92,6 @@ public class TorrentServer {
     actualClientTask.execute(new ConnectedClientsRefresher(myState, actualClientTask));
     try (ServerSocket socket = new ServerSocket(Details.DEFAULT_PORT)) {
       while (!socket.isClosed()) {
-        // TODO: close the client socket
         final Socket clientSocket = socket.accept();
         final InputStream inputStream = clientSocket.getInputStream();
         byte commandId = (byte) inputStream.read();

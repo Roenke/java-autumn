@@ -3,14 +3,15 @@ package com.spbau.bibaev.homework.torrent.server.handler;
 import com.spbau.bibaev.homework.torrent.server.ServerStateEx;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.net.Socket;
 
 /**
  * @author Vitaliy.Bibaev
  */
-public class UploadHandler implements RequestHandler {
+public class UploadHandler extends RequestHandler {
   @Override
-  public void handle(@NotNull Socket clientSocket, @NotNull ServerStateEx serverState) {
+  protected void handleImpl(@NotNull Socket socket, @NotNull ServerStateEx serverState) throws IOException {
 
   }
 }

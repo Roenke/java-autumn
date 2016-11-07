@@ -36,4 +36,33 @@ public class FileStorageTest {
     assertEquals(serverState.getInfo(2).getName(), after.getInfo(2).getName());
     assertEquals(serverState.getInfo(2).getSize(), after.getInfo(2).getSize());
   }
+
+  @Test
+  public void exists() {
+    Map<Integer, FileInfo> map = new HashMap<>();
+    map.put(1, new FileInfo("name1", 10));
+    FileStorage serverState = new FileStorage(map);
+
+    assertTrue(serverState.fileExists(1));
+    assertFalse(serverState.fileExists(2));
+  }
+
+  @Test
+  public void getInfo() {
+    Map<Integer, FileInfo> map = new HashMap<>();
+    map.put(1, new FileInfo("name1", 10));
+    FileStorage serverState = new FileStorage(map);
+
+    assertEquals(new FileInfo("name1", 10), serverState.getInfo(1));
+  }
+
+  @Test
+  public void putNewFile() {
+    Map<Integer, FileInfo> map = new HashMap<>();
+    map.put(1, new FileInfo("name1", 10));
+    FileStorage serverState = new FileStorage(map);
+
+    assertNotEquals(1, serverState.putNewFile(new FileInfo("name2", 100)));
+    assertEquals(2, serverState.getFiles().size());
+  }
 }

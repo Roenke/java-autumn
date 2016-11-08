@@ -2,6 +2,7 @@ package com.spbau.bibaev.homework.torrent.client.api;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -9,7 +10,7 @@ import java.util.List;
  * @author Vitaliy.Bibaev
  */
 public interface Client {
-  List<Integer> stat(int id);
+  List<Integer> stat(int id) throws IOException;
 
-  boolean get(int id, int partNumber, @NotNull OutputStream out);
+  boolean get(int id, int partNumber, @NotNull OutputStream out) throws IOException;
 }

@@ -2,6 +2,7 @@ package com.spbau.bibaev.homework.torrent.server;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.spbau.bibaev.homework.torrent.common.FileInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;

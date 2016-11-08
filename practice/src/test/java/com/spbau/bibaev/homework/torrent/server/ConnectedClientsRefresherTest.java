@@ -2,6 +2,7 @@ package com.spbau.bibaev.homework.torrent.server;
 
 import com.spbau.bibaev.homework.torrent.common.ClientInfo;
 import com.spbau.bibaev.homework.torrent.common.Details;
+import com.spbau.bibaev.homework.torrent.common.FileInfo;
 import com.spbau.bibaev.homework.torrent.common.Ip4ClientInfo;
 import org.junit.Before;
 import org.junit.Test;

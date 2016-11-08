@@ -1,7 +1,7 @@
 package com.spbau.bibaev.homework.torrent.client.api;
 
 import com.spbau.bibaev.homework.torrent.common.ClientInfo;
-import com.spbau.bibaev.homework.torrent.server.FileInfo;
+import com.spbau.bibaev.homework.torrent.common.FileInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;

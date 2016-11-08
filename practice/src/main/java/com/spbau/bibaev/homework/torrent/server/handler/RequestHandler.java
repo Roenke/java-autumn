@@ -1,7 +1,6 @@
 package com.spbau.bibaev.homework.torrent.server.handler;
 
-import com.spbau.bibaev.homework.torrent.server.ServerStateEx;
-import com.spbau.bibaev.homework.torrent.server.TorrentServer;
+import com.spbau.bibaev.homework.torrent.server.state.ServerStateEx;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;

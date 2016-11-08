@@ -1,4 +1,4 @@
-package com.spbau.bibaev.homework.torrent.server;
+package com.spbau.bibaev.homework.torrent.server.state;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -6,14 +6,17 @@ import com.spbau.bibaev.homework.torrent.common.FileInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class FileStorage {
+public class SharedFiles {
   private final Map<Integer, FileInfo> myId2FileInfo;
+  private final List<FilesChangedListener> myListeners = new CopyOnWriteArrayList<>();
 
   @JsonCreator
-  public FileStorage(@JsonProperty("files") Map<Integer, FileInfo> map) {
+  public SharedFiles(@JsonProperty("files") Map<Integer, FileInfo> map) {
     myId2FileInfo = new ConcurrentHashMap<>(map);
   }
 
@@ -31,9 +34,20 @@ public class FileStorage {
     return myId2FileInfo.get(id);
   }
 
+  public void addStateChangedListener(@NotNull FilesChangedListener listener) {
+    myListeners.add(listener);
+  }
+
   public int putNewFile(FileInfo info) {
     final int newId = myId2FileInfo.keySet().stream().max(Integer::compare).orElse(0) + 1;
     myId2FileInfo.put(newId, info);
+    fireStateChanged();
     return newId;
+  }
+
+  private void fireStateChanged() {
+    for (FilesChangedListener listener : myListeners) {
+      listener.stateChanged(this);
+    }
   }
 }

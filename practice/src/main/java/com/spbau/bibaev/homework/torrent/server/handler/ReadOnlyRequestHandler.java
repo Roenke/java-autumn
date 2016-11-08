@@ -1,7 +1,7 @@
 package com.spbau.bibaev.homework.torrent.server.handler;
 
-import com.spbau.bibaev.homework.torrent.server.ServerState;
-import com.spbau.bibaev.homework.torrent.server.ServerStateEx;
+import com.spbau.bibaev.homework.torrent.server.state.ServerState;
+import com.spbau.bibaev.homework.torrent.server.state.ServerStateEx;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

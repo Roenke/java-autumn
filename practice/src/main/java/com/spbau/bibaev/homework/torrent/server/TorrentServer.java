@@ -3,15 +3,21 @@ package com.spbau.bibaev.homework.torrent.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spbau.bibaev.homework.torrent.common.Details;
 import com.spbau.bibaev.homework.torrent.server.handler.*;
+import com.spbau.bibaev.homework.torrent.server.state.FilesChangedListener;
+import com.spbau.bibaev.homework.torrent.server.state.ServerStateEx;
+import com.spbau.bibaev.homework.torrent.server.state.ServerStateImpl;
+import com.spbau.bibaev.homework.torrent.server.state.SharedFiles;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -53,12 +59,12 @@ public class TorrentServer {
     Integer port = parsingResult.getInt("port");
     String config = parsingResult.getString("config");
     Path path = Paths.get(config);
-    FileStorage storage;
+    SharedFiles storage;
     if (path.toFile().exists()) {
       ObjectMapper mapper = new ObjectMapper();
       try {
         LOG.info("Loading files information from: " + path.toAbsolutePath().toString());
-        storage = mapper.readValue(path.toFile(), FileStorage.class);
+        storage = mapper.readValue(path.toFile(), SharedFiles.class);
       } catch (IOException e) {
         LOG.error("Configuration file parsing failed. " + e.toString());
         parser.printHelp();
@@ -66,7 +72,31 @@ public class TorrentServer {
       }
     } else {
       LOG.info("Start with empty files information");
-      storage = new FileStorage(Collections.emptyMap());
+      storage = new SharedFiles(Collections.emptyMap());
+    }
+
+    try {
+      File file = path.toFile();
+      if (file.exists() && (!file.isFile() || !file.canRead() || !file.canWrite())) {
+        LOG.fatal("Path to configuration file should lead to regular file with read/write access");
+        return;
+      }
+      if (!path.toFile().exists() && !path.toFile().createNewFile()) {
+        LOG.fatal("Cannot create file for save state");
+        return;
+      }
+
+      final ObjectMapper mapper = new ObjectMapper();
+      storage.addStateChangedListener(state -> {
+        LOG.info("shared files changed");
+        try {
+          mapper.writeValue(file, state);
+        } catch (IOException e) {
+          LOG.error("cannot save state of shared file", e);
+        }
+      });
+    } catch (IOException e) {
+      e.printStackTrace();
     }
 
     ServerStateEx state = new ServerStateImpl(storage);

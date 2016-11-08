@@ -2,7 +2,7 @@ package com.spbau.bibaev.homework.torrent.server.handler;
 
 import com.spbau.bibaev.homework.torrent.common.ClientInfo;
 import com.spbau.bibaev.homework.torrent.common.Ip4ClientInfo;
-import com.spbau.bibaev.homework.torrent.server.ServerStateEx;
+import com.spbau.bibaev.homework.torrent.server.state.ServerStateEx;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInputStream;

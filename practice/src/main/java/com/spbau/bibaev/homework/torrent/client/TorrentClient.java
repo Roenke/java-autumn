@@ -6,6 +6,7 @@ import com.spbau.bibaev.homework.torrent.client.api.ClientStateEx;
 import com.spbau.bibaev.homework.torrent.client.handler.GetHandler;
 import com.spbau.bibaev.homework.torrent.client.handler.StatHandler;
 import com.spbau.bibaev.homework.torrent.client.impl.ClientStateImpl;
+import com.spbau.bibaev.homework.torrent.client.repl.ReadEvalPrintLoopWorker;
 import com.spbau.bibaev.homework.torrent.common.AbstractRequestHandler;
 import com.spbau.bibaev.homework.torrent.common.Details;
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -25,6 +26,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +43,7 @@ public class TorrentClient {
   private final int myClientPort;
   private final ClientStateEx myState;
 
-  private boolean myIsCancelled;
+  private volatile boolean myIsCancelled;
 
   static {
     Map<Byte, AbstractRequestHandler<ClientState>> handlers = new HashMap<>();
@@ -112,7 +114,18 @@ public class TorrentClient {
     final UpdateServerInfoTask updateTask = new UpdateServerInfoTask(myState, myServerAddress,
         myServerPort, myClientPort);
     updateTask.startAsync();
-    ReadEvalPrintLoopWorker repl = new ReadEvalPrintLoopWorker(myServerAddress, myState, myServerPort);
+
+    DownloadManager downloader = new DownloadManager(myState, myServerAddress, myServerPort);
+    myState.getIds().forEach(downloader::startDownloadAsync);
+    final Collection<Integer> filesInProcess = downloader.getFilesInProcess();
+    if (filesInProcess.isEmpty()) {
+      LOG.info("All files are loaded");
+    } else {
+      filesInProcess.forEach(x -> LOG.info("Start loading for file with id = " + x));
+    }
+
+    ReadEvalPrintLoopWorker repl = new ReadEvalPrintLoopWorker(myServerAddress, myServerPort, myState, downloader);
+    repl.addExitListener(() -> myIsCancelled = true);
     new Thread(repl).start();
 
     final ExecutorService requestHandlingThreadPool = Executors

@@ -13,7 +13,6 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
@@ -93,11 +92,13 @@ public class TorrentServer {
     try (ServerSocket socket = new ServerSocket(Details.DEFAULT_SERVER_PORT)) {
       while (!socket.isClosed()) {
         final Socket clientSocket = socket.accept();
-        final InputStream inputStream = clientSocket.getInputStream();
-        byte commandId = (byte) inputStream.read();
+
+        byte commandId = (byte) clientSocket.getInputStream().read();
+
         if (!myCommandId2HandlerMap.containsKey(commandId)) {
           LOG.warn("Unknown request received. Id = " + commandId);
         } else {
+          LOG.info("Request received. Id = " + commandId);
           final RequestHandler requestHandler = myCommandId2HandlerMap.get(commandId);
           requestsThreadPool.execute(() -> requestHandler.handle(clientSocket, myState));
         }

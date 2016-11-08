@@ -3,13 +3,21 @@ package com.spbau.bibaev.homework.torrent.common;
 import java.util.concurrent.TimeUnit;
 
 public class Details {
-  public static final int FILE_PART_SIZE = 10 * 1024 * 2014; // 10 mb
+  public static final int FILE_PART_SIZE = 32; // 10 * 1024 * 2014; // 10 mb
+
   public static final int DEFAULT_SERVER_PORT = 8081;
   public static final int DEFAULT_CLIENT_PORT = 8082;
 
+  public static int partCount(long size) {
+    return (int) Math.ceil((double) size / FILE_PART_SIZE);
+  }
+
+
   public static class Client {
 
-    public static final long UPDATE_PERIOD_MILLIS = TimeUnit.MINUTES.toMillis(4);
+    public static final long UPDATE_PERIOD_MILLIS = TimeUnit.MINUTES.toMillis(1);
+
+    public static final int DOWNLOADERS_COUNT = 10;
 
     /**
      * TODO

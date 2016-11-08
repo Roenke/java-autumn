@@ -28,81 +28,72 @@ public class ServerImpl implements Server {
 
   @Override
   public Map<Integer, FileInfo> list() throws IOException {
-    try (Socket socket = new Socket(myAddress, myPort)) {
-      try (DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
-        out.writeByte(Details.Server.LIST_REQUEST_ID);
+    try (Socket socket = new Socket(myAddress, myPort);
+         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+         DataInputStream is = new DataInputStream(socket.getInputStream())) {
+      out.writeByte(Details.Server.LIST_REQUEST_ID);
+
+      final int count = is.readInt();
+      final Map<Integer, FileInfo> files = new HashMap<>();
+      for (int i = 0; i < count; i++) {
+        final int id = is.readInt();
+        final String name = is.readUTF();
+        final long size = is.readLong();
+
+        files.put(id, new FileInfo(name, size));
       }
-
-      try (DataInputStream is = new DataInputStream(socket.getInputStream())) {
-        final int count = is.readInt();
-        final Map<Integer, FileInfo> files = new HashMap<>();
-        for (int i = 0; i < count; i++) {
-          final int id = is.readInt();
-          final String name = is.readUTF();
-          final long size = is.readLong();
-
-          files.put(id, new FileInfo(name, size));
-        }
-
-        return files;
-      }
+      return files;
     }
   }
 
   @Override
   public int upload(@NotNull FileInfo info) throws IOException {
-    try (Socket socket = new Socket(myAddress, myPort)) {
-      try (DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
-        out.writeByte(Details.Server.UPLOAD_REQUEST_ID);
-        out.writeUTF(info.getName());
-        out.writeLong(info.getSize());
-      }
+    try (Socket socket = new Socket(myAddress, myPort);
+         DataInputStream is = new DataInputStream(socket.getInputStream());
+         DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+      out.writeByte(Details.Server.UPLOAD_REQUEST_ID);
+      out.writeUTF(info.getName());
+      out.writeLong(info.getSize());
 
-      try (DataInputStream is = new DataInputStream(socket.getInputStream())) {
-        return is.readInt();
-      }
+      return is.readInt();
     }
   }
 
   @Override
   public List<ClientInfo> sources(int fileId) throws IOException {
-    try (Socket socket = new Socket(myAddress, myPort)) {
-      try (DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
-        out.writeByte(Details.Server.SOURCES_REQUEST_ID);
-        out.writeInt(fileId);
+    try (Socket socket = new Socket(myAddress, myPort);
+         DataInputStream is = new DataInputStream(socket.getInputStream());
+         DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+      out.writeByte(Details.Server.SOURCES_REQUEST_ID);
+      out.writeInt(fileId);
+
+      final int count = is.readInt();
+
+      final List<ClientInfo> result = new ArrayList<>();
+      for (int i = 0; i < count; i++) {
+        final Ip4ClientInfo clientInfo = new Ip4ClientInfo(is.readByte(), is.readByte(),
+            is.readByte(), is.readByte(), is.readShort());
+        result.add(clientInfo);
       }
 
-      try (DataInputStream is = new DataInputStream(socket.getInputStream())) {
-        final int count = is.readInt();
-
-        final List<ClientInfo> result = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-          final Ip4ClientInfo clientInfo = new Ip4ClientInfo(is.readByte(), is.readByte(),
-              is.readByte(), is.readByte(), is.readShort());
-          result.add(clientInfo);
-        }
-
-        return result;
-      }
+      return result;
     }
   }
 
   @Override
   public boolean update(int port, @NotNull Collection<Integer> ids) throws IOException {
-    try (Socket socket = new Socket(myAddress, myPort)) {
-      try (DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
-        out.writeByte(Details.Server.UPDATE_REQUEST_ID);
-        out.writeShort(port);
-        Collection<Integer> copy = new ArrayList<>(ids);
-        out.writeInt(copy.size());
-        for (int id : copy) {
-          out.writeInt(id);
-        }
+    try (Socket socket = new Socket(myAddress, myPort);
+         DataInputStream is = new DataInputStream(socket.getInputStream());
+         DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+      out.writeByte(Details.Server.UPDATE_REQUEST_ID);
+      out.writeShort(port);
+      Collection<Integer> copy = new ArrayList<>(ids);
+      out.writeInt(copy.size());
+      for (int id : copy) {
+        out.writeInt(id);
       }
 
-      try (DataInputStream is = new DataInputStream(socket.getInputStream())) {
-        return is.readBoolean();
-      }
+      return is.readBoolean();
     }
   }
 }

@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.torrent.server.handler;
 
+import com.spbau.bibaev.homework.torrent.common.Details;
 import com.spbau.bibaev.homework.torrent.common.FileInfo;
 import com.spbau.bibaev.homework.torrent.server.ServerState;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +15,7 @@ public class ListHandler extends ReadOnlyRequestHandler {
   void handleReadOnlyRequest(@NotNull Socket clientSocket, @NotNull ServerState serverState) throws IOException {
     final Map<Integer, FileInfo> files = serverState.getFiles();
     try(DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream())) {
-      out.write(files.size());
+      out.writeInt(files.size());
       for (int id : files.keySet()) {
         FileInfo info = files.get(id);
         out.writeInt(id);

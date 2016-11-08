@@ -1,10 +1,13 @@
 package com.spbau.bibaev.homework.torrent.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spbau.bibaev.homework.torrent.client.api.ClientState;
 import com.spbau.bibaev.homework.torrent.client.api.ClientStateEx;
+import com.spbau.bibaev.homework.torrent.client.handler.GetHandler;
+import com.spbau.bibaev.homework.torrent.client.handler.StatHandler;
 import com.spbau.bibaev.homework.torrent.client.impl.ClientStateImpl;
+import com.spbau.bibaev.homework.torrent.common.AbstractRequestHandler;
 import com.spbau.bibaev.homework.torrent.common.Details;
-import com.spbau.bibaev.homework.torrent.server.TorrentServer;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -15,19 +18,38 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TorrentClient {
-  private static final Logger LOG = LogManager.getLogger(TorrentServer.class);
+  private static final Logger LOG = LogManager.getLogger(TorrentClient.class);
+
+  private static final Map<Byte, AbstractRequestHandler<ClientState>> REQUEST_HANDLERS;
 
   private final InetAddress myServerAddress;
   private final int myServerPort;
   private final int myClientPort;
   private final ClientStateEx myState;
+
+  private boolean myIsCancelled;
+
+  static {
+    Map<Byte, AbstractRequestHandler<ClientState>> handlers = new HashMap<>();
+    handlers.put(Details.Client.GET_REQUEST_ID, new GetHandler());
+    handlers.put(Details.Client.STAT_REQUEST_ID, new StatHandler());
+
+    REQUEST_HANDLERS = Collections.unmodifiableMap(handlers);
+  }
 
   public static void main(String[] args) {
     final ArgumentParser parser = createParser();
@@ -87,6 +109,28 @@ public class TorrentClient {
   }
 
   public void run() throws IOException {
+    final UpdateServerInfoTask updateTask = new UpdateServerInfoTask(myState, myServerAddress,
+        myServerPort, myClientPort);
+    updateTask.startAsync();
+    ReadEvalPrintLoopWorker repl = new ReadEvalPrintLoopWorker(myServerAddress, myState, myServerPort);
+    new Thread(repl).start();
+
+    final ExecutorService requestHandlingThreadPool = Executors
+        .newFixedThreadPool(Details.Client.REQUEST_HANDLING_WORKERS);
+    try (ServerSocket serverSocket = new ServerSocket(myClientPort)) {
+      while (!myIsCancelled) {
+        final Socket socket = serverSocket.accept();
+        try (InputStream is = socket.getInputStream()) {
+          byte requestId = (byte) is.read();
+          if (!REQUEST_HANDLERS.containsKey(requestId)) {
+            LOG.info("Unknown request with id = " + requestId);
+          } else {
+            requestHandlingThreadPool.execute(() -> REQUEST_HANDLERS.get(requestId).handle(socket, myState));
+          }
+        }
+      }
+
+    }
   }
 
   private static ArgumentParser createParser() {

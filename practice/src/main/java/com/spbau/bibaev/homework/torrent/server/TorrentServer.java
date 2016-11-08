@@ -33,10 +33,10 @@ public class TorrentServer {
 
   static {
     Map<Byte, RequestHandler> handlers = new HashMap<>();
-    handlers.put((byte) 1, new ListHandler());
-    handlers.put((byte) 2, new UploadHandler());
-    handlers.put((byte) 3, new SourcesHandler());
-    handlers.put((byte) 4, new UpdateHandler());
+    handlers.put(Details.Server.LIST_REQUEST_ID, new ListHandler());
+    handlers.put(Details.Server.UPLOAD_REQUEST_ID, new UploadHandler());
+    handlers.put(Details.Server.SOURCES_REQUEST_ID, new SourcesHandler());
+    handlers.put(Details.Server.UPDATE_REQUEST_ID, new UpdateHandler());
 
     myCommandId2HandlerMap = Collections.unmodifiableMap(handlers);
   }

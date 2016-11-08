@@ -1,7 +1,9 @@
 package com.spbau.bibaev.homework.torrent.client.impl;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.spbau.bibaev.homework.torrent.common.Details;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -35,8 +37,17 @@ public class ClientFileInfo {
     return mySize;
   }
 
-  public void addPart(int index) {
-    myParts.add(index);
+  @JsonIgnore
+  public boolean isLoaded() {
+    return myParts.size() * Details.FILE_PART_SIZE >= mySize;
+  }
+
+  public boolean addPart(int index) {
+    if (index * Details.FILE_PART_SIZE < mySize) {
+      return myParts.add(index);
+    }
+
+    return false;
   }
 
   @JsonProperty("parts")

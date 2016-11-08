@@ -1,7 +1,6 @@
 package com.spbau.bibaev.homework.torrent.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.spbau.bibaev.homework.torrent.server.FileInfo;
 import org.junit.Test;
 
 import java.io.IOException;

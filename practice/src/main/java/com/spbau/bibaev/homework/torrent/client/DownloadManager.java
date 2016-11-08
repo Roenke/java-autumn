@@ -81,7 +81,7 @@ public class DownloadManager {
   private class MyFileResolver implements Runnable {
     private final int myId;
 
-    public MyFileResolver(int fileId) {
+    MyFileResolver(int fileId) {
       myId = fileId;
     }
 
@@ -93,6 +93,7 @@ public class DownloadManager {
         if (!files.containsKey(myId)) {
 
         }
+
       } catch (IOException e) {
         e.printStackTrace();
       }

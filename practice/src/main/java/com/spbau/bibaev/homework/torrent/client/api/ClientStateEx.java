@@ -9,7 +9,7 @@ import java.nio.file.Path;
  * @author Vitaliy.Bibaev
  */
 public interface ClientStateEx extends ClientState {
-  void addFilePart(@NotNull Path file, int part);
+  boolean addFilePart(@NotNull Path file, int part);
 
-  void addNewFile(@NotNull Path file, @NotNull ClientFileInfo info);
+  boolean addNewFile(@NotNull Path file, @NotNull ClientFileInfo info);
 }

@@ -43,13 +43,19 @@ public class ClientStateImpl implements ClientStateEx {
   }
 
   @Override
+  public Collection<Integer> getIds() {
+    return Collections.unmodifiableCollection(myId2FileIndex.keySet());
+  }
+
+  @Override
   public Path getPathById(int id) {
-    return myId2FileIndex.get(id);
+    return myId2FileIndex.getOrDefault(id, null);
   }
 
   @Override
   public ClientFileInfo getInfoById(int id) {
-    return myPath2Info.get(myId2FileIndex.get(id));
+    Path path = myId2FileIndex.getOrDefault(id, null);
+    return path == null ? null : myPath2Info.get(path);
   }
 
   @Override

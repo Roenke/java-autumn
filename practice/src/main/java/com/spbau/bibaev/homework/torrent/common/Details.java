@@ -20,6 +20,8 @@ public class Details {
      * TODO
      */
     public static final byte STAT_REQUEST_ID = 2;
+
+    public static final int REQUEST_HANDLING_WORKERS = 10;
   }
 
   public static class Server {

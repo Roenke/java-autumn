@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.torrent.client.api;
 
 import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfo;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.Collection;
@@ -14,7 +15,11 @@ public interface ClientState {
 
   Map<Path, ClientFileInfo> getFile2Info();
 
+  Collection<Integer> getIds();
+
+  @Nullable
   Path getPathById(int id);
 
+  @Nullable
   ClientFileInfo getInfoById(int id);
 }

@@ -4,6 +4,7 @@ import com.spbau.bibaev.homework.torrent.common.ClientInfo;
 import com.spbau.bibaev.homework.torrent.server.FileInfo;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -17,5 +18,5 @@ public interface Server {
 
   List<ClientInfo> sources(int fileId);
 
-  boolean update(int port, @NotNull List<Integer> ids);
+  boolean update(int port, @NotNull Collection<Integer> ids);
 }

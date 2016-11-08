@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Vitaliy.Bibaev
  */
-public class UpdateServerInfoTask implements Runnable {
+public class UpdateServerInfoTask implements Runnable, ExitListener {
   private static final Logger LOG = LogManager.getLogger(UpdateServerInfoTask.class);
 
   private final ClientState myState;
@@ -50,5 +50,11 @@ public class UpdateServerInfoTask implements Runnable {
     }
 
     myExecutor.schedule(this, Details.Client.UPDATE_PERIOD_MILLIS, TimeUnit.MILLISECONDS);
+  }
+
+  @Override
+  public void onExit() {
+    LOG.info("exit command received");
+    myExecutor.shutdownNow();
   }
 }

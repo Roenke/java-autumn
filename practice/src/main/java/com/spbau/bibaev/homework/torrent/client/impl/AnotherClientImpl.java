@@ -45,15 +45,20 @@ public class AnotherClientImpl implements Client {
   }
 
   @Override
-  public boolean get(int id, int partNumber, @NotNull OutputStream out) throws IOException {
+  public boolean get(int id, int partNumber, RandomAccessFile out) throws IOException {
     try (Socket socket = new Socket(myAddress, myPort)) {
       try (DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream())) {
         outputStream.writeByte(Details.Client.GET_REQUEST_ID);
         outputStream.writeInt(id);
       }
 
-      try(InputStream is = socket.getInputStream()) {
-        IOUtils.copyLarge(is, out);
+      try (InputStream is = socket.getInputStream()) {
+        IOUtils.copyLarge(is, new OutputStream() {
+          @Override
+          public void write(int b) throws IOException {
+            out.write(b);
+          }
+        });
       }
 
       return true;

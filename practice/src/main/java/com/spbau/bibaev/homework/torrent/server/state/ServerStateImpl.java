@@ -1,4 +1,4 @@
-package com.spbau.bibaev.homework.torrent.server;
+package com.spbau.bibaev.homework.torrent.server.state;
 
 import com.spbau.bibaev.homework.torrent.common.ClientInfo;
 import com.spbau.bibaev.homework.torrent.common.FileInfo;
@@ -13,11 +13,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Vitaliy.Bibaev
  */
 public class ServerStateImpl implements ServerStateEx {
-  private final FileStorage myStorage;
+  private final SharedFiles myStorage;
   private final Map<ClientInfo, List<Integer>> myClient2Files = new ConcurrentHashMap<>();
   private final Map<ClientInfo, Timestamp> myClient2LastConnectionTime = new ConcurrentHashMap<>();
 
-  public ServerStateImpl(@NotNull FileStorage storage) {
+  public ServerStateImpl(@NotNull SharedFiles storage) {
     myStorage = storage;
   }
 

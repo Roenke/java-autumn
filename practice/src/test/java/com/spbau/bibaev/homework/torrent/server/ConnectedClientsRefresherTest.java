@@ -4,6 +4,9 @@ import com.spbau.bibaev.homework.torrent.common.ClientInfo;
 import com.spbau.bibaev.homework.torrent.common.Details;
 import com.spbau.bibaev.homework.torrent.common.FileInfo;
 import com.spbau.bibaev.homework.torrent.common.Ip4ClientInfo;
+import com.spbau.bibaev.homework.torrent.server.state.ServerStateEx;
+import com.spbau.bibaev.homework.torrent.server.state.ServerStateImpl;
+import com.spbau.bibaev.homework.torrent.server.state.SharedFiles;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,7 +33,7 @@ public class ConnectedClientsRefresherTest {
     map.put(2, new FileInfo("second", 20));
     map.put(3, new FileInfo("third", 30));
     map.put(4, new FileInfo("four", 40));
-    state = new ServerStateImpl(new FileStorage(map));
+    state = new ServerStateImpl(new SharedFiles(map));
   }
 
   @Test

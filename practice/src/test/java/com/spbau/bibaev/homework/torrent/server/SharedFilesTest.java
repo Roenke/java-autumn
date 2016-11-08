@@ -2,6 +2,7 @@ package com.spbau.bibaev.homework.torrent.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spbau.bibaev.homework.torrent.common.FileInfo;
+import com.spbau.bibaev.homework.torrent.server.state.SharedFiles;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -13,18 +14,18 @@ import static org.junit.Assert.*;
 /**
  * @author Vitaliy.Bibaev
  */
-public class FileStorageTest {
+public class SharedFilesTest {
   @Test
   public void serialize() throws IOException {
     Map<Integer, FileInfo> map = new HashMap<>();
     map.put(1, new FileInfo("name1", 10));
     map.put(2, new FileInfo("name2", 20));
-    FileStorage serverState = new FileStorage(map);
+    SharedFiles serverState = new SharedFiles(map);
 
     ObjectMapper mapper = new ObjectMapper();
     String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(serverState);
     System.out.println(json);
-    FileStorage after = mapper.readValue(json, FileStorage.class);
+    SharedFiles after = mapper.readValue(json, SharedFiles.class);
 
     assertNotSame(serverState, after);
     assertTrue(after.fileExists(1));
@@ -41,7 +42,7 @@ public class FileStorageTest {
   public void exists() {
     Map<Integer, FileInfo> map = new HashMap<>();
     map.put(1, new FileInfo("name1", 10));
-    FileStorage serverState = new FileStorage(map);
+    SharedFiles serverState = new SharedFiles(map);
 
     assertTrue(serverState.fileExists(1));
     assertFalse(serverState.fileExists(2));
@@ -51,7 +52,7 @@ public class FileStorageTest {
   public void getInfo() {
     Map<Integer, FileInfo> map = new HashMap<>();
     map.put(1, new FileInfo("name1", 10));
-    FileStorage serverState = new FileStorage(map);
+    SharedFiles serverState = new SharedFiles(map);
 
     assertEquals(new FileInfo("name1", 10), serverState.getInfo(1));
   }
@@ -60,7 +61,7 @@ public class FileStorageTest {
   public void putNewFile() {
     Map<Integer, FileInfo> map = new HashMap<>();
     map.put(1, new FileInfo("name1", 10));
-    FileStorage serverState = new FileStorage(map);
+    SharedFiles serverState = new SharedFiles(map);
 
     assertNotEquals(1, serverState.putNewFile(new FileInfo("name2", 100)));
     assertEquals(2, serverState.getFiles().size());

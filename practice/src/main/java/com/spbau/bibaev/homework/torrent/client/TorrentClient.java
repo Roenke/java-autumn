@@ -110,7 +110,7 @@ public class TorrentClient {
     myState = state;
   }
 
-  public void run() throws IOException {
+  private void run() throws IOException {
     final UpdateServerInfoTask updateTask = new UpdateServerInfoTask(myState, myServerAddress,
         myServerPort, myClientPort);
     updateTask.startAsync();

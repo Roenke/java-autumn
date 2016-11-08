@@ -4,7 +4,8 @@ import java.util.concurrent.TimeUnit;
 
 public class Details {
   public static final int FILE_PART_SIZE = 10 * 1024 * 2014; // 10 mb
-  public static final int DEFAULT_PORT = 8081;
+  public static final int DEFAULT_SERVER_PORT = 8081;
+  public static final int DEFAULT_CLIENT_PORT = 8082;
 
   public static class Client {
 

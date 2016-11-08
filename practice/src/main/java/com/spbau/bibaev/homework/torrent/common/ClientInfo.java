@@ -1,4 +1,4 @@
-package com.spbau.bibaev.homework.torrent.server;
+package com.spbau.bibaev.homework.torrent.common;
 
 /**
  * @author Vitaliy.Bibaev

@@ -90,7 +90,7 @@ public class TorrentServer {
     final ExecutorService requestsThreadPool = Executors.newFixedThreadPool(Details.Server.REQUEST_HANDLING_WORKERS);
     final ScheduledExecutorService actualClientTask = Executors.newScheduledThreadPool(1);
     actualClientTask.execute(new ConnectedClientsRefresher(myState, actualClientTask));
-    try (ServerSocket socket = new ServerSocket(Details.DEFAULT_PORT)) {
+    try (ServerSocket socket = new ServerSocket(Details.DEFAULT_SERVER_PORT)) {
       while (!socket.isClosed()) {
         final Socket clientSocket = socket.accept();
         final InputStream inputStream = clientSocket.getInputStream();
@@ -113,7 +113,7 @@ public class TorrentServer {
     parser.addArgument("-p", "--port")
         .type(Integer.class)
         .choices(Arguments.range(0, (1 << 16) - 1))
-        .setDefault(Details.DEFAULT_PORT)
+        .setDefault(Details.DEFAULT_SERVER_PORT)
         .help("port for listening");
 
     parser.addArgument("-c", "--config")

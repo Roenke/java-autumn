@@ -1,6 +1,6 @@
 package com.spbau.bibaev.homework.torrent.server.handler;
 
-import com.spbau.bibaev.homework.torrent.common.FileInfo;
+import com.spbau.bibaev.homework.torrent.server.FileInfo;
 import com.spbau.bibaev.homework.torrent.server.ServerStateEx;
 import org.jetbrains.annotations.NotNull;
 

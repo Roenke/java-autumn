@@ -1,8 +1,8 @@
 package com.spbau.bibaev.homework.torrent.server;
 
+import com.spbau.bibaev.homework.torrent.common.ClientInfo;
 import com.spbau.bibaev.homework.torrent.common.Details;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.Timestamp;
 import java.util.Collection;

@@ -23,7 +23,7 @@ import java.util.concurrent.*;
 /**
  * @author Vitaliy.Bibaev
  */
-public class DownloadManager {
+public class DownloadManager implements ExitListener {
   private static final Logger LOG = LogManager.getLogger(DownloadManager.class);
   private static final int TASKS_PER_FILE_LIMIT = 5;
   private final ClientStateEx myState;
@@ -76,6 +76,12 @@ public class DownloadManager {
 
   public Collection<Integer> getFilesInProcess() {
     return Collections.unmodifiableCollection(myFilesInProgress);
+  }
+
+  @Override
+  public void onExit() {
+    LOG.info("exit event received");
+    myExecutorService.shutdownNow();
   }
 
   private class MyFileResolver implements Runnable {

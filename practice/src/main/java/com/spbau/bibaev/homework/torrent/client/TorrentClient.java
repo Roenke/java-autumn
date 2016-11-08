@@ -126,13 +126,28 @@ public class TorrentClient {
 
     ReadEvalPrintLoopWorker repl = new ReadEvalPrintLoopWorker(myServerAddress, myServerPort, myState, downloader);
     repl.addExitListener(() -> myIsCancelled = true);
+    repl.addExitListener(downloader);
+    repl.addExitListener(updateTask);
     new Thread(repl).start();
 
     final ExecutorService requestHandlingThreadPool = Executors
         .newFixedThreadPool(Details.Client.REQUEST_HANDLING_WORKERS);
     try (ServerSocket serverSocket = new ServerSocket(myClientPort)) {
+      repl.addExitListener(() -> {
+        try {
+          serverSocket.close();
+        } catch (IOException e) {
+          LOG.error("Cannot close the server socket");
+        }
+      });
       while (!myIsCancelled) {
-        final Socket socket = serverSocket.accept();
+        Socket socket;
+        try {
+          socket = serverSocket.accept();
+        } catch (IOException e) {
+          LOG.warn("accept interrupted");
+          continue;
+        }
         try (InputStream is = socket.getInputStream()) {
           byte requestId = (byte) is.read();
           if (!REQUEST_HANDLERS.containsKey(requestId)) {

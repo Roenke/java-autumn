@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.torrent.server;
 
+import com.spbau.bibaev.homework.torrent.common.Ip4ClientInfo;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

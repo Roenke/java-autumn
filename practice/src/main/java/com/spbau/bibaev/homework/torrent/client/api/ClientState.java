@@ -1,0 +1,20 @@
+package com.spbau.bibaev.homework.torrent.client.api;
+
+import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfo;
+
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Map;
+
+/**
+ * @author Vitaliy.Bibaev
+ */
+public interface ClientState {
+  Collection<Path> getFiles();
+
+  Map<Path, ClientFileInfo> getFile2Info();
+
+  Path getPathById(int id);
+
+  ClientFileInfo getInfoById(int id);
+}

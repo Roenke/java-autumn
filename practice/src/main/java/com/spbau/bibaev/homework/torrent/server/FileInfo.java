@@ -1,4 +1,4 @@
-package com.spbau.bibaev.homework.torrent.common;
+package com.spbau.bibaev.homework.torrent.server;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

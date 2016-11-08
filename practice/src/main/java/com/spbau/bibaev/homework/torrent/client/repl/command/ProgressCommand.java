@@ -1,7 +1,7 @@
 package com.spbau.bibaev.homework.torrent.client.repl.command;
 
+import com.spbau.bibaev.homework.torrent.client.api.ClientFileInfo;
 import com.spbau.bibaev.homework.torrent.client.api.ClientStateEx;
-import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfo;
 import com.spbau.bibaev.homework.torrent.common.Details;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +23,8 @@ public class ProgressCommand implements UserCommand {
       long remain = info.getSize() - parts.size() * Details.FILE_PART_SIZE;
       if (remain > 0) {
         final int partsCount = Details.partCount(info.getSize());
-        System.out.println(String.format("%12d|%20f.1%%|%d/%d", info.getId(), 100. * remain / partsCount, remain, partsCount));
+        System.out.println(String.format("%12d|%20f.1%%|%d/%d", info.getId(),
+            100. * remain / partsCount, remain, partsCount));
       }
     }
   }

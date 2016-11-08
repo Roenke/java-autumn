@@ -1,6 +1,5 @@
 package com.spbau.bibaev.homework.torrent.client.api;
 
-import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;

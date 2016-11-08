@@ -11,13 +11,13 @@ import java.net.Socket;
  * @author Vitaliy.Bibaev
  */
 public abstract class AbstractRequestHandler<T> {
-  private final Logger LOG = LogManager.getLogger(this.getClass());
+  protected final Logger LOG = LogManager.getLogger(this.getClass());
 
   public void handle(@NotNull Socket clientSocket, @NotNull T state) {
-    try (Socket socket = clientSocket) {
-      handleImpl(socket, state);
+    try {
+      handleImpl(clientSocket, state);
     } catch (IOException e) {
-      LOG.warn("Request handling failed");
+      LOG.warn("Request handling failed", e);
     }
   }
 

@@ -2,7 +2,7 @@ package com.spbau.bibaev.homework.torrent.client.repl.command;
 
 import com.spbau.bibaev.homework.torrent.client.api.ClientStateEx;
 import com.spbau.bibaev.homework.torrent.client.api.Server;
-import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfo;
+import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfoImpl;
 import com.spbau.bibaev.homework.torrent.client.impl.ServerImpl;
 import com.spbau.bibaev.homework.torrent.common.Details;
 import com.spbau.bibaev.homework.torrent.common.FileInfo;
@@ -52,7 +52,7 @@ public class UploadCommand implements UserCommand {
       final int id = myServer.upload(info);
       List<Integer> parts = IntStream.iterate(0, i -> i + 1).limit(Details.partCount(size))
           .boxed().collect(Collectors.toList());
-      state.addNewFile(path, new ClientFileInfo(id, size, parts));
+      state.addNewFile(path, new ClientFileInfoImpl(id, size, parts));
     } catch (IOException e) {
       System.err.println("Could not upload the file. " + e);
     }

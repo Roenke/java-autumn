@@ -25,8 +25,8 @@ public class ClientStateImplTest extends TemporaryFolder {
 
     Path path1 = Paths.get("file1");
     Path path2 = Paths.get("file2");
-    instance.addNewFile(path1, new ClientFileInfo(1, 10 * Details.FILE_PART_SIZE, Arrays.asList(1, 2, 3, 4, 5)));
-    instance.addNewFile(path2, new ClientFileInfo(2, 8 * Details.FILE_PART_SIZE, Arrays.asList(1, 2, 3)));
+    instance.addNewFile(path1, new ClientFileInfoImpl(1, 10 * Details.FILE_PART_SIZE, Arrays.asList(1, 2, 3, 4, 5)));
+    instance.addNewFile(path2, new ClientFileInfoImpl(2, 8 * Details.FILE_PART_SIZE, Arrays.asList(1, 2, 3)));
 
     final ObjectMapper mapper = new ObjectMapper();
     final String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(instance);
@@ -54,11 +54,11 @@ public class ClientStateImplTest extends TemporaryFolder {
     final ClientStateImpl instance = new ClientStateImpl(Collections.emptyMap());
     Path path = Paths.get("File");
 
-    assertTrue(instance.addNewFile(path, new ClientFileInfo(1, 200, Collections.emptyList())));
-    assertFalse(instance.addNewFile(path, new ClientFileInfo(1, 200, Collections.emptyList())));
+    assertTrue(instance.addNewFile(path, new ClientFileInfoImpl(1, 200, Collections.emptyList())));
+    assertFalse(instance.addNewFile(path, new ClientFileInfoImpl(1, 200, Collections.emptyList())));
 
     Path otherPath = Paths.get("file2");
-    assertFalse(instance.addNewFile(otherPath, new ClientFileInfo(1, 2000, Collections.emptyList())));
+    assertFalse(instance.addNewFile(otherPath, new ClientFileInfoImpl(1, 2000, Collections.emptyList())));
   }
 
   @Test
@@ -76,7 +76,7 @@ public class ClientStateImplTest extends TemporaryFolder {
     assertFalse(called.get());
 
     final Path path = Paths.get("file");
-    instance.addNewFile(path, new ClientFileInfo(1, 100 * Details.FILE_PART_SIZE, Collections.emptyList()));
+    instance.addNewFile(path, new ClientFileInfoImpl(1, 100 * Details.FILE_PART_SIZE, Collections.emptyList()));
     assertTrue(called.get());
     called.set(false);
 

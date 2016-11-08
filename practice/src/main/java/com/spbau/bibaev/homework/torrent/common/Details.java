@@ -85,7 +85,7 @@ public class Details {
      * Answer:
      * {@code Boolean status} - status of the operation (true if successful)
      */
-    public static final byte UPDATE_REQUEST_ID = 3;
+    public static final byte UPDATE_REQUEST_ID = 4;
   }
 
   private Details() {

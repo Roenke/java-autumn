@@ -1,7 +1,8 @@
 package com.spbau.bibaev.homework.torrent.client.handler;
 
+import com.spbau.bibaev.homework.torrent.client.api.ClientFileInfo;
 import com.spbau.bibaev.homework.torrent.client.api.ClientState;
-import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfo;
+import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfoImpl;
 import com.spbau.bibaev.homework.torrent.common.AbstractRequestHandler;
 import com.spbau.bibaev.homework.torrent.common.Details;
 import org.apache.commons.io.IOUtils;
@@ -21,10 +22,12 @@ import java.nio.file.Path;
 public class GetHandler extends AbstractRequestHandler<ClientState> {
   @Override
   protected void handleImpl(@NotNull Socket socket, @NotNull ClientState state) throws IOException {
-    try (DataInputStream is = new DataInputStream(socket.getInputStream())) {
+    try (DataInputStream is = new DataInputStream(socket.getInputStream());
+         OutputStream out = socket.getOutputStream()) {
       final int id = is.readInt();
       final int partNumber = is.readInt();
 
+      LOG.info("part number " + partNumber + " requested. File id = " + id);
       Path path = state.getPathById(id);
       final ClientFileInfo info = state.getInfoById(id);
       if (path == null || info == null) {
@@ -34,12 +37,10 @@ public class GetHandler extends AbstractRequestHandler<ClientState> {
         if (!info.getParts().contains(partNumber)) {
           // TODO: send part not found error
         }
-        final InputStream inputStream = Files.newInputStream(path);
-        try (OutputStream out = socket.getOutputStream()) {
-          IOUtils.copyLarge(inputStream, out, partNumber * Details.FILE_PART_SIZE, Details.FILE_PART_SIZE);
-        }
-      }
 
+        final InputStream inputStream = Files.newInputStream(path);
+        IOUtils.copyLarge(inputStream, out, partNumber * Details.FILE_PART_SIZE, Details.FILE_PART_SIZE);
+      }
     }
   }
 }

@@ -14,10 +14,10 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Vitaliy.Bibaev
  */
-public class ClientFileInfoTest {
+public class ClientFileInfoImplTest {
   @Test
   public void serialize() throws IOException {
-    final ClientFileInfo info = new ClientFileInfo(1, 100, Arrays.asList(1, 2, 3));
+    final ClientFileInfoImpl info = new ClientFileInfoImpl(1, 100, Arrays.asList(1, 2, 3));
     final ObjectMapper mapper = new ObjectMapper();
     final String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(info);
     System.out.println(json);
@@ -26,7 +26,7 @@ public class ClientFileInfoTest {
     assertTrue(json.contains("size"));
     assertTrue(json.contains("parts"));
 
-    final ClientFileInfo after = mapper.readValue(json, ClientFileInfo.class);
+    final ClientFileInfoImpl after = mapper.readValue(json, ClientFileInfoImpl.class);
     assertEquals(after.getId(), info.getId());
     assertEquals(after.getSize(), info.getSize());
     assertEquals(after.getParts(), info.getParts());
@@ -34,7 +34,7 @@ public class ClientFileInfoTest {
 
   @Test
   public void addDuplicatedParts() {
-    ClientFileInfo info = new ClientFileInfo(1, 2000, Arrays.asList(1, 2, 3, 4));
+    ClientFileInfoImpl info = new ClientFileInfoImpl(1, 2000, Arrays.asList(1, 2, 3, 4));
 
     assertEquals(4, info.getParts().size());
     info.addPart(10);
@@ -45,7 +45,7 @@ public class ClientFileInfoTest {
 
   @Test
   public void testAddOutOfRangePartNumber() {
-    ClientFileInfo info = new ClientFileInfo(1, Details.FILE_PART_SIZE * 4, Arrays.asList(1, 2, 3, 4));
+    ClientFileInfoImpl info = new ClientFileInfoImpl(1, Details.FILE_PART_SIZE * 4, Arrays.asList(1, 2, 3, 4));
 
     assertFalse(info.addPart(2));
     assertFalse(info.addPart(10));
@@ -53,13 +53,13 @@ public class ClientFileInfoTest {
 
   @Test
   public void loadedEq() {
-    ClientFileInfo info = new ClientFileInfo(1, Details.FILE_PART_SIZE * 4, Arrays.asList(0, 1, 2, 3));
+    ClientFileInfoImpl info = new ClientFileInfoImpl(1, Details.FILE_PART_SIZE * 4, Arrays.asList(0, 1, 2, 3));
     assertTrue(info.isLoaded());
   }
 
   @Test
   public void loadedGt() {
-    ClientFileInfo info = new ClientFileInfo(1, Details.FILE_PART_SIZE * 4 + 1, Arrays.asList(0, 1, 2));
+    ClientFileInfoImpl info = new ClientFileInfoImpl(1, Details.FILE_PART_SIZE * 4 + 1, Arrays.asList(0, 1, 2));
     assertFalse(info.isLoaded());
     info.addPart(3);
     assertFalse(info.isLoaded());
@@ -69,7 +69,7 @@ public class ClientFileInfoTest {
 
   @Test
   public void unmodifiedPartsReturns() {
-    ClientFileInfo info = new ClientFileInfo(1, 2000, Arrays.asList(1, 2, 3, 4));
+    ClientFileInfoImpl info = new ClientFileInfoImpl(1, 2000, Arrays.asList(1, 2, 3, 4));
 
     boolean thrown = false;
     try{

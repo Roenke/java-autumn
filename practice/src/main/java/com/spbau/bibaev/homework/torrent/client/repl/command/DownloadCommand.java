@@ -1,8 +1,8 @@
 package com.spbau.bibaev.homework.torrent.client.repl.command;
 
-import com.spbau.bibaev.homework.torrent.client.DownloadManager;
+import com.spbau.bibaev.homework.torrent.client.api.ClientFileInfo;
 import com.spbau.bibaev.homework.torrent.client.api.ClientStateEx;
-import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfo;
+import com.spbau.bibaev.homework.torrent.client.download.DownloadManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

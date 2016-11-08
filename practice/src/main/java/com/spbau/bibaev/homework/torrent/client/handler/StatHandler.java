@@ -1,7 +1,8 @@
 package com.spbau.bibaev.homework.torrent.client.handler;
 
+import com.spbau.bibaev.homework.torrent.client.api.ClientFileInfo;
 import com.spbau.bibaev.homework.torrent.client.api.ClientState;
-import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfo;
+import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfoImpl;
 import com.spbau.bibaev.homework.torrent.common.AbstractRequestHandler;
 import org.jetbrains.annotations.NotNull;
 

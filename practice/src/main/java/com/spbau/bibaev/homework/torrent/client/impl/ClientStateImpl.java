@@ -3,9 +3,9 @@ package com.spbau.bibaev.homework.torrent.client.impl;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.spbau.bibaev.homework.torrent.client.api.ClientFileInfo;
 import com.spbau.bibaev.homework.torrent.client.api.ClientStateEx;
-import com.spbau.bibaev.homework.torrent.client.api.StateModifiedListener;
-import com.spbau.bibaev.homework.torrent.server.TorrentServer;
+import com.spbau.bibaev.homework.torrent.client.api.StateChangedListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -28,10 +28,10 @@ public class ClientStateImpl implements ClientStateEx {
 
   private final Map<Path, ClientFileInfo> myPath2Info;
   private final Map<Integer, Path> myId2FileIndex;
-  private final List<StateModifiedListener> myListeners = new CopyOnWriteArrayList<>();
+  private final List<StateChangedListener> myListeners = new CopyOnWriteArrayList<>();
 
   @JsonCreator
-  public ClientStateImpl(@JsonProperty("files") @NotNull Map<String, ClientFileInfo> files) {
+  public ClientStateImpl(@JsonProperty("files") @NotNull Map<String, ClientFileInfoImpl> files) {
     myPath2Info = new ConcurrentHashMap<>();
     myId2FileIndex = new ConcurrentHashMap<>();
 
@@ -62,7 +62,7 @@ public class ClientStateImpl implements ClientStateEx {
   @Nullable
   @Override
   public Path getPathById(int id) {
-    return myId2FileIndex.getOrDefault(id, null);
+    return myId2FileIndex.get(id);
   }
 
   @Nullable
@@ -74,7 +74,8 @@ public class ClientStateImpl implements ClientStateEx {
 
   @Override
   public boolean addFilePart(@NotNull Path file, int part) {
-    if (myPath2Info.get(file).addPart(part)) {
+    final ClientFileInfoImpl clientFileInfo = (ClientFileInfoImpl) myPath2Info.get(file);
+    if (clientFileInfo.addPart(part)) {
       fireStateChanged();
       return true;
     }
@@ -100,12 +101,12 @@ public class ClientStateImpl implements ClientStateEx {
     return true;
   }
 
-  public void addStateModifiedListener(@NotNull StateModifiedListener listener) {
+  public void addStateModifiedListener(@NotNull StateChangedListener listener) {
     myListeners.add(listener);
   }
 
   private void fireStateChanged() {
-    for (StateModifiedListener listener : myListeners) {
+    for (StateChangedListener listener : myListeners) {
       try {
         listener.stateModified(this);
       } catch (Throwable e) {

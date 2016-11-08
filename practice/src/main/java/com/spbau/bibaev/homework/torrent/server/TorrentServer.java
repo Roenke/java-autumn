@@ -1,28 +1,16 @@
 package com.spbau.bibaev.homework.torrent.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spbau.bibaev.homework.torrent.common.Details;
 import com.spbau.bibaev.homework.torrent.server.handler.*;
-import com.spbau.bibaev.homework.torrent.server.state.FilesChangedListener;
 import com.spbau.bibaev.homework.torrent.server.state.ServerStateEx;
-import com.spbau.bibaev.homework.torrent.server.state.ServerStateImpl;
-import com.spbau.bibaev.homework.torrent.server.state.SharedFiles;
-import net.sourceforge.argparse4j.ArgumentParsers;
-import net.sourceforge.argparse4j.impl.Arguments;
-import net.sourceforge.argparse4j.inf.ArgumentParser;
-import net.sourceforge.argparse4j.inf.ArgumentParserException;
-import net.sourceforge.argparse4j.inf.Namespace;
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +23,7 @@ public class TorrentServer {
   private final int myPort;
   private final ServerStateEx myState;
   private static final Map<Byte, RequestHandler> myCommandId2HandlerMap;
+  private volatile ServerSocket mySocket;
 
   static {
     Map<Byte, RequestHandler> handlers = new HashMap<>();
@@ -46,112 +35,51 @@ public class TorrentServer {
     myCommandId2HandlerMap = Collections.unmodifiableMap(handlers);
   }
 
-  public static void main(String[] args) {
-    ArgumentParser parser = createParser();
-    Namespace parsingResult;
-    try {
-      parsingResult = parser.parseArgs(args);
-    } catch (ArgumentParserException e) {
-      parser.handleError(e);
-      return;
-    }
-
-    Integer port = parsingResult.getInt("port");
-    String config = parsingResult.getString("config");
-    Path path = Paths.get(config);
-    SharedFiles storage;
-    if (path.toFile().exists()) {
-      ObjectMapper mapper = new ObjectMapper();
-      try {
-        LOG.info("Loading files information from: " + path.toAbsolutePath().toString());
-        storage = mapper.readValue(path.toFile(), SharedFiles.class);
-      } catch (IOException e) {
-        LOG.error("Configuration file parsing failed. " + e.toString());
-        parser.printHelp();
-        return;
-      }
-    } else {
-      LOG.info("Start with empty files information");
-      storage = new SharedFiles(Collections.emptyMap());
-    }
-
-    try {
-      File file = path.toFile();
-      if (file.exists() && (!file.isFile() || !file.canRead() || !file.canWrite())) {
-        LOG.fatal("Path to configuration file should lead to regular file with read/write access");
-        return;
-      }
-      if (!path.toFile().exists() && !path.toFile().createNewFile()) {
-        LOG.fatal("Cannot create file for save state");
-        return;
-      }
-
-      final ObjectMapper mapper = new ObjectMapper();
-      storage.addStateChangedListener(state -> {
-        LOG.info("shared files changed");
-        try {
-          mapper.writeValue(file, state);
-        } catch (IOException e) {
-          LOG.error("cannot save state of shared file", e);
-        }
-      });
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-    ServerStateEx state = new ServerStateImpl(storage);
-
-    TorrentServer server = new TorrentServer(port, state);
-    try {
-      server.run();
-    } catch (IOException e) {
-      LOG.fatal("Something went wrong", e);
-    }
-  }
-
-  private TorrentServer(int port, @NotNull ServerStateEx state) {
+  public TorrentServer(int port, @NotNull ServerStateEx state) {
     myPort = port;
     myState = state;
   }
 
-  private void run() throws IOException {
+  public void shutdown() throws IOException {
+    mySocket.close();
+  }
+
+  public boolean isActive() {
+    return mySocket != null && !mySocket.isClosed();
+  }
+
+  public void start() throws IOException {
     LOG.info("Starting the torrent server on " + myPort + " port");
     final ExecutorService requestsThreadPool = Executors.newFixedThreadPool(Details.Server.REQUEST_HANDLING_WORKERS);
     final ScheduledExecutorService actualClientTask = Executors.newScheduledThreadPool(1);
     actualClientTask.execute(new ConnectedClientsRefresher(myState, actualClientTask));
-    try (ServerSocket socket = new ServerSocket(Details.DEFAULT_SERVER_PORT)) {
+
+    try (ServerSocket socket = new ServerSocket(myPort)) {
+      mySocket = socket;
+      LOG.info("Server started on port " + myPort);
       while (!socket.isClosed()) {
         final Socket clientSocket = socket.accept();
+        LOG.info("New connection received!");
+        requestsThreadPool.execute(() -> {
+          try (Socket client = clientSocket;
+               InputStream is = client.getInputStream()) {
+            byte commandId = (byte) is.read();
+            LOG.info("New request received id = " + commandId);
+            if (!myCommandId2HandlerMap.containsKey(commandId)) {
+              LOG.warn("Unknown request received. Id = " + commandId);
+            } else {
+              LOG.info("Request received. Id = " + commandId);
 
-        byte commandId = (byte) clientSocket.getInputStream().read();
-
-        if (!myCommandId2HandlerMap.containsKey(commandId)) {
-          LOG.warn("Unknown request received. Id = " + commandId);
-        } else {
-          LOG.info("Request received. Id = " + commandId);
-          final RequestHandler requestHandler = myCommandId2HandlerMap.get(commandId);
-          requestsThreadPool.execute(() -> requestHandler.handle(clientSocket, myState));
-        }
+              final RequestHandler requestHandler = myCommandId2HandlerMap.get(commandId);
+              requestHandler.handle(client, myState);
+              LOG.info("Request handled. Id = " + commandId);
+            }
+          } catch (IOException e) {
+            LOG.error("Something went wrong: ", e);
+          }
+        });
       }
     }
   }
-
-  private static ArgumentParser createParser() {
-    ArgumentParser parser = ArgumentParsers.newArgumentParser("server")
-        .description("Torrent tracker server")
-        .defaultHelp(true);
-
-    parser.addArgument("-p", "--port")
-        .type(Integer.class)
-        .choices(Arguments.range(0, (1 << 16) - 1))
-        .setDefault(Details.DEFAULT_SERVER_PORT)
-        .help("port for listening");
-
-    parser.addArgument("-c", "--config")
-        .type(String.class)
-        .setDefault("./files.json")
-        .help("path to json configuration file");
-
-    return parser;
-  }
 }
+

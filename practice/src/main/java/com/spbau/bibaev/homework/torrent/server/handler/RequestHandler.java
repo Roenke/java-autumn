@@ -11,10 +11,10 @@ import java.net.Socket;
 public abstract class RequestHandler {
   private final Logger LOG = LogManager.getLogger(this.getClass());
   public void handle(@NotNull Socket clientSocket, @NotNull ServerStateEx serverState) {
-    try (Socket socket = clientSocket) {
-      handleImpl(socket, serverState);
+    try {
+      handleImpl(clientSocket, serverState);
     } catch (IOException e) {
-      LOG.warn("Request handling failed");
+      LOG.error("Request handling failed", e);
     }
   }
 

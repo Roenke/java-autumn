@@ -1,7 +1,7 @@
 package com.spbau.bibaev.homework.torrent.client.repl.command;
 
+import com.spbau.bibaev.homework.torrent.client.api.ClientFileInfo;
 import com.spbau.bibaev.homework.torrent.client.api.ClientStateEx;
-import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfo;
 import com.spbau.bibaev.homework.torrent.common.Details;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,9 +21,10 @@ public class LocalCommand implements UserCommand {
     for (Path path : file2Info.keySet()) {
       final ClientFileInfo info = file2Info.get(path);
       final Set<Integer> parts = info.getParts();
-      boolean loaded = parts.size() * Details.FILE_PART_SIZE >= info.getSize();
       System.out.println(String.format("%12d|%60s|%12d|%7s|%s", info.getId(), path.toAbsolutePath().toString(),
-          info.getSize(), loaded, Arrays.toString(parts.toArray())));
+          info.getSize(), info.isLoaded(), info.isLoaded() ?
+              String.format("%d - %d", 0, Details.partCount(info.getSize()))
+              : Arrays.toString(parts.toArray())));
     }
   }
 

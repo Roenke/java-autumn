@@ -5,6 +5,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author Vitaliy.Bibaev
  */
-public interface StateModifiedListener {
+public interface StateChangedListener {
   void stateModified(@NotNull ClientState state);
 }

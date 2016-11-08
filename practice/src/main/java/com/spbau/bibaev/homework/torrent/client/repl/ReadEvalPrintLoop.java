@@ -1,6 +1,6 @@
 package com.spbau.bibaev.homework.torrent.client.repl;
 
-import com.spbau.bibaev.homework.torrent.client.DownloadManager;
+import com.spbau.bibaev.homework.torrent.client.download.DownloadManager;
 import com.spbau.bibaev.homework.torrent.client.ExitListener;
 import com.spbau.bibaev.homework.torrent.client.api.ClientStateEx;
 import com.spbau.bibaev.homework.torrent.client.repl.command.*;
@@ -19,7 +19,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * @author Vitaliy.Bibaev
  */
-public class ReadEvalPrintLoopWorker implements Runnable {
+public class ReadEvalPrintLoop implements Runnable {
   private final ClientStateEx myState;
   private final List<ExitListener> myExitListeners = new CopyOnWriteArrayList<>();
 
@@ -27,8 +27,8 @@ public class ReadEvalPrintLoopWorker implements Runnable {
 
   private final Map<String, UserCommand> USER_COMMANDS;
 
-  public ReadEvalPrintLoopWorker(@NotNull InetAddress serverAddress, int serverPort, @NotNull ClientStateEx state,
-                                 @NotNull DownloadManager downloader) {
+  public ReadEvalPrintLoop(@NotNull InetAddress serverAddress, int serverPort, @NotNull ClientStateEx state,
+                           @NotNull DownloadManager downloader) {
     myState = state;
     Map<String, UserCommand> commands = new HashMap<>();
 

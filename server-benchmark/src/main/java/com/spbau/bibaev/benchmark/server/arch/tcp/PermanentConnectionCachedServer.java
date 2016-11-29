@@ -5,12 +5,16 @@ import com.spbau.bibaev.benchmark.common.Details;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author Vitaliy.Bibaev
  */
-public class SeparateThreadServer implements Runnable {
-  private static final int PORT = Details.TcpPorts.PERMANENT_CONNECTION_NEW_THREAD_PER_CLIENT;
+public class PermanentConnectionCachedServer implements Runnable {
+  private static final int PORT = Details.TcpPorts.PERMANENT_CONNECTION_CACHED_THREAD_POOL;
+
+  private final ExecutorService myThreadPool = Executors.newCachedThreadPool();
 
   @Override
   public void run() {
@@ -18,11 +22,10 @@ public class SeparateThreadServer implements Runnable {
       ServerSocket socket = new ServerSocket(PORT);
       while (!socket.isClosed()) {
         final Socket clientSocket = socket.accept();
-        System.out.println("Connection received");
-        new Thread(new ConnectionHandler(clientSocket)).start();
+        myThreadPool.execute(new ConnectionHandler(clientSocket));
       }
     } catch (IOException e) {
-      System.err.println("Something wrong in separate thread server: " + e);
+      e.printStackTrace();
     }
   }
 }

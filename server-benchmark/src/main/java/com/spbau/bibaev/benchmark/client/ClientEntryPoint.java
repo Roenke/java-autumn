@@ -5,6 +5,5 @@ package com.spbau.bibaev.benchmark.client;
  */
 public class ClientEntryPoint {
   public static void main(String[] args) {
-
   }
 }

@@ -1,5 +1,0 @@
-rootProject.name = 'com.spbau.bibaev.benchmark.client-arch-bench'
-include 'com.spbau.bibaev.benchmark.client'
-include 'com.spbau.bibaev.benchmark.client'
-include 'com.spbau.bibaev.benchmark.common'
-

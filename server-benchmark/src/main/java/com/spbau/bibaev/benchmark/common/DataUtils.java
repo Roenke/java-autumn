@@ -22,7 +22,7 @@ public class DataUtils {
     os.write(message.toByteArray());
   }
 
-  private static int[] unbox(MessageProtos.Array array) {
+  public static int[] unbox(MessageProtos.Array array) {
     int[] result = new int[array.getItemCount()];
     for (int i = 0; i < array.getItemCount(); i++) {
       result[i] = array.getItem(i);
@@ -31,7 +31,7 @@ public class DataUtils {
     return result;
   }
 
-  private static MessageProtos.Array toMessage(int[] array) {
+  public static MessageProtos.Array toMessage(int[] array) {
     final MessageProtos.Array.Builder builder = MessageProtos.Array.newBuilder();
     for (int val : array) {
       builder.addItem(val);

@@ -30,13 +30,13 @@ public class TorrentServerTests {
 
   @BeforeClass
   public static void before() throws InterruptedException, IOException {
-    Map<Integer, FileInfo> fileMap = new HashMap<>();
+    final Map<Integer, FileInfo> fileMap = new HashMap<>();
     fileMap.put(1, FILE1);
     fileMap.put(2, FILE2);
     fileMap.put(3, FILE3);
     fileMap.put(4, FILE4);
-    SharedFiles files = new SharedFiles(fileMap);
-    ServerStateImpl state = new ServerStateImpl(files);
+    final SharedFiles files = new SharedFiles(fileMap);
+    final ServerStateImpl state = new ServerStateImpl(files);
     myServer = new TorrentServer(PORT, state);
     new Thread(() -> {
       try {
@@ -50,7 +50,7 @@ public class TorrentServerTests {
   @Test
   public void listRequest() throws IOException, InterruptedException {
     Thread.sleep(1000);
-    ServerImpl server = new ServerImpl(InetAddress.getLoopbackAddress(), PORT);
+    final ServerImpl server = new ServerImpl(InetAddress.getLoopbackAddress(), PORT);
     final Map<Integer, FileInfo> list = server.list();
 
     assertTrue(list.containsKey(1));
@@ -66,7 +66,7 @@ public class TorrentServerTests {
 
   @Test
   public void uploadRequest() throws IOException {
-    ServerImpl server = new ServerImpl(InetAddress.getLoopbackAddress(), PORT);
+    final ServerImpl server = new ServerImpl(InetAddress.getLoopbackAddress(), PORT);
     final FileInfo file = new FileInfo("myFile", 10003);
     final int id = server.upload(file);
 
@@ -77,14 +77,14 @@ public class TorrentServerTests {
 
   @Test
   public void updateAndSourcesRequests() throws IOException {
-    ServerImpl server = new ServerImpl(InetAddress.getLoopbackAddress(), PORT);
+    final ServerImpl server = new ServerImpl(InetAddress.getLoopbackAddress(), PORT);
 
     final boolean update = server.update(30000, Arrays.asList(1, 2, 3));
 
     assertTrue(update);
-    assertTrue(server.sources(1).stream().filter(clientInfo -> clientInfo.getPort() == 30000).findFirst().isPresent());
-    assertTrue(server.sources(2).stream().filter(clientInfo -> clientInfo.getPort() == 30000).findFirst().isPresent());
-    assertTrue(server.sources(3).stream().filter(clientInfo -> clientInfo.getPort() == 30000).findFirst().isPresent());
-    assertFalse(server.sources(100).stream().filter(clientInfo -> clientInfo.getPort() == 30000).findFirst().isPresent());
+    assertTrue(server.sources(1).stream().anyMatch(clientInfo -> clientInfo.getPort() == 30000));
+    assertTrue(server.sources(2).stream().anyMatch(clientInfo -> clientInfo.getPort() == 30000));
+    assertTrue(server.sources(3).stream().anyMatch(clientInfo -> clientInfo.getPort() == 30000));
+    assertFalse(server.sources(100).stream().anyMatch(clientInfo -> clientInfo.getPort() == 30000));
   }
 }

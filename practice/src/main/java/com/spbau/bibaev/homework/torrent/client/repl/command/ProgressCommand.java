@@ -20,6 +20,7 @@ public class ProgressCommand implements UserCommand {
     for (Path path : file2Info.keySet()) {
       final ClientFileInfo info = file2Info.get(path);
       final Set<Integer> parts = info.getParts();
+
       long remain = info.getSize() - parts.size() * Details.FILE_PART_SIZE;
       if (remain > 0) {
         final int partsCount = Details.partCount(info.getSize());

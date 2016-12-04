@@ -36,7 +36,7 @@ public class FileInfo {
       return false;
     }
 
-    FileInfo other = (FileInfo) obj;
+    final FileInfo other = (FileInfo) obj;
     return Objects.equals(myName, other.getName()) && Objects.equals(mySize, other.getSize());
   }
 }

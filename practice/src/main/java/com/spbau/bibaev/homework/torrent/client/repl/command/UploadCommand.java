@@ -50,7 +50,7 @@ public class UploadCommand implements UserCommand {
     FileInfo info = new FileInfo(path.toFile().getName(), size);
     try {
       final int id = myServer.upload(info);
-      List<Integer> parts = IntStream.iterate(0, i -> i + 1).limit(Details.partCount(size))
+      final List<Integer> parts = IntStream.iterate(0, i -> i + 1).limit(Details.partCount(size))
           .boxed().collect(Collectors.toList());
       state.addNewFile(path, new ClientFileInfoImpl(id, size, parts));
     } catch (IOException e) {

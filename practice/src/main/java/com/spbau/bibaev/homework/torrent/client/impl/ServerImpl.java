@@ -87,7 +87,8 @@ public class ServerImpl implements Server {
          DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
       out.writeByte(Details.Server.UPDATE_REQUEST_ID);
       out.writeShort(port);
-      Collection<Integer> copy = new ArrayList<>(ids);
+
+      final Collection<Integer> copy = new ArrayList<>(ids);
       out.writeInt(copy.size());
       for (int id : copy) {
         out.writeInt(id);

@@ -13,7 +13,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.nio.CharBuffer;
 import java.util.HashMap;
@@ -30,8 +29,9 @@ import static org.junit.Assert.assertEquals;
 public class TorrentClientTests {
   private static final int PORT = 20004;
   private File myFile1;
+
+  @SuppressWarnings("FieldCanBeLocal")
   private File myFile2;
-  private ClientStateEx myState;
 
   private TorrentClientServer myServer;
   private Thread myServerThread;
@@ -44,7 +44,7 @@ public class TorrentClientTests {
       myFile1 = newFile("file1");
       myFile2 = newFile("file2");
 
-      String longString = CharBuffer.allocate(Details.FILE_PART_SIZE).toString().replace('\0', 'a') +
+      final String longString = CharBuffer.allocate(Details.FILE_PART_SIZE).toString().replace('\0', 'a') +
           CharBuffer.allocate(Details.FILE_PART_SIZE).toString().replace('\0', 'b') +
           CharBuffer.allocate(Details.FILE_PART_SIZE).toString().replace('\0', 'c');
 
@@ -57,11 +57,11 @@ public class TorrentClientTests {
           .limit(Details.partCount(myFile2.length()))
           .collect(Collectors.toList());
 
-      Map<String, ClientFileInfoImpl> files = new HashMap<>();
+      final Map<String, ClientFileInfoImpl> files = new HashMap<>();
       files.put(myFile1.toPath().toAbsolutePath().toString(), new ClientFileInfoImpl(1, myFile1.length(), parts1));
       files.put(myFile2.toPath().toAbsolutePath().toString(), new ClientFileInfoImpl(2, myFile2.length(), parts2));
-      myState = new ClientStateImpl(files);
-      myServer = new TorrentClientServer(PORT, myState);
+      final ClientStateEx state = new ClientStateImpl(files);
+      myServer = new TorrentClientServer(PORT, state);
       myServerThread = new Thread(() -> myServer.start());
       myServerThread.start();
     }
@@ -101,9 +101,10 @@ public class TorrentClientTests {
     final AnotherClientImpl client = new AnotherClientImpl(InetAddress.getLoopbackAddress(), PORT);
     final File out = folderRule.newFile("out");
 
-    client.get(2, 1, out.toPath());
+    client.get(2, 2, out.toPath());
 
     final String content = FileUtils.readFileToString(out, "UTF-8");
     assertEquals(3 * Details.FILE_PART_SIZE, content.length());
+    assertEquals('c', content.charAt(content.length() - 1));
   }
 }

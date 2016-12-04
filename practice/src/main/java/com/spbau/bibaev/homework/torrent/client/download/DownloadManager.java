@@ -1,6 +1,7 @@
 package com.spbau.bibaev.homework.torrent.client.download;
 
 import com.spbau.bibaev.homework.torrent.client.ExitListener;
+import com.spbau.bibaev.homework.torrent.client.UpdateServerInfoTask;
 import com.spbau.bibaev.homework.torrent.client.api.Client;
 import com.spbau.bibaev.homework.torrent.client.api.ClientFileInfo;
 import com.spbau.bibaev.homework.torrent.client.api.ClientStateEx;
@@ -17,12 +18,16 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 
 /**
@@ -34,32 +39,28 @@ public class DownloadManager implements ExitListener {
   private static final long RESOLVER_FAILED_DELAY_SECONDS = 10;
   private final ClientStateEx myState;
   private final ScheduledExecutorService myExecutorService;
-  private final InetAddress myServerAddress;
-  private final int myServerPort;
-  private final List<DownloadManagerListener> myListeners = new CopyOnWriteArrayList<>();
+  private final Server myServer;
   private final Path myDefaultDownloadDirectory;
+  private final UpdateServerInfoTask myUpdateTask;
 
   private final Map<Integer, BlockingQueue<Integer>> myFileId2RemainingParts = new ConcurrentHashMap<>();
 
   public DownloadManager(@NotNull ClientStateEx state, @NotNull InetAddress serverAddress, int port,
-                         @NotNull Path defaultDownloadDirectory) {
+                         @NotNull Path defaultDownloadDirectory, @NotNull UpdateServerInfoTask updateTask) {
     myState = state;
-    myServerAddress = serverAddress;
-    myServerPort = port;
+    myServer = new ServerImpl(serverAddress, port);
     myDefaultDownloadDirectory = defaultDownloadDirectory;
-    myExecutorService = Executors.newScheduledThreadPool(Details.Client.DOWNLOADERS_COUNT);
-  }
+    myUpdateTask = updateTask;
 
-  public void addListener(@NotNull DownloadManagerListener listener) {
-    myListeners.add(listener);
+    myExecutorService = Executors.newScheduledThreadPool(Details.Client.DOWNLOAD_WORKERS_COUNT);
   }
 
   public void startDownloadAsync(int id) {
     myExecutorService.execute(new MyFileResolver(id));
   }
 
-  public Collection<Integer> getFilesInProcess() {
-    return Collections.unmodifiableCollection(myFileId2RemainingParts.keySet());
+  public File getDefaultDirectory() {
+    return myDefaultDownloadDirectory.toFile();
   }
 
   @Override
@@ -92,9 +93,8 @@ public class DownloadManager implements ExitListener {
     }
 
     private void downloadNewFile() {
-      Server server = new ServerImpl(myServerAddress, myServerPort);
       try {
-        final Map<Integer, FileInfo> files = server.list();
+        final Map<Integer, FileInfo> files = myServer.list();
         if (!files.containsKey(myId)) {
           LOG.warn("File with id = " + myId + "not found");
           return;
@@ -128,12 +128,11 @@ public class DownloadManager implements ExitListener {
 
       if (queue.size() > 0) {
         myFileId2RemainingParts.put(myId, queue);
-        Runnable downloader = new MyDownloader(myId);
+        final Runnable downloader = new MyDownloader(myId);
         for (int i = 0; i < TASKS_PER_FILE_LIMIT; i++) {
           myExecutorService.execute(downloader);
         }
 
-        fireDownloadingStarted(myId);
       } else {
         LOG.info(String.format("File with id = %d already loaded", myId));
       }
@@ -191,7 +190,7 @@ public class DownloadManager implements ExitListener {
     @Override
     public void run() {
       final BlockingQueue<Integer> queue = myFileId2RemainingParts.getOrDefault(myId, null);
-      Integer partNumber = queue == null ? null : queue.poll();
+      final Integer partNumber = queue == null ? null : queue.poll();
 
       if (partNumber == null) {
         LOG.info("Loading for file with id = " + myId + " completed");
@@ -203,13 +202,12 @@ public class DownloadManager implements ExitListener {
       if (path == null || !path.toFile().exists()) {
         LOG.error("File with id = " + myId + " not existed");
         myFileId2RemainingParts.remove(myId);
-        fireLoadingFailed(myId);
         return;
       }
 
-      Server server = new ServerImpl(myServerAddress, myServerPort);
+      boolean success = false;
       try {
-        final List<ClientInfo> sources = server.sources(myId);
+        final List<ClientInfo> sources = myServer.sources(myId);
         for (ClientInfo clientInfo : sources) {
           final Client client = new AnotherClientImpl(InetAddress.getByAddress(clientInfo.getIp()),
               clientInfo.getPort());
@@ -217,41 +215,38 @@ public class DownloadManager implements ExitListener {
           if (parts.contains(partNumber)) {
             final boolean loadingResult = client.get(myId, partNumber, path);
             if (loadingResult) {
+              success = true;
               LOG.info("loading for part #" + partNumber + " of file with id = " + myId + " completed.");
+              final ClientFileInfo fileInfoBefore = myState.getInfoById(myId);
+              if (fileInfoBefore != null && fileInfoBefore.getParts().isEmpty()) {
+                myUpdateTask.startOnceAsync();
+              }
+
               myState.addFilePart(path, partNumber);
-              firePartLoaded(myId, partNumber);
 
               final ClientFileInfo info = myState.getInfoById(myId);
               if (info != null && info.isLoaded()) {
                 myFileId2RemainingParts.remove(myId);
-                fireFileDownloaded(myId);
               }
               break;
             }
           }
 
-          myExecutorService.schedule(this, 0, TimeUnit.MILLISECONDS);
         }
       } catch (IOException e) {
         LOG.error("Downloading part #" + partNumber + " in file " + myId + " failed.", e);
+        queue.add(partNumber);
         myExecutorService.schedule(this, 5, TimeUnit.SECONDS);
+        return;
+      }
+
+      if (!success) {
+        LOG.warn("No available parts on another clients for file ");
+        queue.add(partNumber);
+        myExecutorService.schedule(this, 5, TimeUnit.SECONDS);
+      } else {
+        myExecutorService.schedule(this, 1, TimeUnit.MILLISECONDS);
       }
     }
-  }
-
-  private void firePartLoaded(int fileId, int partNumber) {
-    myListeners.forEach(listener -> listener.partLoaded(fileId, partNumber));
-  }
-
-  private void fireDownloadingStarted(int id) {
-    myListeners.forEach(listener -> listener.loadingStarted(id));
-  }
-
-  private void fireFileDownloaded(int id) {
-    myListeners.forEach(listener -> listener.loadingCompleted(id));
-  }
-
-  private void fireLoadingFailed(int id) {
-    myListeners.forEach(listener -> listener.loadingFailed(id));
   }
 }

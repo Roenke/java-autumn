@@ -58,7 +58,12 @@ public class AnotherClientImpl implements Client {
         IOUtils.copyLarge(is, new OutputStream() {
           @Override
           public void write(int b) throws IOException {
-            out.write(b);
+            throw new IOException("not implemented");
+          }
+
+          @Override
+          public void write(@NotNull byte[] b, int off, int len) throws IOException {
+            out.write(b, off, len);
           }
         });
       }

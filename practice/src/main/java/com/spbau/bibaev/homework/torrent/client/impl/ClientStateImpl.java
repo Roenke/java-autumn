@@ -36,7 +36,7 @@ public class ClientStateImpl implements ClientStateEx {
     myId2FileIndex = new ConcurrentHashMap<>();
 
     for (String path : files.keySet()) {
-      Path p = Paths.get(path);
+      final Path p = Paths.get(path);
       myPath2Info.put(p, files.get(path));
       myId2FileIndex.put(files.get(path).getId(), p);
     }
@@ -73,14 +73,11 @@ public class ClientStateImpl implements ClientStateEx {
   }
 
   @Override
-  public boolean addFilePart(@NotNull Path file, int part) {
+  public void addFilePart(@NotNull Path file, int part) {
     final ClientFileInfoImpl clientFileInfo = (ClientFileInfoImpl) myPath2Info.get(file);
     if (clientFileInfo.addPart(part)) {
       fireStateChanged();
-      return true;
     }
-
-    return false;
   }
 
   @Override
@@ -101,6 +98,7 @@ public class ClientStateImpl implements ClientStateEx {
     return true;
   }
 
+  @Override
   public void addStateModifiedListener(@NotNull StateChangedListener listener) {
     myListeners.add(listener);
   }

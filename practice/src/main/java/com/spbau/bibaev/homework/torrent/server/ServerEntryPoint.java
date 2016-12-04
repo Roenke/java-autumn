@@ -26,8 +26,8 @@ public class ServerEntryPoint {
   private static final Logger LOG = LogManager.getLogger(ServerEntryPoint.class);
 
   public static void main(String[] args) {
-    ArgumentParser parser = createParser();
-    Namespace parsingResult;
+    final ArgumentParser parser = createParser();
+    final Namespace parsingResult;
     try {
       parsingResult = parser.parseArgs(args);
     } catch (ArgumentParserException e) {
@@ -35,12 +35,12 @@ public class ServerEntryPoint {
       return;
     }
 
-    Integer port = parsingResult.getInt("port");
-    String config = parsingResult.getString("config");
-    Path path = Paths.get(config);
-    SharedFiles storage;
-    final ObjectMapper mapper = new ObjectMapper();
+    final Integer port = parsingResult.getInt("port");
+    final String config = parsingResult.getString("config");
+    final Path path = Paths.get(config);
 
+    final ObjectMapper mapper = new ObjectMapper();
+    final SharedFiles storage;
     if (path.toFile().exists()) {
       try {
         LOG.info("Loading files information from: " + path.toAbsolutePath().toString());
@@ -61,7 +61,7 @@ public class ServerEntryPoint {
     }
 
     try {
-      File file = path.toFile();
+      final File file = path.toFile();
       if (file.exists() && (!file.isFile() || !file.canRead() || !file.canWrite())) {
         LOG.fatal("Path to configuration file should lead to regular file with read/write access");
         return;
@@ -83,9 +83,9 @@ public class ServerEntryPoint {
       e.printStackTrace();
     }
 
-    ServerStateEx state = new ServerStateImpl(storage);
+    final ServerStateEx state = new ServerStateImpl(storage);
 
-    TorrentServer server = new TorrentServer(port, state);
+    final TorrentServer server = new TorrentServer(port, state);
     try {
       server.start();
     } catch (IOException e) {
@@ -94,7 +94,7 @@ public class ServerEntryPoint {
   }
 
   private static ArgumentParser createParser() {
-    ArgumentParser parser = ArgumentParsers.newArgumentParser("server")
+    final ArgumentParser parser = ArgumentParsers.newArgumentParser("server")
         .description("Torrent tracker server")
         .defaultHelp(true);
 

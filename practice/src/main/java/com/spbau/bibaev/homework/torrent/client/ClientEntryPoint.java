@@ -90,18 +90,17 @@ public class ClientEntryPoint {
 
 
     final UpdateServerInfoTask updateTask = new UpdateServerInfoTask(state, address, serverPort, clientPort);
-    updateTask.startAsync();
 
-    DownloadManager downloader = new DownloadManager(state, address, serverPort,
-        Paths.get(System.getProperty("user.dir")));
+    final DownloadManager downloader = new DownloadManager(state, address, serverPort,
+        Paths.get(System.getProperty("user.dir")), updateTask);
     state.getIds().forEach(downloader::startDownloadAsync);
 
-    ReadEvalPrintLoop interfaceLoop = new ReadEvalPrintLoop(address, serverPort, state, downloader);
+    final ReadEvalPrintLoop interfaceLoop = new ReadEvalPrintLoop(address, serverPort, state, downloader);
     interfaceLoop.addExitListener(downloader);
     interfaceLoop.addExitListener(updateTask);
     new Thread(interfaceLoop).start();
 
-    TorrentClientServer client = new TorrentClientServer(clientPort, state);
+    final TorrentClientServer client = new TorrentClientServer(clientPort, state);
     interfaceLoop.addExitListener(() -> {
       try {
         client.shutdown();
@@ -113,7 +112,7 @@ public class ClientEntryPoint {
   }
 
   private static ArgumentParser createParser() {
-    ArgumentParser parser = ArgumentParsers.newArgumentParser("client")
+    final ArgumentParser parser = ArgumentParsers.newArgumentParser("client")
         .description("Torrent client")
         .defaultHelp(true);
 
@@ -143,11 +142,11 @@ public class ClientEntryPoint {
   }
 
   private static class MyStateSaved implements StateChangedListener {
-    private static ObjectMapper myMapper = new ObjectMapper();
+    private static final ObjectMapper myMapper = new ObjectMapper();
     private final File myFile;
 
     private static MyStateSaved create(@NotNull Path path) throws IOException {
-      File file = path.toFile();
+      final File file = path.toFile();
       if (file.exists() && (!file.isFile() || !file.canRead() || !file.canWrite())) {
         LOG.fatal("Cannot save state to file " + path.toAbsolutePath() +
             ". File must be is regular and available for reading and writing");

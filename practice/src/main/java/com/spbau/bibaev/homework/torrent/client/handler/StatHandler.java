@@ -2,7 +2,6 @@ package com.spbau.bibaev.homework.torrent.client.handler;
 
 import com.spbau.bibaev.homework.torrent.client.api.ClientFileInfo;
 import com.spbau.bibaev.homework.torrent.client.api.ClientState;
-import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfoImpl;
 import com.spbau.bibaev.homework.torrent.common.AbstractRequestHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,14 +21,15 @@ public class StatHandler extends AbstractRequestHandler<ClientState> {
       final int id = is.readInt();
       final ClientFileInfo info = state.getInfoById(id);
       if (info == null) {
-        // TODO: file not found error
-      } else{
-        final Set<Integer> parts = info.getParts();
-        try(DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
-          out.writeInt(parts.size());
-          for(Integer part : parts) {
-            out.writeInt(part);
-          }
+        LOG.error(String.format("File with id = %d not found", id));
+        return;
+      }
+
+      final Set<Integer> parts = info.getParts();
+      try (DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+        out.writeInt(parts.size());
+        for (Integer part : parts) {
+          out.writeInt(part);
         }
       }
     }

@@ -25,23 +25,23 @@ public class UpdateServerInfoTask implements Runnable, ExitListener {
   private final Server myServer;
   private final int myPort;
 
-  public UpdateServerInfoTask(@NotNull ClientState state, @NotNull InetAddress serverAddress,
-                              int serverPort, int clientPort) {
+  UpdateServerInfoTask(@NotNull ClientState state, @NotNull InetAddress serverAddress,
+                       int serverPort, int clientPort) {
     myState = state;
     myPort = clientPort;
     myServer = new ServerImpl(serverAddress, serverPort);
     myExecutor = Executors.newScheduledThreadPool(1);
+    myExecutor.schedule(this, 0, TimeUnit.MILLISECONDS);
   }
 
-  public void startAsync() {
-    myExecutor.schedule(this, 0, TimeUnit.MILLISECONDS);
+  public void startOnceAsync() {
+    myExecutor.schedule(() -> myServer.update(myPort, myState.getIds()), 0, TimeUnit.NANOSECONDS);
   }
 
   @Override
   public void run() {
-    final boolean result;
     try {
-      result = myServer.update(myPort, myState.getIds());
+      final boolean result = myServer.update(myPort, myState.getIds());
       if (result) {
         LOG.info("Files was successfully updated");
       }

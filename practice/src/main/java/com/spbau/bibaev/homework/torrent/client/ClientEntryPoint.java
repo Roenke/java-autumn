@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -99,8 +100,10 @@ public class ClientEntryPoint {
 
     final TorrentClientServer client = new TorrentClientServer(clientPort, state);
     if (openGui) {
-      final MainWindow mainWindow = new MainWindow(downloader, new ServerImpl(address, serverPort));
-      mainWindow.setVisible(true);
+      SwingUtilities.invokeLater(() -> {
+        final MainWindow mainWindow = new MainWindow(downloader, new ServerImpl(address, serverPort), state);
+        mainWindow.setVisible(true);
+      });
     } else {
       ReadEvalPrintLoop interfaceLoop = new ReadEvalPrintLoop(address, serverPort, state, downloader);
       interfaceLoop.addExitListener(downloader);
@@ -115,8 +118,6 @@ public class ClientEntryPoint {
         }
       });
     }
-
-
     client.start();
   }
 

@@ -18,7 +18,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -48,6 +47,13 @@ public class ClientEntryPoint {
     final int clientPort = parsingResult.getInt("listen");
     final Path configPath = Paths.get(parsingResult.getString("config"));
     final boolean openGui = parsingResult.getBoolean("gui");
+    final Path workingDirectory = Paths.get(parsingResult.getString("directory"));
+    final File workingDirectoryFile = workingDirectory.toFile();
+    if (!workingDirectoryFile.exists() || !workingDirectoryFile.isDirectory()) {
+      LOG.fatal("Directory path should lead to an existed directory");
+      parser.printHelp();
+      return;
+    }
 
     ClientStateImpl state;
     final ObjectMapper mapper = new ObjectMapper();
@@ -94,16 +100,14 @@ public class ClientEntryPoint {
 
     final UpdateServerInfoTask updateTask = new UpdateServerInfoTask(state, address, serverPort, clientPort);
 
-    final DownloadManager downloader = new DownloadManager(state, address, serverPort,
-        Paths.get(System.getProperty("user.dir")), updateTask);
+    DownloadManager downloader = new DownloadManager(state, address, serverPort, workingDirectory, updateTask);
     state.getIds().forEach(downloader::startDownloadAsync);
 
     final TorrentClientServer client = new TorrentClientServer(clientPort, state);
     if (openGui) {
-      SwingUtilities.invokeLater(() -> {
-        final MainWindow mainWindow = new MainWindow(downloader, new ServerImpl(address, serverPort), state);
-        mainWindow.setVisible(true);
-      });
+      final MainWindow mainWindow = new MainWindow(downloader, new ServerImpl(address, serverPort),
+          state, updateTask);
+      mainWindow.setVisible(true);
     } else {
       ReadEvalPrintLoop interfaceLoop = new ReadEvalPrintLoop(address, serverPort, state, downloader);
       interfaceLoop.addExitListener(downloader);
@@ -147,6 +151,11 @@ public class ClientEntryPoint {
         .type(String.class)
         .setDefault("./files-client.json")
         .help("path to json configuration file");
+
+    parser.addArgument("-d", "--directory")
+        .type(String.class)
+        .setDefault(".")
+        .help("path to working directory");
 
     parser.addArgument("--gui")
         .action(Arguments.storeTrue())

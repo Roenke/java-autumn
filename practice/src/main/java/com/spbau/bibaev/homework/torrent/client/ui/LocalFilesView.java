@@ -9,13 +9,12 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Vitaliy.Bibaev
@@ -23,11 +22,11 @@ import java.util.Map;
 class LocalFilesView extends JPanel {
   private final JTable myTable;
   private final List<FileInformation> myItems = new ArrayList<>();
-  private final Map<Integer, Integer> myId2ItemIndex = new HashMap<>();
 
   LocalFilesView() {
     super(new BorderLayout());
-    myTable = new JTable(new MyTableModelWithColumns());
+    final MyTableModelWithColumns tableModel = new MyTableModelWithColumns();
+    myTable = new JTable(tableModel);
 
     myTable.setDefaultRenderer(Long.class, new DefaultTableCellRenderer() {
       @Override
@@ -40,32 +39,30 @@ class LocalFilesView extends JPanel {
     myTable.setShowVerticalLines(true);
     myTable.setShowHorizontalLines(false);
 
+    TableRowSorter<MyTableModelWithColumns> sorter = new TableRowSorter<>(tableModel);
+
+    List<RowSorter.SortKey> defaultSortingKeys = Collections.singletonList(
+        new RowSorter.SortKey(0, SortOrder.ASCENDING)
+    );
+    sorter.setSortKeys(defaultSortingKeys);
+    myTable.setRowSorter(sorter);
+
     add(new JLabel("Loaded files and progress", SwingConstants.CENTER), BorderLayout.NORTH);
     add(new JScrollPane(myTable), BorderLayout.CENTER);
   }
 
   void setFiles(@NotNull Map<Path, ClientFileInfo> files) {
     myItems.clear();
-    myId2ItemIndex.clear();
-    files.forEach((path, info) -> addFile(path.toString(), info));
+    files.forEach((path, info) -> addFile(path.toAbsolutePath().normalize().toString(), info));
+    myTable.getRowSorter().allRowsChanged();
+
   }
 
-  void addFile(@NotNull String path, @NotNull ClientFileInfo info) {
+  private void addFile(@NotNull String path, @NotNull ClientFileInfo info) {
     assert SwingUtilities.isEventDispatchThread();
 
-    myId2ItemIndex.put(info.getId(), myItems.size());
     myItems.add(new FileInformation(info.getId(), path, info.getSize(),
         Details.partCount(info.getSize()), info.getParts().size()));
-    ((MyTableModelWithColumns) myTable.getModel()).fireTableDataChanged();
-  }
-
-  void partLoaded(int fileId) {
-    assert SwingUtilities.isEventDispatchThread();
-
-    FileInformation info = myItems.get(myId2ItemIndex.get(fileId));
-    assert info.loadedParts < info.totalParts;
-    info.loadedParts++;
-    ((MyTableModelWithColumns) myTable.getModel()).fireTableDataChanged();
   }
 
   private static class FileInformation {

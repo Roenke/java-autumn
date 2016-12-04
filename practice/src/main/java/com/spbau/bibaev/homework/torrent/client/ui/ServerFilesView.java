@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -22,7 +23,8 @@ class ServerFilesView extends JPanel {
 
   ServerFilesView() {
     super(new BorderLayout());
-    myTable = new JTable(new MyTableModelWithColumns());
+    final MyTableModelWithColumns tableModel = new MyTableModelWithColumns();
+    myTable = new JTable(tableModel);
     myTable.setDefaultRenderer(Long.class, new DefaultTableCellRenderer() {
       @Override
       protected void setValue(Object value) {
@@ -35,9 +37,23 @@ class ServerFilesView extends JPanel {
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         setHorizontalAlignment(SwingConstants.CENTER);
+        if (hasFocus) {
+          setBorder(BorderFactory.createEmptyBorder());
+        }
         return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
       }
     });
+
+    TableRowSorter<MyTableModelWithColumns> sorter = new TableRowSorter<>(tableModel);
+
+    List<RowSorter.SortKey> defaultSortingKeys = Collections.singletonList(
+        new RowSorter.SortKey(0, SortOrder.ASCENDING)
+    );
+    sorter.setSortKeys(defaultSortingKeys);
+    myTable.setRowSorter(sorter);
+
+    myTable.setShowVerticalLines(true);
+    myTable.setShowHorizontalLines(false);
 
     add(new JLabel("Available files on the server", SwingConstants.CENTER), BorderLayout.NORTH);
     add(new JScrollPane(myTable), BorderLayout.CENTER);
@@ -48,7 +64,7 @@ class ServerFilesView extends JPanel {
     assert SwingUtilities.isEventDispatchThread();
     myItems.clear();
     files.forEach((id, info) -> myItems.add(new FileInformation(id, info)));
-    ((MyTableModelWithColumns) myTable.getModel()).fireTableDataChanged();
+    myTable.getRowSorter().allRowsChanged();
   }
 
   @NotNull

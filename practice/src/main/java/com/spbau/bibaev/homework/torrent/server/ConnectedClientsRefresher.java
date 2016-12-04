@@ -25,7 +25,7 @@ public class ConnectedClientsRefresher implements Runnable {
 
   @Override
   public void run() {
-    long now = System.currentTimeMillis();
+    final long now = System.currentTimeMillis();
     final Collection<ClientInfo> clients = myServerState.getConnectedClients();
 
     for (ClientInfo client : clients) {

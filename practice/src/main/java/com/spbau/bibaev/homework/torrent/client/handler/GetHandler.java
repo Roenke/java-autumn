@@ -2,7 +2,6 @@ package com.spbau.bibaev.homework.torrent.client.handler;
 
 import com.spbau.bibaev.homework.torrent.client.api.ClientFileInfo;
 import com.spbau.bibaev.homework.torrent.client.api.ClientState;
-import com.spbau.bibaev.homework.torrent.client.impl.ClientFileInfoImpl;
 import com.spbau.bibaev.homework.torrent.common.AbstractRequestHandler;
 import com.spbau.bibaev.homework.torrent.common.Details;
 import org.apache.commons.io.IOUtils;
@@ -28,17 +27,19 @@ public class GetHandler extends AbstractRequestHandler<ClientState> {
       final int partNumber = is.readInt();
 
       LOG.info("part number " + partNumber + " requested. File id = " + id);
-      Path path = state.getPathById(id);
+      final Path path = state.getPathById(id);
       final ClientFileInfo info = state.getInfoById(id);
       if (path == null || info == null) {
-        // TODO handle this situation
+        LOG.error(String.format("File with id = %d not found", id));
+        return;
+      }
 
-      } else {
-        if (!info.getParts().contains(partNumber)) {
-          // TODO: send part not found error
-        }
+      if (!info.getParts().contains(partNumber)) {
+        LOG.error(String.format("File %d not contains part %d", id, partNumber));
+        return;
+      }
 
-        final InputStream inputStream = Files.newInputStream(path);
+      try (final InputStream inputStream = Files.newInputStream(path)) {
         IOUtils.copyLarge(inputStream, out, partNumber * Details.FILE_PART_SIZE, Details.FILE_PART_SIZE);
       }
     }

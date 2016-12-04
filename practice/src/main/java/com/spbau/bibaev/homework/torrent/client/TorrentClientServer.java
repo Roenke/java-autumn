@@ -4,7 +4,6 @@ import com.spbau.bibaev.homework.torrent.client.api.ClientState;
 import com.spbau.bibaev.homework.torrent.client.api.ClientStateEx;
 import com.spbau.bibaev.homework.torrent.client.handler.GetHandler;
 import com.spbau.bibaev.homework.torrent.client.handler.StatHandler;
-import com.spbau.bibaev.homework.torrent.client.repl.ReadEvalPrintLoop;
 import com.spbau.bibaev.homework.torrent.common.AbstractRequestHandler;
 import com.spbau.bibaev.homework.torrent.common.Details;
 import org.apache.logging.log4j.LogManager;
@@ -53,8 +52,7 @@ public class TorrentClientServer {
     try (ServerSocket serverSocket = new ServerSocket(myClientPort)) {
       myServerSocket = serverSocket;
       while (!myServerSocket.isClosed()) {
-        Socket socket;
-        socket = serverSocket.accept();
+        Socket socket = serverSocket.accept();
         requestHandlingThreadPool.execute(() -> {
           try (Socket anotherClient = socket;
                DataInputStream is = new DataInputStream(anotherClient.getInputStream())) {

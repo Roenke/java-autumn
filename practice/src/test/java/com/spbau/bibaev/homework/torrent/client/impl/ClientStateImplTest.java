@@ -23,8 +23,8 @@ public class ClientStateImplTest extends TemporaryFolder {
   public void serialize() throws IOException {
     final ClientStateImpl instance = new ClientStateImpl(Collections.emptyMap());
 
-    Path path1 = Paths.get("file1");
-    Path path2 = Paths.get("file2");
+    final Path path1 = Paths.get("file1");
+    final Path path2 = Paths.get("file2");
     instance.addNewFile(path1, new ClientFileInfoImpl(1, 10 * Details.FILE_PART_SIZE, Arrays.asList(1, 2, 3, 4, 5)));
     instance.addNewFile(path2, new ClientFileInfoImpl(2, 8 * Details.FILE_PART_SIZE, Arrays.asList(1, 2, 3)));
 
@@ -35,29 +35,23 @@ public class ClientStateImplTest extends TemporaryFolder {
 
     assertTrue(json.contains("file1"));
     assertTrue(json.contains("files"));
-    assertTrue(json.contains("20"));
     assertTrue(json.contains("5"));
 
-    ClientState state = mapper.readValue(json, ClientStateImpl.class);
+    final ClientState state = mapper.readValue(json, ClientStateImpl.class);
 
     assertEquals(2, state.getFiles().size());
     assertEquals((Object) 5, state.getFile2Info().get(path1).getParts().size());
   }
 
   @Test
-  public void addFileTest() {
-
-  }
-
-  @Test
   public void addSameFileTest() {
     final ClientStateImpl instance = new ClientStateImpl(Collections.emptyMap());
-    Path path = Paths.get("File");
+    final Path path = Paths.get("File");
 
     assertTrue(instance.addNewFile(path, new ClientFileInfoImpl(1, 200, Collections.emptyList())));
     assertFalse(instance.addNewFile(path, new ClientFileInfoImpl(1, 200, Collections.emptyList())));
 
-    Path otherPath = Paths.get("file2");
+    final Path otherPath = Paths.get("file2");
     assertFalse(instance.addNewFile(otherPath, new ClientFileInfoImpl(1, 2000, Collections.emptyList())));
   }
 
@@ -65,7 +59,7 @@ public class ClientStateImplTest extends TemporaryFolder {
   public void listenerTest() {
     final ClientStateImpl instance = new ClientStateImpl(Collections.emptyMap());
 
-    AtomicBoolean called = new AtomicBoolean(false);
+    final AtomicBoolean called = new AtomicBoolean(false);
     instance.addStateModifiedListener(state -> called.set(true));
 
     instance.getIds();

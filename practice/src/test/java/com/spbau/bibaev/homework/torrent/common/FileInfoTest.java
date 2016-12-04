@@ -11,11 +11,11 @@ import static org.junit.Assert.assertNotSame;
 public class FileInfoTest {
   @Test
   public void serialize() throws IOException {
-    ObjectMapper mapped = new ObjectMapper();
-    FileInfo fileInfo = new FileInfo("java.pdf", 43562);
-    String json = mapped.writerWithDefaultPrettyPrinter().writeValueAsString(fileInfo);
+    final ObjectMapper mapped = new ObjectMapper();
+    final FileInfo fileInfo = new FileInfo("java.pdf", 43562);
+    final String json = mapped.writerWithDefaultPrettyPrinter().writeValueAsString(fileInfo);
     System.out.println(json);
-    FileInfo after = mapped.readValue(json, FileInfo.class);
+    final FileInfo after = mapped.readValue(json, FileInfo.class);
 
     assertNotSame(fileInfo, after);
     assertEquals(fileInfo.getName(), after.getName());

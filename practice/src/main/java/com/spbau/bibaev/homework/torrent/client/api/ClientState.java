@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.torrent.client.api;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -21,4 +22,6 @@ public interface ClientState {
 
   @Nullable
   ClientFileInfo getInfoById(int id);
+
+  void addStateModifiedListener(@NotNull StateChangedListener listener);
 }

@@ -5,5 +5,6 @@ package com.spbau.bibaev.homework.torrent.common;
  */
 public interface ClientInfo {
   byte[] getIp();
+
   int getPort();
 }

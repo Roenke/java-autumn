@@ -1,8 +1,8 @@
 package com.spbau.bibaev.homework.torrent.client.repl;
 
-import com.spbau.bibaev.homework.torrent.client.download.DownloadManager;
 import com.spbau.bibaev.homework.torrent.client.ExitListener;
 import com.spbau.bibaev.homework.torrent.client.api.ClientStateEx;
+import com.spbau.bibaev.homework.torrent.client.download.DownloadManager;
 import com.spbau.bibaev.homework.torrent.client.repl.command.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +45,7 @@ public class ReadEvalPrintLoop implements Runnable {
 
   @Override
   public void run() {
-    BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
+    final BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
     UserCommand unknownCommand = new MyUnknownCommand();
     while (!myIsCancelled) {
       final String userInput;
@@ -56,7 +56,7 @@ public class ReadEvalPrintLoop implements Runnable {
         }
 
         final String[] args = userInput.split("\\s+");
-        UserCommand command = USER_COMMANDS.getOrDefault(args[0], unknownCommand);
+        final UserCommand command = USER_COMMANDS.getOrDefault(args[0], unknownCommand);
         command.execute(myState, args);
       } catch (IOException e) {
         e.printStackTrace();
@@ -115,7 +115,7 @@ public class ReadEvalPrintLoop implements Runnable {
 
     @Override
     public void execute(@NotNull ClientStateEx state, @NotNull String[] args) {
-      String name = args[0];
+      final String name = args[0];
       System.out.println("Command \"" + name + "\" not found.");
     }
 

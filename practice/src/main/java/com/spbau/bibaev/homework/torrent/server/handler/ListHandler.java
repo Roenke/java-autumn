@@ -17,6 +17,7 @@ public class ListHandler extends ReadOnlyRequestHandler {
       out.writeInt(files.size());
       for (int id : files.keySet()) {
         FileInfo info = files.get(id);
+
         out.writeInt(id);
         out.writeUTF(info.getName());
         out.writeLong(info.getSize());

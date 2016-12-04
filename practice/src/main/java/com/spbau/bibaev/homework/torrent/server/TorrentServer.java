@@ -23,10 +23,9 @@ public class TorrentServer {
   private final int myPort;
   private final ServerStateEx myState;
   private static final Map<Byte, RequestHandler> myCommandId2HandlerMap;
-  private volatile ServerSocket mySocket;
 
   static {
-    Map<Byte, RequestHandler> handlers = new HashMap<>();
+    final Map<Byte, RequestHandler> handlers = new HashMap<>();
     handlers.put(Details.Server.LIST_REQUEST_ID, new ListHandler());
     handlers.put(Details.Server.UPLOAD_REQUEST_ID, new UploadHandler());
     handlers.put(Details.Server.SOURCES_REQUEST_ID, new SourcesHandler());
@@ -40,14 +39,6 @@ public class TorrentServer {
     myState = state;
   }
 
-  public void shutdown() throws IOException {
-    mySocket.close();
-  }
-
-  public boolean isActive() {
-    return mySocket != null && !mySocket.isClosed();
-  }
-
   public void start() throws IOException {
     LOG.info("Starting the torrent server on " + myPort + " port");
     final ExecutorService requestsThreadPool = Executors.newFixedThreadPool(Details.Server.REQUEST_HANDLING_WORKERS);
@@ -55,7 +46,6 @@ public class TorrentServer {
     actualClientTask.execute(new ConnectedClientsRefresher(myState, actualClientTask));
 
     try (ServerSocket socket = new ServerSocket(myPort)) {
-      mySocket = socket;
       LOG.info("Server started on port " + myPort);
       while (!socket.isClosed()) {
         final Socket clientSocket = socket.accept();
@@ -63,7 +53,7 @@ public class TorrentServer {
         requestsThreadPool.execute(() -> {
           try (Socket client = clientSocket;
                InputStream is = client.getInputStream()) {
-            byte commandId = (byte) is.read();
+            final byte commandId = (byte) is.read();
             LOG.info("New request received id = " + commandId);
             if (!myCommandId2HandlerMap.containsKey(commandId)) {
               LOG.warn("Unknown request received. Id = " + commandId);

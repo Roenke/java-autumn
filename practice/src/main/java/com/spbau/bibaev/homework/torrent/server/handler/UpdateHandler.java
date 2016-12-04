@@ -1,6 +1,5 @@
 package com.spbau.bibaev.homework.torrent.server.handler;
 
-import com.spbau.bibaev.homework.torrent.client.UpdateServerInfoTask;
 import com.spbau.bibaev.homework.torrent.common.ClientInfo;
 import com.spbau.bibaev.homework.torrent.common.Ip4ClientInfo;
 import com.spbau.bibaev.homework.torrent.server.state.ServerStateEx;
@@ -24,17 +23,17 @@ public class UpdateHandler extends RequestHandler {
   @Override
   protected void handleImpl(@NotNull Socket socket, @NotNull ServerStateEx serverState) throws IOException {
     try (DataInputStream is = new DataInputStream(socket.getInputStream())) {
-      int port = is.readShort();
-      byte[] address = socket.getInetAddress().getAddress();
-      ClientInfo client = new Ip4ClientInfo(address[0], address[1], address[2], address[3], port);
+      final int port = is.readShort();
+      final byte[] address = socket.getInetAddress().getAddress();
+      final ClientInfo client = new Ip4ClientInfo(address[0], address[1], address[2], address[3], port);
       LOG.debug(String.format("Client with ip %d.%d.%d.%d:%d sent update request", address[0], address[1],
           address[2], address[3], port));
 
-      int filesCount = is.readInt();
+      final int filesCount = is.readInt();
       LOG.debug("Files count = " + filesCount);
-      List<Integer> ids = new ArrayList<>();
+      final List<Integer> ids = new ArrayList<>();
       for (int i = 0; i < filesCount; i++) {
-        int fileId = is.readInt();
+        final int fileId = is.readInt();
         ids.add(fileId);
       }
 

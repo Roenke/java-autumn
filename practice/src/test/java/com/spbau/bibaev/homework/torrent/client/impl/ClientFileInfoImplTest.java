@@ -34,7 +34,7 @@ public class ClientFileInfoImplTest {
 
   @Test
   public void addDuplicatedParts() {
-    ClientFileInfoImpl info = new ClientFileInfoImpl(1, 2000, Arrays.asList(1, 2, 3, 4));
+    final ClientFileInfoImpl info = new ClientFileInfoImpl(1, Details.FILE_PART_SIZE * 11, Arrays.asList(1, 2, 3, 4));
 
     assertEquals(4, info.getParts().size());
     info.addPart(10);
@@ -45,7 +45,7 @@ public class ClientFileInfoImplTest {
 
   @Test
   public void testAddOutOfRangePartNumber() {
-    ClientFileInfoImpl info = new ClientFileInfoImpl(1, Details.FILE_PART_SIZE * 4, Arrays.asList(1, 2, 3, 4));
+    final ClientFileInfoImpl info = new ClientFileInfoImpl(1, Details.FILE_PART_SIZE * 4, Arrays.asList(1, 2, 3, 4));
 
     assertFalse(info.addPart(2));
     assertFalse(info.addPart(10));
@@ -53,13 +53,13 @@ public class ClientFileInfoImplTest {
 
   @Test
   public void loadedEq() {
-    ClientFileInfoImpl info = new ClientFileInfoImpl(1, Details.FILE_PART_SIZE * 4, Arrays.asList(0, 1, 2, 3));
+    final ClientFileInfoImpl info = new ClientFileInfoImpl(1, Details.FILE_PART_SIZE * 4, Arrays.asList(0, 1, 2, 3));
     assertTrue(info.isLoaded());
   }
 
   @Test
   public void loadedGt() {
-    ClientFileInfoImpl info = new ClientFileInfoImpl(1, Details.FILE_PART_SIZE * 4 + 1, Arrays.asList(0, 1, 2));
+    final ClientFileInfoImpl info = new ClientFileInfoImpl(1, Details.FILE_PART_SIZE * 4 + 1, Arrays.asList(0, 1, 2));
     assertFalse(info.isLoaded());
     info.addPart(3);
     assertFalse(info.isLoaded());
@@ -69,7 +69,7 @@ public class ClientFileInfoImplTest {
 
   @Test
   public void unmodifiedPartsReturns() {
-    ClientFileInfoImpl info = new ClientFileInfoImpl(1, 2000, Arrays.asList(1, 2, 3, 4));
+    final ClientFileInfoImpl info = new ClientFileInfoImpl(1, 2000, Arrays.asList(1, 2, 3, 4));
 
     boolean thrown = false;
     try{

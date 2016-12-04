@@ -22,7 +22,7 @@ public class SourcesHandler extends ReadOnlyRequestHandler {
       try (DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream())) {
         final Collection<ClientInfo> clients = serverState.getConnectedClients();
 
-        Collection<ClientInfo> clientsWithTargetFile = clients.stream()
+        final Collection<ClientInfo> clientsWithTargetFile = clients.stream()
             .filter(client -> serverState.getFilesByClient(client).contains(targetFileId))
             .collect(Collectors.toList());
 

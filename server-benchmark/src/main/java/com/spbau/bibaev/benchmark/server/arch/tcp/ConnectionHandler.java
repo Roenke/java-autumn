@@ -30,6 +30,7 @@ class ConnectionHandler implements Runnable {
     } catch (EOFException e) {
       // usual case - client just disconnected. Do nothing
     } catch (IOException e) {
+      // it's a little strange
       e.printStackTrace();
     }
   }

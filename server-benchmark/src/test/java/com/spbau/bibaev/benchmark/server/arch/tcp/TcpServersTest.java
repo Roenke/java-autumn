@@ -24,8 +24,9 @@ public abstract class TcpServersTest {
   private final int[] myData = new Random().ints().limit(1000).toArray();
 
   @Test
-  public void sortingTest() throws BrokenBarrierException, InterruptedException {
-    new Thread(getServer()).start();
+  public void sortingTest() throws BrokenBarrierException, InterruptedException, IOException {
+    TcpServer server = getServer();
+    new Thread(server).start();
     CyclicBarrier barrier = new CyclicBarrier(THREADS_COUNT + 1);
     Thread[] threads = new Thread[THREADS_COUNT];
     AtomicBoolean ok = new AtomicBoolean(true);
@@ -61,10 +62,54 @@ public abstract class TcpServersTest {
       thread.join();
     }
 
+    server.shutdown();
+
+    assertTrue(ok.get());
+  }
+
+  protected void permanentConnectionTest() throws BrokenBarrierException, InterruptedException, IOException {
+    TcpServer server = getServer();
+    new Thread(server).start();
+    CyclicBarrier barrier = new CyclicBarrier(THREADS_COUNT + 1);
+    Thread[] threads = new Thread[THREADS_COUNT];
+    AtomicBoolean ok = new AtomicBoolean(true);
+    for (int i = 0; i < THREADS_COUNT; i++) {
+      final Thread thread = new Thread(() -> {
+        try {
+          barrier.await();
+          try(final Socket socket = new Socket(InetAddress.getLocalHost(), getPort());
+              OutputStream os = socket.getOutputStream();
+              InputStream is = socket.getInputStream()) {
+            for (int k = 0; k < ITERATIONS_COUNT; k++) {
+              DataUtils.write(myData, os);
+              final int[] result = DataUtils.readArray(is);
+              assertEquals(result.length, myData.length);
+
+              for (int j = 1; j < result.length; j++) {
+                assertTrue(result[j - 1] <= result[j]);
+              }
+            }
+          }
+
+        } catch (IOException | InterruptedException | BrokenBarrierException e) {
+          ok.set(false);
+        }
+      });
+      threads[i] = thread;
+      thread.start();
+    }
+
+    barrier.await();
+    for (Thread thread : threads) {
+      thread.join();
+    }
+
+    server.shutdown();
+
     assertTrue(ok.get());
   }
 
   public abstract int getPort();
 
-  public abstract Runnable getServer();
+  public abstract TcpServer getServer();
 }

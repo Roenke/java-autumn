@@ -21,7 +21,7 @@ public class NonblockingServer implements Runnable {
   private static final int PORT = Details.TcpPorts.PERMANENT_CONNECTION_FIXED_POOL_NONBLOCKING;
   private static final int THREAD_POOL_SIZE = 4;
 
-  private final ExecutorService myThreadPool = Executors.newFixedThreadPool(4);
+  private final ExecutorService myThreadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
   @Override
   public void run() {

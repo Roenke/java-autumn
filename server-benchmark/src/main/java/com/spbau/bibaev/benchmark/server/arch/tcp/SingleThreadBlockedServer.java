@@ -13,25 +13,31 @@ import java.net.Socket;
 /**
  * @author Vitaliy.Bibaev
  */
-public class SingleThreadBlockedServer implements Runnable {
+public class SingleThreadBlockedServer extends TcpServer {
   private static final int PORT = Details.TcpPorts.NEW_CONNECTION_SINGLE_THREADED;
 
+  private volatile ServerSocket mySocket;
+
   @Override
-  public void run() {
-    try {
-      ServerSocket socket = new ServerSocket(PORT);
+  public void start() throws IOException {
+    try(ServerSocket socket = new ServerSocket(PORT)) {
+      mySocket = socket;
       while (!socket.isClosed()) {
-        try (Socket clientSocket = socket.accept()) {
-          try (InputStream is = clientSocket.getInputStream();
-               OutputStream os = clientSocket.getOutputStream()) {
-            final int[] array = DataUtils.readArray(is);
-            InsertionSorter.sort(array);
-            DataUtils.write(array, os);
-          }
+        try (Socket clientSocket = socket.accept();
+             InputStream is = clientSocket.getInputStream();
+             OutputStream os = clientSocket.getOutputStream()) {
+          final int[] array = DataUtils.readArray(is);
+          InsertionSorter.sort(array);
+          DataUtils.write(array, os);
         }
       }
-    } catch (IOException e) {
-      e.printStackTrace();
+    }
+  }
+
+  @Override
+  public void shutdown() throws IOException {
+    if(mySocket != null) {
+      mySocket.close();
     }
   }
 }

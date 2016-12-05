@@ -12,7 +12,7 @@ public class SingleThreadServerTest extends TcpServersTest {
   }
 
   @Override
-  public Runnable getServer() {
+  public TcpServer getServer() {
     return new SingleThreadBlockedServer();
   }
 }

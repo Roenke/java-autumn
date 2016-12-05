@@ -67,7 +67,7 @@ public abstract class TcpServersTest {
     assertTrue(ok.get());
   }
 
-  protected void permanentConnectionTest() throws BrokenBarrierException, InterruptedException, IOException {
+  void permanentConnectionTest() throws BrokenBarrierException, InterruptedException, IOException {
     TcpServer server = getServer();
     new Thread(server).start();
     CyclicBarrier barrier = new CyclicBarrier(THREADS_COUNT + 1);

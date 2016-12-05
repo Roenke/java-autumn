@@ -7,5 +7,4 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface Log {
   void log(@NotNull String message);
-  void log(int clientNumber, @NotNull String message);
 }

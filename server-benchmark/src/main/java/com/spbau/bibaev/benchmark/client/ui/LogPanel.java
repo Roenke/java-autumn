@@ -28,16 +28,6 @@ public class LogPanel extends JPanel implements Log {
     }
   }
 
-  @Override
-  public void log(int clientNumber, @NotNull String message) {
-    final String text = String.format("[client %d] %s", clientNumber, message);
-    if (SwingUtilities.isEventDispatchThread()) {
-      addMessage(text);
-    } else {
-      SwingUtilities.invokeLater(() -> addMessage(text));
-    }
-  }
-
   private void addMessage(@NotNull String text) {
     myTextArea.append(text + System.lineSeparator());
   }

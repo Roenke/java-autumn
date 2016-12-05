@@ -2,9 +2,13 @@ package com.spbau.bibaev.benchmark.client.ui;
 
 import com.spbau.bibaev.benchmark.client.BenchmarkParameters;
 import com.spbau.bibaev.benchmark.client.Log;
+import com.spbau.bibaev.benchmark.client.runner.BenchmarkRunner;
+import com.spbau.bibaev.benchmark.common.ServerArchitectureDescription;
 
 import javax.swing.*;
 import java.awt.*;
+import java.net.InetAddress;
+import java.util.Iterator;
 
 /**
  * @author Vitaliy.Bibaev
@@ -13,9 +17,13 @@ public class MainWindow extends JFrame {
   private final Log myLog;
   private final ConfigurationPanel myConfigurationPanel;
   private final JButton myRunButton = new JButton("Run");
+  private final InetAddress myServerAddress;
 
-  public MainWindow() throws HeadlessException {
+  public MainWindow(InetAddress address) throws HeadlessException {
     super("Benchmark configuration");
+
+    myServerAddress = address;
+
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     myConfigurationPanel = new ConfigurationPanel();
     getContentPane().setLayout(new BorderLayout());
@@ -33,9 +41,24 @@ public class MainWindow extends JFrame {
     setLocationRelativeTo(null);
 
     myRunButton.addActionListener(e -> {
-      final BenchmarkParameters parameters = myConfigurationPanel.getParameters();
-      if(parameters != null) {
+      final ServerArchitectureDescription description = myConfigurationPanel.getServerArchitectureDescription();
+      final Iterator<BenchmarkParameters> parameters = myConfigurationPanel.getParameters();
+      if (parameters != null) {
         myLog.log("Evaluate...");
+        new Thread(() -> {
+          while (parameters.hasNext()) {
+            final BenchmarkParameters params = parameters.next();
+            final BenchmarkRunner runner = new BenchmarkRunner(params, myServerAddress, description);
+            myLog.log(String.format("size = %d, clients = %d, delay = %d, iterations = %d",
+                params.getDataSize(), params.getClientCount(), params.getDelay(), params.getIterationCount()));
+            try {
+              final long averageTime = runner.start();
+              myLog.log("Average time per client = " + averageTime);
+            } catch (Exception e1) {
+              myLog.log("something went wrong :(" + e1.toString());
+            }
+          }
+        }).start();
       } else {
         myLog.log("Check correctness of parameters");
       }

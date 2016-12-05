@@ -18,7 +18,6 @@ public class SeparateThreadServer implements Runnable {
       ServerSocket socket = new ServerSocket(PORT);
       while (!socket.isClosed()) {
         final Socket clientSocket = socket.accept();
-        System.out.println("Connection received");
         new Thread(new ConnectionHandler(clientSocket)).start();
       }
     } catch (IOException e) {

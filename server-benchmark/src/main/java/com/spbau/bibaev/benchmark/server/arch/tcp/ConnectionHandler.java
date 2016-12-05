@@ -3,17 +3,17 @@ package com.spbau.bibaev.benchmark.server.arch.tcp;
 import com.spbau.bibaev.benchmark.common.DataUtils;
 import com.spbau.bibaev.benchmark.server.sorting.InsertionSorter;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Arrays;
 
 /**
  * @author Vitaliy.Bibaev
  */
 class ConnectionHandler implements Runnable {
-  final Socket mySocket;
+  private final Socket mySocket;
 
   ConnectionHandler(Socket socket) {
     mySocket = socket;
@@ -27,6 +27,8 @@ class ConnectionHandler implements Runnable {
         InsertionSorter.sort(array);
         DataUtils.write(array, os);
       }
+    } catch (EOFException e) {
+      // usual case - client just disconnected. Do nothing
     } catch (IOException e) {
       e.printStackTrace();
     }

@@ -20,17 +20,18 @@ public class SingleThreadBlockedServer implements Runnable {
   public void run() {
     try {
       ServerSocket socket = new ServerSocket(PORT);
-      try (Socket clientSocket = socket.accept()) {
-        try(InputStream is = clientSocket.getInputStream();
-        OutputStream os = clientSocket.getOutputStream()) {
-          final int[] array = DataUtils.readArray(is);
-          InsertionSorter.sort(array);
-          DataUtils.write(array, os);
+      while (!socket.isClosed()) {
+        try (Socket clientSocket = socket.accept()) {
+          try (InputStream is = clientSocket.getInputStream();
+               OutputStream os = clientSocket.getOutputStream()) {
+            final int[] array = DataUtils.readArray(is);
+            InsertionSorter.sort(array);
+            DataUtils.write(array, os);
+          }
         }
       }
     } catch (IOException e) {
       e.printStackTrace();
     }
-
   }
 }

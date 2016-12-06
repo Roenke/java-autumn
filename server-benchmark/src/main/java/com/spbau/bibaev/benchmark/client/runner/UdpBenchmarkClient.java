@@ -8,13 +8,14 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Vitaliy.Bibaev
  */
 public class UdpBenchmarkClient extends BenchmarkClient {
+  private static final int MAX_DATAGRAM_LENGTH = 65000;
   private final int[] myData;
   private final int myDelay;
   private final int myIterationCount;
@@ -38,7 +39,11 @@ public class UdpBenchmarkClient extends BenchmarkClient {
     wrapper.put(message.toByteArray());
     byte[] data = wrapper.array();
 
-    byte[] buffer = new byte[10 * 1024 * 1024]; // 10 mb
+    if (data.length > MAX_DATAGRAM_LENGTH) {
+      throw new Exception("Maximum UDP data length exceeded");
+    }
+
+    byte[] buffer = new byte[1 << 16]; // 64 kb
 
     for (int i = 0; i < myIterationCount; i++) {
       final DatagramSocket socket = new DatagramSocket();
@@ -53,7 +58,9 @@ public class UdpBenchmarkClient extends BenchmarkClient {
       byte[] answer = new byte[size];
       resultWrapper.get(answer);
       final MessageProtos.Array array = MessageProtos.Array.parseFrom(answer);
-      System.out.println(Arrays.toString(array.getItemList().toArray()));
+      System.err.println(array.getItem(array.getItemCount() - 1));
+
+      TimeUnit.MILLISECONDS.sleep(myDelay);
     }
   }
 }

@@ -12,7 +12,7 @@ public interface ServerArchitectureDescription {
   @NotNull
   Protocol getProtocol();
 
-  int getServerPort();
+  int getDefaultServerPort();
 
   boolean holdConnection();
 }

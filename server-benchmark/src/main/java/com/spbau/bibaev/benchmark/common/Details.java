@@ -19,8 +19,8 @@ public class Details {
   }
 
   public interface UdpPorts {
-    int THREAD_PER_REQUEST = 10004;
-    int FIXED_THREAD_POOL = 10005;
+    int THREAD_PER_REQUEST = 10006;
+    int FIXED_THREAD_POOL = 10007;
   }
 
   private static final List<ServerArchitectureDescription> AVAILABLE_ARCHITECTURES;
@@ -75,7 +75,7 @@ public class Details {
     }
 
     @Override
-    public int getServerPort() {
+    public int getDefaultServerPort() {
       return myPort;
     }
 

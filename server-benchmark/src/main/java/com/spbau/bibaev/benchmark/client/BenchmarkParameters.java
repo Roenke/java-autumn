@@ -13,7 +13,7 @@ public class BenchmarkParameters {
   private final int myIterationCount;
   private final int myDelay;
 
-  private BenchmarkParameters(int dataSize, int clients, int iterations, int delayMs) {
+  public BenchmarkParameters(int dataSize, int clients, int iterations, int delayMs) {
     myDataSize = dataSize;
     myClientCount = clients;
     myIterationCount = iterations;

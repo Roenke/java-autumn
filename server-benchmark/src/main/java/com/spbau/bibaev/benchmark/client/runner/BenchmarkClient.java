@@ -12,17 +12,17 @@ import java.net.InetAddress;
  */
 public abstract class BenchmarkClient {
 
-  public static BenchmarkClient create(@NotNull BenchmarkParameters parameters,
-                                       @NotNull ServerArchitectureDescription description,
-                                       @NotNull InetAddress address) {
+  static BenchmarkClient create(@NotNull BenchmarkParameters parameters,
+                                @NotNull ServerArchitectureDescription description,
+                                @NotNull InetAddress address) {
     if (description.getProtocol() == Protocol.TCP) {
       return new TcpBenchmarkClient(parameters.getDataSize(), parameters.getDelay(),
           parameters.getIterationCount(), address,
-          description.getServerPort(), description.holdConnection());
+          description.getDefaultServerPort(), description.holdConnection());
     } else {
       return new UdpBenchmarkClient(parameters.getDataSize(), parameters.getDelay(),
           parameters.getIterationCount(), address,
-          description.getServerPort());
+          description.getDefaultServerPort());
     }
   }
 

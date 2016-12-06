@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 public abstract class TcpServerTest {
   private static final int DEFAULT_PORT_FOR_TESTING = 10050;
   private static final int DEFAULT_PORT_FOR_TESTING_PERMANENT_CONNECTION = 10051;
-  private final static int THREADS_COUNT = 30;
+  private final static int THREADS_COUNT = 5;
   private final static int ITERATIONS_COUNT = 30;
   private final int[] myData = new Random().ints().limit(1000).toArray();
 

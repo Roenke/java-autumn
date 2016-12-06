@@ -8,14 +8,25 @@ import java.util.concurrent.BrokenBarrierException;
 /**
  * @author Vitaliy.Bibaev
  */
-public class CachedThreadPoolServerTest extends TcpServerTest {
+public class AsyncServerTest extends TcpServerTest {
+  @Override
+  public TcpServer getServer(int port) {
+    return new AsyncServer(port);
+  }
+
   @Test
   public void serverShouldDoNotCloseConnection() throws BrokenBarrierException, InterruptedException, IOException {
     permanentConnectionTest();
   }
 
+  // workaround: Socket channel not unbind when it closed
   @Override
-  public TcpServer getServer(int port) {
-    return new PermanentConnectionCachedServer(port);
+  int getPortForTesting() {
+    return 51000;
+  }
+
+  @Override
+  int getPortForTestingPermanentConnection() {
+    return 51001;
   }
 }

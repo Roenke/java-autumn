@@ -1,18 +1,11 @@
 package com.spbau.bibaev.benchmark.server.arch.tcp;
 
-import com.spbau.bibaev.benchmark.common.Details;
-
 /**
  * @author Vitaliy.Bibaev
  */
 public class SingleThreadServerTest extends TcpServerTest {
   @Override
-  public int getPort() {
-    return Details.TcpPorts.NEW_CONNECTION_SINGLE_THREADED;
-  }
-
-  @Override
-  public TcpServer getServer() {
-    return new SingleThreadBlockedServer();
+  public TcpServer getServer(int port) {
+    return new SingleThreadBlockedServer(port);
   }
 }

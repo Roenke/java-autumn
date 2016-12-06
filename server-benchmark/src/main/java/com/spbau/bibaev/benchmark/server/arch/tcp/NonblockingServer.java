@@ -2,7 +2,6 @@ package com.spbau.bibaev.benchmark.server.arch.tcp;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.spbau.bibaev.benchmark.common.DataUtils;
-import com.spbau.bibaev.benchmark.common.Details;
 import com.spbau.bibaev.benchmark.common.MessageProtos;
 import com.spbau.bibaev.benchmark.server.sorting.InsertionSorter;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +23,6 @@ import java.util.concurrent.Executors;
  * @author Vitaliy.Bibaev
  */
 public class NonblockingServer extends TcpServer {
-  private static final int PORT = Details.TcpPorts.PERMANENT_CONNECTION_FIXED_POOL_NONBLOCKING;
   private static final int THREAD_POOL_SIZE = 4;
 
   private Selector mySelector;
@@ -32,13 +30,17 @@ public class NonblockingServer extends TcpServer {
   private volatile ServerSocketChannel mySocketChannel;
   private final List<SocketChannel> myActiveChannels = new CopyOnWriteArrayList<>();
 
+  public NonblockingServer(int port) {
+    super(port);
+  }
+
   @Override
   void start() {
     try {
       mySelector = Selector.open();
 
       mySocketChannel = ServerSocketChannel.open();
-      mySocketChannel.socket().bind(new InetSocketAddress(PORT));
+      mySocketChannel.bind(new InetSocketAddress(myPort));
       mySocketChannel.configureBlocking(false);
 
       mySocketChannel.register(mySelector, SelectionKey.OP_ACCEPT);
@@ -49,7 +51,6 @@ public class NonblockingServer extends TcpServer {
           SelectionKey key = keyIterator.next();
 
           if (key.isAcceptable()) {
-            System.out.println("connection received");
             accept(key);
           }
 
@@ -147,6 +148,10 @@ public class NonblockingServer extends TcpServer {
       mySocketChannel.socket().close();
       mySocketChannel.close();
     }
+
+    for (SocketChannel channel : myActiveChannels) {
+      channel.close();
+    }
   }
 
   private static class ChannelContext {
@@ -160,7 +165,7 @@ public class NonblockingServer extends TcpServer {
     }
   }
 
-  enum ChannelState {
+  private enum ChannelState {
     READ_SIZE, READ_DATA, PROCEED, WRITE, DONE
   }
 }

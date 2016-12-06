@@ -13,19 +13,22 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Vitaliy.Bibaev
  */
 public abstract class TcpServerTest {
-  private final static int THREADS_COUNT = 50;
-  private final static int ITERATIONS_COUNT = 50;
+  private static final int DEFAULT_PORT_FOR_TESTING = 10050;
+  private static final int DEFAULT_PORT_FOR_TESTING_PERMANENT_CONNECTION = 10051;
+  private final static int THREADS_COUNT = 30;
+  private final static int ITERATIONS_COUNT = 30;
   private final int[] myData = new Random().ints().limit(1000).toArray();
 
   @Test
   public void sortingTest() throws BrokenBarrierException, InterruptedException, IOException {
-    TcpServer server = getServer();
+    TcpServer server = getServer(getPortForTesting());
     final Thread serverThread = new Thread(server);
     serverThread.start();
     CyclicBarrier barrier = new CyclicBarrier(THREADS_COUNT + 1);
@@ -36,7 +39,7 @@ public abstract class TcpServerTest {
         try {
           barrier.await();
           for (int k = 0; k < ITERATIONS_COUNT; k++) {
-            final Socket socket = new Socket(InetAddress.getLocalHost(), getPort());
+            final Socket socket = new Socket(InetAddress.getLocalHost(), getPortForTesting());
             OutputStream os = socket.getOutputStream();
             InputStream is = socket.getInputStream();
             DataUtils.write(myData, os);
@@ -70,7 +73,7 @@ public abstract class TcpServerTest {
   }
 
   void permanentConnectionTest() throws BrokenBarrierException, InterruptedException, IOException {
-    TcpServer server = getServer();
+    TcpServer server = getServer(getPortForTestingPermanentConnection());
     final Thread serverThread = new Thread(server);
     serverThread.start();
     CyclicBarrier barrier = new CyclicBarrier(THREADS_COUNT + 1);
@@ -80,9 +83,9 @@ public abstract class TcpServerTest {
       final Thread thread = new Thread(() -> {
         try {
           barrier.await();
-          try(final Socket socket = new Socket(InetAddress.getLocalHost(), getPort());
-              OutputStream os = socket.getOutputStream();
-              InputStream is = socket.getInputStream()) {
+          try (final Socket socket = new Socket(InetAddress.getLocalHost(), getPortForTestingPermanentConnection());
+               OutputStream os = socket.getOutputStream();
+               InputStream is = socket.getInputStream()) {
             for (int k = 0; k < ITERATIONS_COUNT; k++) {
               DataUtils.write(myData, os);
               final int[] result = DataUtils.readArray(is);
@@ -113,7 +116,13 @@ public abstract class TcpServerTest {
     assertTrue(ok.get());
   }
 
-  public abstract int getPort();
+  public abstract TcpServer getServer(int port);
 
-  public abstract TcpServer getServer();
+  int getPortForTesting() {
+    return DEFAULT_PORT_FOR_TESTING;
+  }
+
+  int getPortForTestingPermanentConnection() {
+    return DEFAULT_PORT_FOR_TESTING_PERMANENT_CONNECTION;
+  }
 }

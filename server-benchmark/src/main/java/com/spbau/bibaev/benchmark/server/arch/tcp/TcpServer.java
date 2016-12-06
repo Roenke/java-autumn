@@ -7,6 +7,12 @@ import java.net.SocketException;
  * @author Vitaliy.Bibaev
  */
 abstract class TcpServer implements Runnable {
+  final int myPort;
+
+  public TcpServer(int port) {
+    myPort = port;
+  }
+
   @Override
   public final void run() {
     try {

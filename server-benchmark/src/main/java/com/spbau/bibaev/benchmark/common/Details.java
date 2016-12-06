@@ -15,12 +15,12 @@ public class Details {
     int PERMANENT_CONNECTION_CACHED_THREAD_POOL = 10001;
     int PERMANENT_CONNECTION_FIXED_POOL_NONBLOCKING = 10002;
     int NEW_CONNECTION_SINGLE_THREADED = 10003;
+    int ASYNC_PROCESSING = 10005;
   }
 
   public interface UdpPorts {
     int THREAD_PER_REQUEST = 10004;
     int FIXED_THREAD_POOL = 10005;
-    int ASYNC_PROCESSING = 10005;
   }
 
   private static final List<ServerArchitectureDescription> AVAILABLE_ARCHITECTURES;
@@ -35,12 +35,12 @@ public class Details {
             TcpPorts.PERMANENT_CONNECTION_FIXED_POOL_NONBLOCKING, true, Protocol.TCP),
         new ServerArchitectureDescriptionImpl("TCP: New connection with single threaded processing",
             TcpPorts.NEW_CONNECTION_SINGLE_THREADED, false, Protocol.TCP),
+        new ServerArchitectureDescriptionImpl("TCP: Async mode",
+            TcpPorts.ASYNC_PROCESSING, false, Protocol.UDP),
         new ServerArchitectureDescriptionImpl("UDP: Several thread per request",
             UdpPorts.THREAD_PER_REQUEST, false, Protocol.UDP),
         new ServerArchitectureDescriptionImpl("UDP: Fixed thread pool for request processing",
-            UdpPorts.FIXED_THREAD_POOL, false, Protocol.UDP),
-        new ServerArchitectureDescriptionImpl("UDP: Async mode",
-            UdpPorts.ASYNC_PROCESSING, false, Protocol.UDP)
+            UdpPorts.FIXED_THREAD_POOL, false, Protocol.UDP)
     );
     AVAILABLE_ARCHITECTURES = Collections.unmodifiableList(architectures);
   }

@@ -13,7 +13,7 @@ import java.net.DatagramSocket;
  * @author Vitaliy.Bibaev
  */
 public class NewThreadProcessingServer extends UdpServer {
-  NewThreadProcessingServer() {
+  public NewThreadProcessingServer() {
     super(Details.UdpPorts.THREAD_PER_REQUEST);
   }
 

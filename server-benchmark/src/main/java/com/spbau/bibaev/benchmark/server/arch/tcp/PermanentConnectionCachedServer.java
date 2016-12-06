@@ -34,5 +34,7 @@ public class PermanentConnectionCachedServer extends TcpServer {
     if (mySocket != null) {
       mySocket.close();
     }
+
+    myThreadPool.shutdown();
   }
 }

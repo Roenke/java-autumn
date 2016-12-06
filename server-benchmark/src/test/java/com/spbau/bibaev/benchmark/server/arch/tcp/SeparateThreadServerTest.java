@@ -9,7 +9,7 @@ import java.util.concurrent.BrokenBarrierException;
 /**
  * @author Vitaliy.Bibaev
  */
-public class SeparateThreadServerTest extends TcpServersTest {
+public class SeparateThreadServerTest extends TcpServerTest {
   @Override
   public int getPort() {
     return Details.TcpPorts.PERMANENT_CONNECTION_NEW_THREAD_PER_CLIENT;

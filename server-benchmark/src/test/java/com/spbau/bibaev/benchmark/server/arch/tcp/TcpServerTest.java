@@ -18,15 +18,16 @@ import static org.junit.Assert.*;
 /**
  * @author Vitaliy.Bibaev
  */
-public abstract class TcpServersTest {
-  private final static int THREADS_COUNT = 15;
-  private final static int ITERATIONS_COUNT = 15;
+public abstract class TcpServerTest {
+  private final static int THREADS_COUNT = 50;
+  private final static int ITERATIONS_COUNT = 50;
   private final int[] myData = new Random().ints().limit(1000).toArray();
 
   @Test
   public void sortingTest() throws BrokenBarrierException, InterruptedException, IOException {
     TcpServer server = getServer();
-    new Thread(server).start();
+    final Thread serverThread = new Thread(server);
+    serverThread.start();
     CyclicBarrier barrier = new CyclicBarrier(THREADS_COUNT + 1);
     Thread[] threads = new Thread[THREADS_COUNT];
     AtomicBoolean ok = new AtomicBoolean(true);
@@ -63,13 +64,15 @@ public abstract class TcpServersTest {
     }
 
     server.shutdown();
+    serverThread.join();
 
     assertTrue(ok.get());
   }
 
   void permanentConnectionTest() throws BrokenBarrierException, InterruptedException, IOException {
     TcpServer server = getServer();
-    new Thread(server).start();
+    final Thread serverThread = new Thread(server);
+    serverThread.start();
     CyclicBarrier barrier = new CyclicBarrier(THREADS_COUNT + 1);
     Thread[] threads = new Thread[THREADS_COUNT];
     AtomicBoolean ok = new AtomicBoolean(true);
@@ -105,6 +108,7 @@ public abstract class TcpServersTest {
     }
 
     server.shutdown();
+    serverThread.join();
 
     assertTrue(ok.get());
   }

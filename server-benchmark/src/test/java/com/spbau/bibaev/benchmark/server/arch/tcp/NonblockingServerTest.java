@@ -9,19 +9,19 @@ import java.util.concurrent.BrokenBarrierException;
 /**
  * @author Vitaliy.Bibaev
  */
-public class CachedThreadPoolServerTest extends TcpServerTest {
+public class NonblockingServerTest extends TcpServerTest {
   @Override
   public int getPort() {
-    return Details.TcpPorts.PERMANENT_CONNECTION_CACHED_THREAD_POOL;
+    return Details.TcpPorts.PERMANENT_CONNECTION_FIXED_POOL_NONBLOCKING;
   }
 
   @Override
   public TcpServer getServer() {
-    return new PermanentConnectionCachedServer();
+    return new NonblockingServer();
   }
 
   @Test
-  public void serverShouldDoNotCloseConnection() throws BrokenBarrierException, InterruptedException, IOException {
+  public void holdConnectionTest() throws BrokenBarrierException, InterruptedException, IOException {
     permanentConnectionTest();
   }
 }

@@ -5,7 +5,7 @@ import com.spbau.bibaev.benchmark.common.Details;
 /**
  * @author Vitaliy.Bibaev
  */
-public class SingleThreadServerTest extends TcpServersTest {
+public class SingleThreadServerTest extends TcpServerTest {
   @Override
   public int getPort() {
     return Details.TcpPorts.NEW_CONNECTION_SINGLE_THREADED;

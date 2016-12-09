@@ -18,6 +18,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -100,13 +102,24 @@ public class ClientEntryPoint {
 
     final UpdateServerInfoTask updateTask = new UpdateServerInfoTask(state, address, serverPort, clientPort);
 
-    DownloadManager downloader = new DownloadManager(state, address, serverPort, workingDirectory, updateTask);
+    final DownloadManager downloader = new DownloadManager(state, address, serverPort, workingDirectory, updateTask);
     state.getIds().forEach(downloader::startDownloadAsync);
 
     final TorrentClientServer client = new TorrentClientServer(clientPort, state);
     if (openGui) {
       final MainWindow mainWindow = new MainWindow(downloader, new ServerImpl(address, serverPort),
           state, updateTask);
+      mainWindow.addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent e) {
+          try {
+            client.shutdown();
+          } catch (IOException e1) {
+            LOG.error("Cannot stop the server", e);
+            throw new RuntimeException("Cannot stop the server");
+          }
+        }
+      });
       mainWindow.setVisible(true);
     } else {
       ReadEvalPrintLoop interfaceLoop = new ReadEvalPrintLoop(address, serverPort, state, downloader);

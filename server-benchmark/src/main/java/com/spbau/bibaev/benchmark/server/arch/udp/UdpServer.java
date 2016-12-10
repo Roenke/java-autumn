@@ -1,5 +1,10 @@
 package com.spbau.bibaev.benchmark.server.arch.udp;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.spbau.bibaev.benchmark.common.DataUtils;
+import com.spbau.bibaev.benchmark.common.MessageProtos;
+import com.spbau.bibaev.benchmark.server.arch.ServerWithStatistics;
+import com.spbau.bibaev.benchmark.server.sorting.InsertionSorter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -10,9 +15,9 @@ import java.net.SocketException;
 /**
  * @author Vitaliy.Bibaev
  */
-public abstract class UdpServer implements Runnable {
-  private static final int RECEIVE_BUFFER_SIZE = 10 * 1024 * 1024; // 10 mb
-  private static final int SEND_BUFFER_SIZE = 10 * 1024 * 1024; // 10 mb
+public abstract class UdpServer extends ServerWithStatistics {
+  private static final int RECEIVE_BUFFER_SIZE = 1 << 16; // 64 kb
+  private static final int SEND_BUFFER_SIZE = 1 << 16; // 64 kb
 
   private final int myPort;
 
@@ -48,6 +53,16 @@ public abstract class UdpServer implements Runnable {
     if (mySocket != null) {
       mySocket.close();
     }
+  }
+
+  protected void handle(@NotNull DatagramSocket socket, @NotNull DatagramPacket packet) throws IOException {
+    final MessageProtos.Array request = DataUtils.readToArray(packet);
+    final int[] array = DataUtils.unbox(request);
+    InsertionSorter.sort(array);
+    final DatagramPacket resultPacket = DataUtils.createPacket(array);
+    resultPacket.setPort(packet.getPort());
+    resultPacket.setAddress(packet.getAddress());
+    socket.send(resultPacket);
   }
 
   protected abstract void start(@NotNull DatagramSocket socket, @NotNull DatagramPacket datagram) throws IOException;

@@ -22,8 +22,14 @@ public class NewThreadProcessingServer extends UdpServer {
     while (!socket.isClosed()) {
       socket.receive(packet);
 
-      final MessageProtos.Array request = DataUtils.readToArray(packet);
-      new Thread(new UdpRequestHandler(socket, request, packet.getAddress(), packet.getPort())).start();
+      long clientStarted = System.nanoTime();
+      new Thread(() -> {
+        try {
+          long queryStarted = System.nanoTime();
+          handle(socket, packet);
+        } catch (IOException e) {
+        }
+      }).start();
     }
   }
 }

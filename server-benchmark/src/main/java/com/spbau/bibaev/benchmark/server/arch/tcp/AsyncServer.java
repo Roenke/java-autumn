@@ -65,16 +65,14 @@ public class AsyncServer extends TcpServer {
       buffer.flip();
       final int dataSize = buffer.getInt();
       final ByteBuffer dataBuffer = ByteBuffer.allocate(dataSize);
-      myChannel.read(dataBuffer, dataBuffer, new MyDataReaderHandler(this, myChannel));
+      myChannel.read(dataBuffer, dataBuffer, new MyDataReaderHandler(myChannel));
     }
   }
 
   private static class MyDataReaderHandler extends MyCompletionHandler<Integer, ByteBuffer> {
-    private final MySizeReaderHandler myPreviousReader;
     private final AsynchronousSocketChannel myChannel;
 
-    MyDataReaderHandler(@NotNull MySizeReaderHandler sizeReader, @NotNull AsynchronousSocketChannel channel) {
-      myPreviousReader = sizeReader;
+    MyDataReaderHandler(@NotNull AsynchronousSocketChannel channel) {
       myChannel = channel;
     }
 

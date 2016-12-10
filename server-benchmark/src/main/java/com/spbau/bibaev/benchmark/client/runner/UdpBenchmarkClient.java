@@ -58,7 +58,7 @@ public class UdpBenchmarkClient extends BenchmarkClient {
       byte[] answer = new byte[size];
       resultWrapper.get(answer);
       final MessageProtos.Array array = MessageProtos.Array.parseFrom(answer);
-      System.err.println(array.getItem(array.getItemCount() - 1));
+      assertSorted(DataUtils.unbox(array));
 
       TimeUnit.MILLISECONDS.sleep(myDelay);
     }

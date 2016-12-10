@@ -35,7 +35,7 @@ public class AsyncServer extends TcpServer {
   }
 
   @Override
-  void shutdown() throws IOException {
+  public void shutdown() throws IOException {
     myChannel.close();
   }
 

@@ -49,6 +49,7 @@ public abstract class UdpServer extends ServerWithStatistics {
     }
   }
 
+  @Override
   public void shutdown() {
     if (mySocket != null) {
       mySocket.close();

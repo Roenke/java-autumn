@@ -27,4 +27,10 @@ public abstract class BenchmarkClient {
   }
 
   public abstract void start() throws Exception;
+
+  void assertSorted(int[] array) {
+    for (int i = 1; i < array.length; i++) {
+      assert array[i - 1] <= array[i];
+    }
+  }
 }

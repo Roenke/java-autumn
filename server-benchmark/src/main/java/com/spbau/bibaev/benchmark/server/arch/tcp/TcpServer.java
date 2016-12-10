@@ -27,6 +27,4 @@ abstract class TcpServer extends ServerWithStatistics {
   }
 
   abstract void start() throws IOException;
-
-  abstract void shutdown() throws IOException;
 }

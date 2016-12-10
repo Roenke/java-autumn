@@ -3,9 +3,14 @@ package com.spbau.bibaev.benchmark.client;
 import com.spbau.bibaev.benchmark.client.runner.BenchmarkRunner;
 import com.spbau.bibaev.benchmark.common.Details;
 import com.spbau.bibaev.benchmark.common.ServerArchitectureDescription;
+import com.spbau.bibaev.benchmark.server.SingleServerStarter;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Vitaliy.Bibaev
@@ -27,13 +32,39 @@ public class SingleBenchmarkRunner {
       final BenchmarkParameters parameters = new BenchmarkParameters(n, m, x, delta);
       final BenchmarkRunner runner = new BenchmarkRunner(parameters, address, arch);
 
-      long minimumDuration = Long.MAX_VALUE;
-      for (int i = 0; i < ITERATIONS_COUNT; i++) {
-        final long duration = runner.start();
-        minimumDuration = Math.min(minimumDuration, duration);
-      }
+      final AtomicBoolean failed = new AtomicBoolean(false);
+      final Thread benchmarkThread = new Thread(() -> {
+        long minimumDuration = Long.MAX_VALUE;
+        try (final Socket socket = new Socket(address, SingleServerStarter.PORT);
+             final DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+             final DataInputStream is = new DataInputStream(socket.getInputStream())) {
 
-      System.out.println(minimumDuration);
+          os.writeInt(archIndex);
+          final int zero = is.readInt();
+          assert 0 == zero;
+
+          for (int i = 0; i < ITERATIONS_COUNT; i++) {
+            final long duration;
+            duration = runner.start();
+            minimumDuration = Math.min(minimumDuration, duration);
+          }
+
+          os.writeInt(0);
+
+          final long requestDuration = is.readLong();
+          final long clientDuration = is.readLong();
+          System.out.printf("%d \t %d \t %d %n", minimumDuration, requestDuration, clientDuration);
+        } catch (Exception e) {
+          failed.set(true);
+          e.printStackTrace();
+        }
+      });
+
+      benchmarkThread.start();
+      benchmarkThread.join();
+      if (failed.get()) {
+        System.err.println("failed. Result is invalid. Try again.");
+      }
     } catch (Throwable e) {
       System.out.println(e.toString());
       usage();

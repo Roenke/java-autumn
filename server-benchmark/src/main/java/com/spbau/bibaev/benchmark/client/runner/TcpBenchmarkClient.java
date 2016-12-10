@@ -1,6 +1,7 @@
 package com.spbau.bibaev.benchmark.client.runner;
 
 import com.spbau.bibaev.benchmark.common.DataUtils;
+import com.spbau.bibaev.benchmark.common.MessageProtos;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -8,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -24,8 +24,8 @@ public class TcpBenchmarkClient extends BenchmarkClient {
   private final int myServerPort;
 
   TcpBenchmarkClient(int dataSize, int delayMs, int iterationCount,
-                            @NotNull InetAddress serverAddress, int serverPort,
-                            boolean holdConnection) {
+                     @NotNull InetAddress serverAddress, int serverPort,
+                     boolean holdConnection) {
     super();
     myData = new Random().ints().limit(dataSize).toArray();
     myDelay = delayMs;
@@ -68,11 +68,8 @@ public class TcpBenchmarkClient extends BenchmarkClient {
   }
 
   private void query(@NotNull InputStream is, @NotNull OutputStream os) throws IOException {
-    DataUtils.write(myData, os);
-    final int[] result = DataUtils.readArray(is);
-    int[] clone = myData.clone();
-
-    Arrays.sort(clone);
-    assert Arrays.equals(result, clone);
+    DataUtils.write(DataUtils.toMessage(myData), os);
+    final int[] result = DataUtils.unbox(MessageProtos.Array.parseFrom(DataUtils.readData(is)));
+    assertSorted(result);
   }
 }

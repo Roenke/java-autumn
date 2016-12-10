@@ -3,6 +3,8 @@ package com.spbau.bibaev.benchmark.server.arch;
 import com.spbau.bibaev.benchmark.server.stat.ServerStatistics;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+
 /**
  * @author Vitaliy.Bibaev
  */
@@ -12,6 +14,8 @@ public abstract class ServerWithStatistics implements Runnable {
   protected void updateStatistics(long clientProcessingTime, long queryProcessingTime) {
     myStatistics.pushStatistics(clientProcessingTime, queryProcessingTime);
   }
+
+  public abstract void shutdown() throws IOException;
 
   @NotNull
   public ServerStatistics getStatistics() {

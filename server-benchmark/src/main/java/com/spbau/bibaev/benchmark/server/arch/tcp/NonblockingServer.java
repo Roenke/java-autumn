@@ -149,7 +149,7 @@ public class NonblockingServer extends TcpServer {
   }
 
   @Override
-  void shutdown() throws IOException {
+  public void shutdown() throws IOException {
     if (mySocketChannel != null) {
       mySocketChannel.socket().close();
       mySocketChannel.close();

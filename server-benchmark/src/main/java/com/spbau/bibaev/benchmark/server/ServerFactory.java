@@ -1,6 +1,7 @@
 package com.spbau.bibaev.benchmark.server;
 
 import com.spbau.bibaev.benchmark.common.Details;
+import com.spbau.bibaev.benchmark.server.arch.ServerWithStatistics;
 import com.spbau.bibaev.benchmark.server.arch.tcp.*;
 import com.spbau.bibaev.benchmark.server.arch.udp.FixedThreadPoolServer;
 import com.spbau.bibaev.benchmark.server.arch.udp.NewThreadProcessingServer;
@@ -12,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 public class ServerFactory {
 
   @Nullable
-  public static Runnable getServerByDefaultPort(int port) {
+  public static ServerWithStatistics getServerByDefaultPort(int port) {
     switch (port) {
       case Details.TcpPorts.ASYNC_PROCESSING:
         return new AsyncServer(port);

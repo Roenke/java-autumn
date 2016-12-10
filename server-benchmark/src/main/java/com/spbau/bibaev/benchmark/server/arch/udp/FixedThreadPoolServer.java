@@ -28,8 +28,13 @@ public class FixedThreadPoolServer extends UdpServer {
     while (!socket.isClosed()) {
       socket.receive(packet);
 
-      final MessageProtos.Array request = DataUtils.readToArray(packet);
-      myThreadPool.execute(new UdpRequestHandler(socket, request, packet.getAddress(), packet.getPort()));
+      myThreadPool.execute(() -> {
+        try {
+          handle(socket, packet);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      });
     }
   }
 }

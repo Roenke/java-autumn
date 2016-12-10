@@ -1,6 +1,7 @@
 package com.spbau.bibaev.benchmark.server.arch.tcp;
 
 import com.spbau.bibaev.benchmark.common.DataUtils;
+import com.spbau.bibaev.benchmark.common.MessageProtos;
 import com.spbau.bibaev.benchmark.server.sorting.InsertionSorter;
 
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.net.Socket;
 /**
  * @author Vitaliy.Bibaev
  */
-public class SingleThreadBlockedServer extends TcpServer {
+public class SingleThreadBlockedServer extends StreamServer {
   private volatile ServerSocket mySocket;
 
   public SingleThreadBlockedServer(int port) {
@@ -24,12 +25,10 @@ public class SingleThreadBlockedServer extends TcpServer {
     try (ServerSocket socket = new ServerSocket(myPort)) {
       mySocket = socket;
       while (!socket.isClosed()) {
-        try (Socket clientSocket = socket.accept();
-             InputStream is = clientSocket.getInputStream();
-             OutputStream os = clientSocket.getOutputStream()) {
-          final int[] array = DataUtils.readArray(is);
-          InsertionSorter.sort(array);
-          DataUtils.write(array, os);
+        try (final Socket clientSocket = socket.accept();
+             final InputStream is = clientSocket.getInputStream();
+             final OutputStream os = clientSocket.getOutputStream()) {
+          handle(is, os);
         }
       }
     }

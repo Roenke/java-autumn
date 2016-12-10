@@ -30,7 +30,7 @@ public class AsyncServer extends TcpServer {
     myChannel = AsynchronousServerSocketChannel.open();
     myChannel.setOption(StandardSocketOptions.SO_RCVBUF, 1000);
 
-    // read size -> read data -> sort -> write
+    // attach -> read size -> read data -> sort -> write -> read size -> ...
     myChannel.bind(new InetSocketAddress(myPort)).accept(null, new MyAcceptHandler());
   }
 
@@ -41,18 +41,21 @@ public class AsyncServer extends TcpServer {
 
   private class MyAcceptHandler extends MyCompletionHandler<AsynchronousSocketChannel, Void> {
     @Override
-    public void completed(AsynchronousSocketChannel channel, Void attachment) {
+    public void completed(@NotNull AsynchronousSocketChannel channel, Void attachment) {
       myChannel.accept(null, this);
+      final long clientHandlingStartTime = System.nanoTime();
       ByteBuffer sizeBuffer = ByteBuffer.allocate(4);
-      channel.read(sizeBuffer, sizeBuffer, new MySizeReaderHandler(channel));
+      channel.read(sizeBuffer, sizeBuffer, new MySizeReaderHandler(clientHandlingStartTime, channel));
     }
   }
 
-  private static class MySizeReaderHandler extends MyCompletionHandler<Integer, ByteBuffer> {
-    private AsynchronousSocketChannel myChannel;
+  private class MySizeReaderHandler extends MyCompletionHandler<Integer, ByteBuffer> {
+    private final AsynchronousSocketChannel myChannel;
+    private final long myClientHandlingStartTime;
 
-    MySizeReaderHandler(@NotNull AsynchronousSocketChannel channel) {
+    MySizeReaderHandler(long clientHandlingStartTime, @NotNull AsynchronousSocketChannel channel) {
       myChannel = channel;
+      myClientHandlingStartTime = clientHandlingStartTime;
     }
 
     @Override
@@ -65,15 +68,17 @@ public class AsyncServer extends TcpServer {
       buffer.flip();
       final int dataSize = buffer.getInt();
       final ByteBuffer dataBuffer = ByteBuffer.allocate(dataSize);
-      myChannel.read(dataBuffer, dataBuffer, new MyDataReaderHandler(myChannel));
+      myChannel.read(dataBuffer, dataBuffer, new MyDataReaderHandler(myClientHandlingStartTime, myChannel));
     }
   }
 
-  private static class MyDataReaderHandler extends MyCompletionHandler<Integer, ByteBuffer> {
+  private class MyDataReaderHandler extends MyCompletionHandler<Integer, ByteBuffer> {
     private final AsynchronousSocketChannel myChannel;
+    private final long myClientHandlingStartTime;
 
-    MyDataReaderHandler(@NotNull AsynchronousSocketChannel channel) {
+    MyDataReaderHandler(long clientHandlingStartTime, @NotNull AsynchronousSocketChannel channel) {
       myChannel = channel;
+      myClientHandlingStartTime = clientHandlingStartTime;
     }
 
     @Override
@@ -85,6 +90,7 @@ public class AsyncServer extends TcpServer {
 
       dataBuffer.flip();
       try {
+        final long requestHandlingStartTime = System.nanoTime();
         int[] array = DataUtils.unbox(MessageProtos.Array.parseFrom(dataBuffer.array()));
         InsertionSorter.sort(array);
         MessageProtos.Array message = DataUtils.toMessage(array);
@@ -94,37 +100,45 @@ public class AsyncServer extends TcpServer {
         size.flip();
         ByteBuffer buffer = ByteBuffer.wrap(message.toByteArray());
         ByteBuffer[] data = {size, buffer};
+        final long requestHandlingTimeDuration = System.nanoTime() - requestHandlingStartTime;
         myChannel.write(data, 0, 2, 0, TimeUnit.NANOSECONDS, data,
-            new MyResultWriterHandler(myChannel));
+            new MyResultWriterHandler(requestHandlingTimeDuration, myClientHandlingStartTime, myChannel));
       } catch (InvalidProtocolBufferException e) {
         e.printStackTrace();
       }
     }
   }
 
-  private static class MyResultWriterHandler extends MyCompletionHandler<Long, ByteBuffer[]> {
+  private class MyResultWriterHandler extends MyCompletionHandler<Long, ByteBuffer[]> {
     private final AsynchronousSocketChannel myChannel;
+    private final long myClientHandlingStartTime;
+    private final long myRequestHandlingDuration;
 
-    MyResultWriterHandler(@NotNull AsynchronousSocketChannel channel) {
+    MyResultWriterHandler(long requestHandlingDuration, long clientHandlingStartTime, @NotNull AsynchronousSocketChannel channel) {
       myChannel = channel;
+      myClientHandlingStartTime = clientHandlingStartTime;
+      myRequestHandlingDuration = requestHandlingDuration;
     }
 
     @Override
     public void completed(@NotNull Long result, @NotNull ByteBuffer[] data) {
       if (data[1].hasRemaining()) {
         myChannel.write(data, 0, 2, 0, TimeUnit.NANOSECONDS, data, this);
+        return;
       }
 
+      final long clientHandlingDuration = System.nanoTime() - myClientHandlingStartTime;
+      updateStatistics(clientHandlingDuration, myRequestHandlingDuration);
       // All data sent. Start to listen to a next message
       ByteBuffer sizeBuffer = ByteBuffer.allocate(4);
-      myChannel.read(sizeBuffer, sizeBuffer, new MySizeReaderHandler(myChannel));
+      myChannel.read(sizeBuffer, sizeBuffer, new MySizeReaderHandler(System.nanoTime(), myChannel));
     }
   }
 
   private static abstract class MyCompletionHandler<V, A> implements CompletionHandler<V, A> {
     @Override
     public void failed(Throwable exc, A attachment) {
-      // ignore
+      exc.printStackTrace();
     }
   }
 }

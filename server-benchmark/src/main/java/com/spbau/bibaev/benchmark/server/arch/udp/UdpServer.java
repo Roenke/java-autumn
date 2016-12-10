@@ -55,14 +55,20 @@ public abstract class UdpServer extends ServerWithStatistics {
     }
   }
 
-  protected void handle(@NotNull DatagramSocket socket, @NotNull DatagramPacket packet) throws IOException {
+  void handle(@NotNull DatagramSocket socket, @NotNull DatagramPacket packet) throws IOException {
+    final long requestTime = System.nanoTime();
+    final long clientTime = System.nanoTime();
     final MessageProtos.Array request = DataUtils.readToArray(packet);
     final int[] array = DataUtils.unbox(request);
     InsertionSorter.sort(array);
     final DatagramPacket resultPacket = DataUtils.createPacket(array);
     resultPacket.setPort(packet.getPort());
     resultPacket.setAddress(packet.getAddress());
+    final long requestDuration = System.nanoTime() - requestTime;
     socket.send(resultPacket);
+    final long clientDuration = System.nanoTime() - clientTime;
+
+    updateStatistics(clientDuration, requestDuration);
   }
 
   protected abstract void start(@NotNull DatagramSocket socket, @NotNull DatagramPacket datagram) throws IOException;

@@ -12,18 +12,16 @@ import java.nio.ByteBuffer;
  * @author Vitaliy.Bibaev
  */
 public class DataUtils {
-  public static int[] readArray(@NotNull InputStream is) throws IOException {
+  public static byte[] readData(@NotNull InputStream is) throws IOException {
     final int messageLength = new DataInputStream(is).readInt();
     byte[] data = new byte[messageLength];
     final int readCount = IOUtils.read(is, data);
     assert readCount == messageLength;
 
-    final MessageProtos.Array array = MessageProtos.Array.parseFrom(data);
-    return unbox(array);
+    return data;
   }
 
-  public static void write(@NotNull int[] array, @NotNull OutputStream os) throws IOException {
-    final MessageProtos.Array message = toMessage(array);
+  public static void write(@NotNull MessageProtos.Array message, @NotNull OutputStream os) throws IOException {
     new DataOutputStream(os).writeInt(message.getSerializedSize());
     os.write(message.toByteArray());
   }

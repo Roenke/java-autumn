@@ -1,12 +1,14 @@
 package com.spbau.bibaev.benchmark.server.arch.tcp;
 
+import com.spbau.bibaev.benchmark.server.arch.ServerWithStatistics;
+
 import java.io.IOException;
 import java.net.SocketException;
 
 /**
  * @author Vitaliy.Bibaev
  */
-abstract class TcpServer implements Runnable {
+abstract class TcpServer extends ServerWithStatistics {
   final int myPort;
 
   public TcpServer(int port) {

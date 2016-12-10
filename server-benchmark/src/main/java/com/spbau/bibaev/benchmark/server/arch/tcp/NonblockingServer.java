@@ -93,6 +93,7 @@ public class NonblockingServer extends TcpServer {
         }
         context.state = ChannelState.PROCEED;
         myThreadPool.execute(() -> {
+          context.requestHandlingStart = System.nanoTime();
           byte[] data = (byte[]) context.dataBuffer.flip().array();
           try {
             final MessageProtos.Array message = MessageProtos.Array.parseFrom(data);
@@ -102,6 +103,7 @@ public class NonblockingServer extends TcpServer {
             final ByteBuffer sizeBuffer = ByteBuffer.allocate(4).putInt(answer.length);
             sizeBuffer.flip();
             context.answer = new ByteBuffer[]{sizeBuffer, ByteBuffer.wrap(answer)};
+            context.clientHandlingDuration = System.nanoTime() - context.requestHandlingStart;
             context.state = ChannelState.WRITE;
           } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
@@ -115,7 +117,9 @@ public class NonblockingServer extends TcpServer {
   private void checkContext(@NotNull SelectionKey key) {
     final ChannelContext context = (ChannelContext) key.attachment();
     if (context == null || context.state == ChannelState.DONE) {
-      key.attach(new ChannelContext());
+      final ChannelContext newContext = new ChannelContext();
+      newContext.clientHandlingStart = System.nanoTime();
+      key.attach(newContext);
     }
   }
 
@@ -128,6 +132,8 @@ public class NonblockingServer extends TcpServer {
       }
 
       if (!context.answer[1].hasRemaining()) {
+        context.clientHandlingDuration = System.nanoTime() - context.clientHandlingStart;
+        updateStatistics(context.clientHandlingDuration, context.requestHandlingDuration);
         context.state = ChannelState.DONE;
       }
     }
@@ -155,6 +161,10 @@ public class NonblockingServer extends TcpServer {
   }
 
   private static class ChannelContext {
+    volatile long requestHandlingStart;
+    volatile long clientHandlingStart;
+    volatile long requestHandlingDuration;
+    volatile long clientHandlingDuration;
     final ByteBuffer sizeBuffer = ByteBuffer.allocate(4);
     ByteBuffer dataBuffer;
     volatile ByteBuffer[] answer;

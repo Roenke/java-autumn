@@ -1,6 +1,9 @@
 package com.spbau.bibaev.benchmark.server.arch.tcp;
 
+import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
@@ -9,7 +12,7 @@ import java.util.concurrent.Executors;
 /**
  * @author Vitaliy.Bibaev
  */
-public class PermanentConnectionCachedServer extends TcpServer {
+public class PermanentConnectionCachedServer extends StreamServer {
   private volatile ServerSocket mySocket;
   private final ExecutorService myThreadPool = Executors.newCachedThreadPool();
 
@@ -23,7 +26,17 @@ public class PermanentConnectionCachedServer extends TcpServer {
       mySocket = socket;
       while (!socket.isClosed()) {
         final Socket clientSocket = socket.accept();
-        myThreadPool.execute(new ConnectionHandler(clientSocket));
+        myThreadPool.execute(() -> {
+          try (InputStream is = clientSocket.getInputStream(); OutputStream os = clientSocket.getOutputStream()) {
+            while (!clientSocket.isClosed()) {
+              handle(is, os);
+            }
+          } catch (EOFException ignored) {
+            // an usual case.
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        });
       }
     }
   }

@@ -104,7 +104,7 @@ public class NonblockingServer extends TcpServer {
             final ByteBuffer sizeBuffer = ByteBuffer.allocate(4).putInt(answer.length);
             sizeBuffer.flip();
             context.answer = new ByteBuffer[]{sizeBuffer, ByteBuffer.wrap(answer)};
-            context.clientHandlingDuration = System.nanoTime() - context.requestHandlingStart;
+            context.requestHandlingDuration = System.nanoTime() - context.requestHandlingStart;
             context.state = ChannelState.WRITE;
           } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
@@ -144,8 +144,10 @@ public class NonblockingServer extends TcpServer {
     final SocketChannel channel = ((ServerSocketChannel) key.channel()).accept();
     channel.configureBlocking(false);
     channel.socket().setTcpNoDelay(true);
+    final ChannelContext context = new ChannelContext();
+    context.clientHandlingStart = System.nanoTime();
     channel.register(mySelector, SelectionKey.OP_READ | SelectionKey.OP_WRITE,
-        new ChannelContext());
+        context);
     myActiveChannels.add(channel);
   }
 

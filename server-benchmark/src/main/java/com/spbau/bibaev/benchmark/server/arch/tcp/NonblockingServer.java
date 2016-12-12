@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -151,8 +152,8 @@ public class NonblockingServer extends TcpServer {
   @Override
   public void shutdown() throws IOException {
     if (mySocketChannel != null) {
-      mySocketChannel.socket().close();
       mySocketChannel.close();
+      mySocketChannel.socket().close();
     }
 
     for (SocketChannel channel : myActiveChannels) {

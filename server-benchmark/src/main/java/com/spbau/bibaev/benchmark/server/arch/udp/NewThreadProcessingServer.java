@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.SocketException;
 
 /**
  * @author Vitaliy.Bibaev
@@ -16,13 +17,17 @@ public class NewThreadProcessingServer extends UdpServer {
   }
 
   @Override
-  protected void start(@NotNull DatagramSocket socket, @NotNull DatagramPacket packet) throws IOException {
+  protected void start(@NotNull DatagramSocket socket) throws IOException {
     while (!socket.isClosed()) {
-      socket.receive(packet);
+      byte[] buffer = new byte[RECEIVE_BUFFER_SIZE];
+      final DatagramPacket datagram = new DatagramPacket(buffer, RECEIVE_BUFFER_SIZE);
+      socket.receive(datagram);
 
       new Thread(() -> {
         try {
-          handle(socket, packet);
+          handle(socket, datagram);
+        } catch (SocketException ignored) {
+
         } catch (IOException e) {
           e.printStackTrace();
         }

@@ -1,6 +1,7 @@
 package com.spbau.bibaev.benchmark.server.arch.tcp;
 
 import com.spbau.bibaev.benchmark.common.DataUtils;
+import com.spbau.bibaev.benchmark.common.MessageProtos;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -42,8 +43,8 @@ public abstract class TcpServerTest {
             final Socket socket = new Socket(InetAddress.getLocalHost(), getPortForTesting());
             OutputStream os = socket.getOutputStream();
             InputStream is = socket.getInputStream();
-            DataUtils.write(myData, os);
-            final int[] result = DataUtils.readArray(is);
+            DataUtils.write(DataUtils.toMessage(myData), os);
+            final int[] result = DataUtils.unbox(MessageProtos.Array.parseFrom(DataUtils.readData(is)));
             assertEquals(result.length, myData.length);
 
             for (int j = 1; j < result.length; j++) {
@@ -87,8 +88,8 @@ public abstract class TcpServerTest {
                OutputStream os = socket.getOutputStream();
                InputStream is = socket.getInputStream()) {
             for (int k = 0; k < ITERATIONS_COUNT; k++) {
-              DataUtils.write(myData, os);
-              final int[] result = DataUtils.readArray(is);
+              DataUtils.write(DataUtils.toMessage(myData), os);
+              final int[] result = DataUtils.unbox(MessageProtos.Array.parseFrom(DataUtils.readData(is)));
               assertEquals(result.length, myData.length);
 
               for (int j = 1; j < result.length; j++) {

@@ -33,7 +33,7 @@ public abstract class BaseUdpServerTest {
     AtomicBoolean ok = new AtomicBoolean(true);
     for (int i = 0; i < THREAD_COUNT; i++) {
       threads[i] = new Thread(() -> {
-        byte[] localBuffer = new byte[1024 * 50]; // 50kb
+        byte[] localBuffer = new byte[1 << 16]; // 64kb
         try {
           final DatagramSocket socket = new DatagramSocket();
           socket.setSoTimeout(5000);

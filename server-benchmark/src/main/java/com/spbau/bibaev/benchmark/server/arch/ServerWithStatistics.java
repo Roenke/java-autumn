@@ -17,6 +17,10 @@ public abstract class ServerWithStatistics implements Runnable {
 
   public abstract void shutdown() throws IOException;
 
+  public void clearStatistics() {
+    myStatistics.clear();
+  }
+
   @NotNull
   public ServerStatistics getStatistics() {
     return myStatistics;

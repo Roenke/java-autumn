@@ -1,8 +1,6 @@
 package com.spbau.bibaev.benchmark.server.arch.udp;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.spbau.bibaev.benchmark.common.DataUtils;
-import com.spbau.bibaev.benchmark.common.MessageProtos;
 import com.spbau.bibaev.benchmark.server.arch.ServerWithStatistics;
 import com.spbau.bibaev.benchmark.server.sorting.InsertionSorter;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +14,7 @@ import java.net.SocketException;
  * @author Vitaliy.Bibaev
  */
 public abstract class UdpServer extends ServerWithStatistics {
-  private static final int RECEIVE_BUFFER_SIZE = 1 << 16; // 64 kb
+  static final int RECEIVE_BUFFER_SIZE = 1 << 16; // 64 kb
   private static final int SEND_BUFFER_SIZE = 1 << 16; // 64 kb
 
   private final int myPort;
@@ -40,10 +38,7 @@ public abstract class UdpServer extends ServerWithStatistics {
     }
 
     try {
-      byte[] buffer = new byte[RECEIVE_BUFFER_SIZE];
-      final DatagramPacket datagram = new DatagramPacket(buffer, RECEIVE_BUFFER_SIZE);
-
-      start(mySocket, datagram);
+      start(mySocket);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -59,8 +54,7 @@ public abstract class UdpServer extends ServerWithStatistics {
   void handle(@NotNull DatagramSocket socket, @NotNull DatagramPacket packet) throws IOException {
     final long requestTime = System.nanoTime();
     final long clientTime = System.nanoTime();
-    final MessageProtos.Array request = DataUtils.readToArray(packet);
-    final int[] array = DataUtils.unbox(request);
+    final int[] array = DataUtils.read(packet);
     InsertionSorter.sort(array);
     final DatagramPacket resultPacket = DataUtils.createPacket(array);
     resultPacket.setPort(packet.getPort());
@@ -72,5 +66,5 @@ public abstract class UdpServer extends ServerWithStatistics {
     updateStatistics(clientDuration, requestDuration);
   }
 
-  protected abstract void start(@NotNull DatagramSocket socket, @NotNull DatagramPacket datagram) throws IOException;
+  protected abstract void start(@NotNull DatagramSocket socket) throws IOException;
 }

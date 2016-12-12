@@ -2,7 +2,9 @@ package com.spbau.bibaev.benchmark.client.ui;
 
 import com.spbau.bibaev.benchmark.client.BenchmarkParameters;
 import com.spbau.bibaev.benchmark.client.Log;
+import com.spbau.bibaev.benchmark.client.runner.BenchmarkResult;
 import com.spbau.bibaev.benchmark.client.runner.BenchmarkRunner;
+import com.spbau.bibaev.benchmark.client.runner.MultipleIterationsBenchmarkRunner;
 import com.spbau.bibaev.benchmark.common.ServerArchitectureDescription;
 
 import javax.swing.*;
@@ -49,13 +51,16 @@ public class MainWindow extends JFrame {
           while (parameters.hasNext()) {
             final BenchmarkParameters params = parameters.next();
             final BenchmarkRunner runner = new BenchmarkRunner(params, myServerAddress, description);
+            final MultipleIterationsBenchmarkRunner fewIterationsRunner = new MultipleIterationsBenchmarkRunner(runner);
             myLog.log(String.format("size = %d, clients = %d, delay = %d, iterations = %d",
                 params.getDataSize(), params.getClientCount(), params.getDelay(), params.getIterationCount()));
             try {
-              final long averageTime = runner.start();
-              myLog.log("Average time per client = " + averageTime);
+              final BenchmarkResult result = fewIterationsRunner.start();
+              myLog.log(String.format("%d \t %d \t %d",
+                  result.averageClientLifeTime, result.averagePerClientTime, result.averagePerQueryTime));
             } catch (Exception e1) {
               myLog.log("something went wrong :(" + e1.toString());
+              return;
             }
           }
         }).start();

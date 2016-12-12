@@ -61,7 +61,10 @@ public class AsyncServer extends TcpServer {
     @Override
     public void completed(Integer result, ByteBuffer buffer) {
       if (buffer.hasRemaining()) {
-        myChannel.read(buffer, buffer, this);
+        if (myChannel.isOpen()) {
+          myChannel.read(buffer, buffer, this);
+        }
+
         return;
       }
 
@@ -131,7 +134,7 @@ public class AsyncServer extends TcpServer {
       updateStatistics(clientHandlingDuration, myRequestHandlingDuration);
       // All data sent. Start to listen to a next message
       ByteBuffer sizeBuffer = ByteBuffer.allocate(4);
-      myChannel.read(sizeBuffer, sizeBuffer, new MySizeReaderHandler(System.nanoTime(), myChannel));
+//      myChannel.read(sizeBuffer, sizeBuffer, new MySizeReaderHandler(System.nanoTime(), myChannel));
     }
   }
 

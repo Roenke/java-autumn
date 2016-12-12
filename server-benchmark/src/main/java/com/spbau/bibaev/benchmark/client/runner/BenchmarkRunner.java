@@ -5,6 +5,7 @@ import com.spbau.bibaev.benchmark.common.ServerArchitectureDescription;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.InetAddress;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -24,7 +25,15 @@ public class BenchmarkRunner {
     myDescription = description;
   }
 
-  public long start() throws Exception {
+  InetAddress getAddress() {
+    return myServerAddress;
+  }
+
+  ServerArchitectureDescription getArchitectureDescription() {
+    return myDescription;
+  }
+
+  public long start() throws BrokenBarrierException, InterruptedException {
     final int clientsCount = myParameters.getClientCount();
     final CyclicBarrier barrier = new CyclicBarrier(clientsCount + 1);
     final Thread[] clients = new Thread[clientsCount];

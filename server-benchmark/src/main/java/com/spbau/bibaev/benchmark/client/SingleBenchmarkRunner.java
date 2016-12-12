@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Vitaliy.Bibaev
  */
 public class SingleBenchmarkRunner {
-  private static final int ITERATIONS_COUNT = 1000;
+  private static final int ITERATIONS_COUNT = 2;
 
   public static void main(String[] args) {
     final List<ServerArchitectureDescription> serverArchitectureDescriptions = Details.availableArchitectures();

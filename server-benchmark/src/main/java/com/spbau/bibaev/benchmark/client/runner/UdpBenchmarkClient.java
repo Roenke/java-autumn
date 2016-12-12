@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  * @author Vitaliy.Bibaev
  */
 public class UdpBenchmarkClient extends BenchmarkClient {
-  private static final int MAX_DATAGRAM_LENGTH = 65000;
+  private static final int MAX_DATAGRAM_LENGTH = 1 << 16;
   private final int[] myData;
   private final int myDelay;
   private final int myIterationCount;
@@ -45,20 +45,17 @@ public class UdpBenchmarkClient extends BenchmarkClient {
 
     byte[] buffer = new byte[1 << 16]; // 64 kb
 
+    final DatagramSocket socket = new DatagramSocket();
+    socket.setSoTimeout(3000);
     for (int i = 0; i < myIterationCount; i++) {
-      final DatagramSocket socket = new DatagramSocket();
 
-      final DatagramPacket datagram = new DatagramPacket(data, data.length, myServerAddress, myServerPort);
-      socket.send(datagram);
-
-      DatagramPacket result = new DatagramPacket(buffer, buffer.length);
-      socket.receive(result);
-      ByteBuffer resultWrapper = ByteBuffer.wrap(result.getData());
-      int size = resultWrapper.getInt();
-      byte[] answer = new byte[size];
-      resultWrapper.get(answer);
-      final MessageProtos.Array array = MessageProtos.Array.parseFrom(answer);
-      assertSorted(DataUtils.unbox(array));
+      final DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length,
+          myServerAddress, myServerPort);
+      DataUtils.write(myData, datagramPacket, buffer);
+      socket.send(datagramPacket);
+      socket.receive(datagramPacket);
+      final int[] result = DataUtils.read(datagramPacket);
+      assertSorted(result);
 
       TimeUnit.MILLISECONDS.sleep(myDelay);
     }

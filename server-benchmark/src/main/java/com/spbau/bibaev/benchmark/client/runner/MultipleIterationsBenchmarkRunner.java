@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * @author Vitaliy.Bibaev
  */
 public class MultipleIterationsBenchmarkRunner {
-  private static final int ITERATIONS_COUNT = 10;
+  private static final int ITERATIONS_COUNT = 5;
   private final BenchmarkRunner myRunner;
 
   public MultipleIterationsBenchmarkRunner(@NotNull BenchmarkRunner runner) {

@@ -36,7 +36,7 @@ public class Details {
         new ServerArchitectureDescriptionImpl("TCP: New connection with single threaded processing",
             TcpPorts.NEW_CONNECTION_SINGLE_THREADED, false, Protocol.TCP),
         new ServerArchitectureDescriptionImpl("TCP: Async mode",
-            TcpPorts.ASYNC_PROCESSING, false, Protocol.TCP),
+            TcpPorts.ASYNC_PROCESSING, true, Protocol.TCP),
         new ServerArchitectureDescriptionImpl("UDP: Several thread per request",
             UdpPorts.THREAD_PER_REQUEST, false, Protocol.UDP),
         new ServerArchitectureDescriptionImpl("UDP: Fixed thread pool for request processing",
@@ -85,5 +85,3 @@ public class Details {
     }
   }
 }
-
-

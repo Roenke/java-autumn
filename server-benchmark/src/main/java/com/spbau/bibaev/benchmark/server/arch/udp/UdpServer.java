@@ -1,6 +1,7 @@
 package com.spbau.bibaev.benchmark.server.arch.udp;
 
 import com.spbau.bibaev.benchmark.common.DataUtils;
+import com.spbau.bibaev.benchmark.common.MessageProtos;
 import com.spbau.bibaev.benchmark.server.arch.ServerWithStatistics;
 import com.spbau.bibaev.benchmark.server.sorting.InsertionSorter;
 import org.jetbrains.annotations.NotNull;
@@ -8,14 +9,15 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 
 /**
  * @author Vitaliy.Bibaev
  */
 public abstract class UdpServer extends ServerWithStatistics {
-  static final int RECEIVE_BUFFER_SIZE = 1 << 16; // 64 kb
-  private static final int SEND_BUFFER_SIZE = 1 << 16; // 64 kb
+  static final int RECEIVE_BUFFER_SIZE = 1024 * 1024 * 100; // 10 mb
+  private static final int SEND_BUFFER_SIZE = 1024 * 1024 * 100; // 10 mb
 
   private final int myPort;
 
@@ -51,6 +53,22 @@ public abstract class UdpServer extends ServerWithStatistics {
     if (mySocket != null) {
       mySocket.close();
     }
+  }
+
+  void handle(@NotNull DatagramSocket socket, @NotNull MessageProtos.Array message,
+              @NotNull InetAddress address, int port) throws IOException {
+    final long requestTime = System.nanoTime();
+    final long clientTime = System.nanoTime();
+    final int[] array = DataUtils.unbox(message);
+    InsertionSorter.sort(array);
+    final DatagramPacket resultPacket = DataUtils.createPacket(array);
+    resultPacket.setAddress(address);
+    resultPacket.setPort(port);
+    final long requestDuration = System.nanoTime() - requestTime;
+    socket.send(resultPacket);
+    final long clientDuration = System.nanoTime() - clientTime;
+
+    updateStatistics(clientDuration, requestDuration);
   }
 
   void handle(@NotNull DatagramSocket socket, @NotNull DatagramPacket packet) throws IOException {

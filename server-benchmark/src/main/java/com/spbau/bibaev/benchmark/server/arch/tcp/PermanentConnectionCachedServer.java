@@ -23,7 +23,6 @@ public class PermanentConnectionCachedServer extends StreamServer {
   @Override
   public void start() throws IOException {
     try (ServerSocket socket = new ServerSocket(myPort, Integer.MAX_VALUE)) {
-      socket.setReuseAddress(false);
       mySocket = socket;
       while (!socket.isClosed()) {
         final Socket clientSocket = socket.accept();

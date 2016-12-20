@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -41,7 +40,7 @@ public class NonblockingServer extends TcpServer {
       mySelector = Selector.open();
 
       mySocketChannel = ServerSocketChannel.open();
-      mySocketChannel.bind(new InetSocketAddress(myPort));
+      mySocketChannel.bind(new InetSocketAddress(myPort), Integer.MAX_VALUE);
       mySocketChannel.configureBlocking(false);
 
       mySocketChannel.register(mySelector, SelectionKey.OP_ACCEPT);
@@ -51,15 +50,15 @@ public class NonblockingServer extends TcpServer {
         while (keyIterator.hasNext()) {
           SelectionKey key = keyIterator.next();
 
-          if (key.isAcceptable()) {
+          if (key.isValid() && key.isAcceptable()) {
             accept(key);
           }
 
-          if (key.isReadable()) {
+          if (key.isValid() && key.isReadable()) {
             read(key);
           }
 
-          if (key.isWritable()) {
+          if (key.isValid() && key.isWritable()) {
             write(key);
           }
 
@@ -78,7 +77,16 @@ public class NonblockingServer extends TcpServer {
     final ChannelContext context = (ChannelContext) key.attachment();
     switch (context.state) {
       case READ_SIZE:
-        channel.read(context.sizeBuffer);
+        int readCount = channel.read(context.sizeBuffer);
+        if (readCount == -1) {
+          key.cancel();
+          channel.close();
+        }
+
+        if (readCount > 0 && context.clientHandlingStart == -1) {
+          context.clientHandlingStart = System.nanoTime();
+        }
+
         if (context.sizeBuffer.hasRemaining()) {
           break;
         }
@@ -119,7 +127,7 @@ public class NonblockingServer extends TcpServer {
     final ChannelContext context = (ChannelContext) key.attachment();
     if (context == null || context.state == ChannelState.DONE) {
       final ChannelContext newContext = new ChannelContext();
-      newContext.clientHandlingStart = System.nanoTime();
+      newContext.clientHandlingStart = -1;
       key.attach(newContext);
     }
   }
@@ -172,10 +180,6 @@ public class NonblockingServer extends TcpServer {
     ByteBuffer dataBuffer;
     volatile ByteBuffer[] answer;
     volatile ChannelState state = ChannelState.READ_SIZE;
-
-    ChannelContext() {
-      super();
-    }
   }
 
   private enum ChannelState {

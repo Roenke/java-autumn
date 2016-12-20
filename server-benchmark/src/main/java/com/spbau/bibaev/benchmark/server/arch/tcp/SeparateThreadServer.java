@@ -22,7 +22,8 @@ public class SeparateThreadServer extends StreamServer {
 
   @Override
   public void start() throws IOException {
-    try (ServerSocket socket = new ServerSocket(myPort)) {
+    try (ServerSocket socket = new ServerSocket(myPort, Integer.MAX_VALUE)) {
+      socket.setReuseAddress(true);
       mySocket = socket;
       while (!socket.isClosed()) {
         final Socket clientSocket = socket.accept();
@@ -35,6 +36,12 @@ public class SeparateThreadServer extends StreamServer {
             // an usual case.
           } catch (IOException e) {
             e.printStackTrace();
+          } finally {
+            try {
+              clientSocket.close();
+            } catch (IOException e) {
+              e.printStackTrace();
+            }
           }
         }).start();
       }

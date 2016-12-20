@@ -22,12 +22,15 @@ public class PermanentConnectionCachedServer extends StreamServer {
 
   @Override
   public void start() throws IOException {
-    try (ServerSocket socket = new ServerSocket(myPort)) {
+    try (ServerSocket socket = new ServerSocket(myPort, Integer.MAX_VALUE)) {
+      socket.setReuseAddress(false);
       mySocket = socket;
       while (!socket.isClosed()) {
         final Socket clientSocket = socket.accept();
+        clientSocket.setReuseAddress(true);
         myThreadPool.execute(() -> {
-          try (InputStream is = clientSocket.getInputStream(); OutputStream os = clientSocket.getOutputStream()) {
+          try (final InputStream is = clientSocket.getInputStream();
+               final OutputStream os = clientSocket.getOutputStream()) {
             while (!clientSocket.isClosed()) {
               handle(is, os);
             }
@@ -35,6 +38,13 @@ public class PermanentConnectionCachedServer extends StreamServer {
             // an usual case.
           } catch (IOException e) {
             e.printStackTrace();
+          } finally {
+            try {
+              clientSocket.close();
+            } catch (IOException e) {
+              System.err.println("cannot close socket");
+              e.printStackTrace();
+            }
           }
         });
       }

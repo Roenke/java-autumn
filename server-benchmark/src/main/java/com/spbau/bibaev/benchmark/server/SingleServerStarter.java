@@ -65,6 +65,8 @@ public class SingleServerStarter {
 
         os.writeLong(statistics.getQueryProcessingMetric());
         os.writeLong(statistics.getClientProcessingMetric());
+      } catch (IOException e) {
+        System.err.println("Something went wrong:" + e.toString());
       }
     }
   }

@@ -22,12 +22,13 @@ public class SingleThreadBlockedServer extends StreamServer {
 
   @Override
   public void start() throws IOException {
-    try (ServerSocket socket = new ServerSocket(myPort)) {
+    try (ServerSocket socket = new ServerSocket(myPort, Integer.MAX_VALUE)) {
       mySocket = socket;
       while (!socket.isClosed()) {
         try (final Socket clientSocket = socket.accept();
              final InputStream is = clientSocket.getInputStream();
              final OutputStream os = clientSocket.getOutputStream()) {
+          socket.setReuseAddress(true);
           handle(is, os);
         }
       }

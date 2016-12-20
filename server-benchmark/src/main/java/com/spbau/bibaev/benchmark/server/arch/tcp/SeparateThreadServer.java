@@ -22,7 +22,7 @@ public class SeparateThreadServer extends StreamServer {
 
   @Override
   public void start() throws IOException {
-    try (ServerSocket socket = new ServerSocket(myPort)) {
+    try (ServerSocket socket = new ServerSocket(myPort, Integer.MAX_VALUE)) {
       mySocket = socket;
       while (!socket.isClosed()) {
         final Socket clientSocket = socket.accept();

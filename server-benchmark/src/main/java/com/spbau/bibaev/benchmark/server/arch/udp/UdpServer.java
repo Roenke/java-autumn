@@ -39,6 +39,8 @@ public abstract class UdpServer extends ServerWithStatistics {
 
     try {
       start(mySocket);
+    } catch (SocketException ignored) {
+
     } catch (IOException e) {
       e.printStackTrace();
     }

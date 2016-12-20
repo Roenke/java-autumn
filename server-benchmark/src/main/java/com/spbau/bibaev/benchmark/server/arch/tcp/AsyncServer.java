@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -28,10 +27,10 @@ public class AsyncServer extends TcpServer {
   @Override
   void start() throws IOException {
     myChannel = AsynchronousServerSocketChannel.open();
-    myChannel.setOption(StandardSocketOptions.SO_RCVBUF, 1000);
 
     // attach -> read size -> read data -> sort -> write -> read size -> ...
-    myChannel.bind(new InetSocketAddress(myPort)).accept(null, new MyAcceptHandler());
+    myChannel.bind(new InetSocketAddress(myPort), Integer.MAX_VALUE)
+        .accept(null, new MyAcceptHandler());
   }
 
   @Override
@@ -60,6 +59,10 @@ public class AsyncServer extends TcpServer {
 
     @Override
     public void completed(Integer result, ByteBuffer buffer) {
+      if (result == -1) {
+        return;
+      }
+
       if (buffer.hasRemaining()) {
         if (myChannel.isOpen()) {
           myChannel.read(buffer, buffer, this);
@@ -86,6 +89,10 @@ public class AsyncServer extends TcpServer {
 
     @Override
     public void completed(@NotNull Integer result, @NotNull ByteBuffer dataBuffer) {
+      if (result == -1) {
+        return;
+      }
+
       if (dataBuffer.hasRemaining()) {
         myChannel.read(dataBuffer, dataBuffer, this);
         return;
@@ -132,9 +139,10 @@ public class AsyncServer extends TcpServer {
 
       final long clientHandlingDuration = System.nanoTime() - myClientHandlingStartTime;
       updateStatistics(clientHandlingDuration, myRequestHandlingDuration);
+
       // All data sent. Start to listen to a next message
       ByteBuffer sizeBuffer = ByteBuffer.allocate(4);
-//      myChannel.read(sizeBuffer, sizeBuffer, new MySizeReaderHandler(System.nanoTime(), myChannel));
+      myChannel.read(sizeBuffer, sizeBuffer, new MySizeReaderHandler(System.nanoTime(), myChannel));
     }
   }
 

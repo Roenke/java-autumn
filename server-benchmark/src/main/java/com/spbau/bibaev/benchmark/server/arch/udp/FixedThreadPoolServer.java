@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,6 +32,8 @@ public class FixedThreadPoolServer extends UdpServer {
       myThreadPool.execute(() -> {
         try {
           handle(socket, datagram);
+        } catch (SocketException ignored) {
+
         } catch (IOException e) {
           e.printStackTrace();
         }

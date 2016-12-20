@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -41,7 +40,7 @@ public class NonblockingServer extends TcpServer {
       mySelector = Selector.open();
 
       mySocketChannel = ServerSocketChannel.open();
-      mySocketChannel.bind(new InetSocketAddress(myPort));
+      mySocketChannel.bind(new InetSocketAddress(myPort), Integer.MAX_VALUE);
       mySocketChannel.configureBlocking(false);
 
       mySocketChannel.register(mySelector, SelectionKey.OP_ACCEPT);

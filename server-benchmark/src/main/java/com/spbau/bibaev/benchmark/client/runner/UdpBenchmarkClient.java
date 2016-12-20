@@ -46,7 +46,7 @@ public class UdpBenchmarkClient extends BenchmarkClient {
     byte[] buffer = new byte[1 << 16]; // 64 kb
 
     final DatagramSocket socket = new DatagramSocket();
-    socket.setSoTimeout(3000);
+    socket.setSoTimeout((int) TimeUnit.SECONDS.toMillis(60));
     for (int i = 0; i < myIterationCount; i++) {
 
       final DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length,

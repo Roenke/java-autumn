@@ -4,6 +4,7 @@ import com.spbau.bibaev.benchmark.client.ui.MainWindow;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -19,7 +20,8 @@ public class ClientEntryPoint {
     try {
       Namespace parseResult = parser.parseArgs(args);
       InetAddress address = parseResult.get(ADDRESS_ARGUMENT_NAME);
-      final MainWindow mainWindow = new MainWindow(address);
+      File log = new File("log.txt");
+      final MainWindow mainWindow = new MainWindow(log, address);
       mainWindow.setVisible(true);
     } catch (ArgumentParserException e) {
       parser.handleError(e);

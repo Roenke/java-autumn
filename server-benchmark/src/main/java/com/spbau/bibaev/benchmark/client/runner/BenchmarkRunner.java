@@ -38,7 +38,7 @@ public class BenchmarkRunner {
     final CyclicBarrier barrier = new CyclicBarrier(clientsCount + 1);
     final Thread[] clients = new Thread[clientsCount];
 
-    AtomicLong averageTimePerClient = new AtomicLong(0);
+    final AtomicLong averageTimePerClient = new AtomicLong(0);
     for (int i = 0; i < clientsCount; i++) {
       final BenchmarkClient client = BenchmarkClient.create(myParameters, myDescription, myServerAddress);
       final Thread clientThread = new Thread(() -> {

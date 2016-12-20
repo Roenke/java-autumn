@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -49,6 +50,7 @@ public class TcpBenchmarkClient extends BenchmarkClient {
       try (final Socket socket = new Socket(myServerAddress, myServerPort);
            final InputStream is = socket.getInputStream();
            final OutputStream os = socket.getOutputStream()) {
+        socket.setReuseAddress(true);
         query(is, os);
       }
 
@@ -57,13 +59,19 @@ public class TcpBenchmarkClient extends BenchmarkClient {
   }
 
   private void doWithHoldConnection() throws IOException, InterruptedException {
-    try (final Socket socket = new Socket(myServerAddress, myServerPort);
-         final InputStream is = socket.getInputStream();
+    Socket socket = new Socket();
+    socket.setReuseAddress(true);
+    socket.connect(new InetSocketAddress(myServerAddress, myServerPort));
+    socket.setSoLinger(false, 0);
+    try (final InputStream is = socket.getInputStream();
          final OutputStream os = socket.getOutputStream()) {
+      socket.setReuseAddress(true);
       for (int i = 0; i < myIterationCount; i++) {
         query(is, os);
         TimeUnit.MILLISECONDS.sleep(myDelay);
       }
+    } finally {
+      socket.close();
     }
   }
 

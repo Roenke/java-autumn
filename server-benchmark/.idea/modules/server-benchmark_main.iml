@@ -39,6 +39,5 @@
     <orderEntry type="library" name="Gradle: javax.annotation:jsr250-api:1.0" level="project" />
     <orderEntry type="library" name="Gradle: javax.inject:javax.inject:1" level="project" />
     <orderEntry type="library" name="Gradle: aopalliance:aopalliance:1.0" level="project" />
-    <orderEntry type="library" name="Python 3.5.2 (C:\Python35\python.exe) interpreter library" level="application" />
   </component>
 </module>

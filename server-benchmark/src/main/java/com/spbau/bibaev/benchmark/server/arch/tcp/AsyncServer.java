@@ -42,25 +42,28 @@ public class AsyncServer extends TcpServer {
     @Override
     public void completed(@NotNull AsynchronousSocketChannel channel, Void attachment) {
       myChannel.accept(null, this);
-      final long clientHandlingStartTime = System.nanoTime();
       ByteBuffer sizeBuffer = ByteBuffer.allocate(4);
-      channel.read(sizeBuffer, sizeBuffer, new MySizeReaderHandler(clientHandlingStartTime, channel));
+      channel.read(sizeBuffer, sizeBuffer, new MySizeReaderHandler(channel));
     }
   }
 
   private class MySizeReaderHandler extends MyCompletionHandler<Integer, ByteBuffer> {
     private final AsynchronousSocketChannel myChannel;
-    private final long myClientHandlingStartTime;
+    private volatile long myClientHandlingStartTime;
 
-    MySizeReaderHandler(long clientHandlingStartTime, @NotNull AsynchronousSocketChannel channel) {
+    MySizeReaderHandler(@NotNull AsynchronousSocketChannel channel) {
       myChannel = channel;
-      myClientHandlingStartTime = clientHandlingStartTime;
+      myClientHandlingStartTime = -1;
     }
 
     @Override
     public void completed(Integer result, ByteBuffer buffer) {
       if (result == -1) {
         return;
+      }
+
+      if (myClientHandlingStartTime < 0 && result > 0) {
+        myClientHandlingStartTime = System.nanoTime();
       }
 
       if (buffer.hasRemaining()) {
@@ -142,7 +145,7 @@ public class AsyncServer extends TcpServer {
 
       // All data sent. Start to listen to a next message
       ByteBuffer sizeBuffer = ByteBuffer.allocate(4);
-      myChannel.read(sizeBuffer, sizeBuffer, new MySizeReaderHandler(System.nanoTime(), myChannel));
+      myChannel.read(sizeBuffer, sizeBuffer, new MySizeReaderHandler(myChannel));
     }
   }
 

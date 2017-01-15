@@ -14,16 +14,13 @@ public class BranchImpl implements Branch {
     myName = name;
   }
 
+  @NotNull
   @Override
   public Commit getCommit() {
     return myCommit;
   }
 
-  @Override
-  public void moveTo(@NotNull Commit commit) {
-    myCommit = commit;
-  }
-
+  @NotNull
   @Override
   public String getName() {
     return myName;

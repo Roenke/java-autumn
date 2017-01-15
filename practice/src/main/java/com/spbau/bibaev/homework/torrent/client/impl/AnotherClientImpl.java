@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.nio.channels.Channels;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,8 +55,19 @@ public class AnotherClientImpl implements Client {
 
       try (RandomAccessFile out = new RandomAccessFile(outPath.toFile(), "rw")) {
         out.seek(Details.FILE_PART_SIZE * partNumber);
-        IOUtils.copyLarge(is, Channels.newOutputStream(out.getChannel()));
+        IOUtils.copyLarge(is, new OutputStream() {
+          @Override
+          public void write(int b) throws IOException {
+            throw new IOException("not implemented");
+          }
+
+          @Override
+          public void write(@NotNull byte[] b, int off, int len) throws IOException {
+            out.write(b, off, len);
+          }
+        });
       }
+
 
       return true;
     }

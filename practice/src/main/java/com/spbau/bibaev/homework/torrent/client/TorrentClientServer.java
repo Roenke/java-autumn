@@ -65,13 +65,16 @@ public class TorrentClientServer {
               LOG.info("Request with id = " + commandId + " handled");
             }
           } catch (IOException e) {
-            LOG.error("Something went wrong in request handling process", e);
+            if (!myServerSocket.isClosed()) {
+              LOG.error("Something went wrong in request handling process", e);
+            }
           }
         });
-
       }
     } catch (IOException e) {
-      LOG.fatal("Something went wrong.", e);
+      if (!myServerSocket.isClosed()) {
+        LOG.fatal("Something went wrong.", e);
+      }
     }
   }
 }

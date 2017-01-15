@@ -5,7 +5,9 @@ import com.spbau.bibaev.homework.torrent.client.api.ClientState;
 import com.spbau.bibaev.homework.torrent.client.api.StateChangedListener;
 import com.spbau.bibaev.homework.torrent.client.download.DownloadManager;
 import com.spbau.bibaev.homework.torrent.client.impl.ClientStateImpl;
+import com.spbau.bibaev.homework.torrent.client.impl.ServerImpl;
 import com.spbau.bibaev.homework.torrent.client.repl.ReadEvalPrintLoop;
+import com.spbau.bibaev.homework.torrent.client.ui.MainWindow;
 import com.spbau.bibaev.homework.torrent.common.Details;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
@@ -16,6 +18,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -44,6 +48,14 @@ public class ClientEntryPoint {
     final int serverPort = parsingResult.getInt("port");
     final int clientPort = parsingResult.getInt("listen");
     final Path configPath = Paths.get(parsingResult.getString("config"));
+    final boolean openGui = parsingResult.getBoolean("gui");
+    final Path workingDirectory = Paths.get(parsingResult.getString("directory"));
+    final File workingDirectoryFile = workingDirectory.toFile();
+    if (!workingDirectoryFile.exists() || !workingDirectoryFile.isDirectory()) {
+      LOG.fatal("Directory path should lead to an existed directory");
+      parser.printHelp();
+      return;
+    }
 
     ClientStateImpl state;
     final ObjectMapper mapper = new ObjectMapper();
@@ -88,26 +100,41 @@ public class ClientEntryPoint {
       return;
     }
 
-
     final UpdateServerInfoTask updateTask = new UpdateServerInfoTask(state, address, serverPort, clientPort);
 
-    final DownloadManager downloader = new DownloadManager(state, address, serverPort,
-        Paths.get(System.getProperty("user.dir")), updateTask);
+    final DownloadManager downloader = new DownloadManager(state, address, serverPort, workingDirectory, updateTask);
     state.getIds().forEach(downloader::startDownloadAsync);
 
-    final ReadEvalPrintLoop interfaceLoop = new ReadEvalPrintLoop(address, serverPort, state, downloader);
-    interfaceLoop.addExitListener(downloader);
-    interfaceLoop.addExitListener(updateTask);
-    new Thread(interfaceLoop).start();
-
     final TorrentClientServer client = new TorrentClientServer(clientPort, state);
-    interfaceLoop.addExitListener(() -> {
-      try {
-        client.shutdown();
-      } catch (IOException e) {
-        LOG.error("Cannot stop the server", e);
-      }
-    });
+    if (openGui) {
+      final MainWindow mainWindow = new MainWindow(downloader, new ServerImpl(address, serverPort),
+          state, updateTask);
+      mainWindow.addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent e) {
+          try {
+            client.shutdown();
+          } catch (IOException e1) {
+            LOG.error("Cannot stop the server", e);
+            throw new RuntimeException("Cannot stop the server");
+          }
+        }
+      });
+      mainWindow.setVisible(true);
+    } else {
+      ReadEvalPrintLoop interfaceLoop = new ReadEvalPrintLoop(address, serverPort, state, downloader);
+      interfaceLoop.addExitListener(downloader);
+      interfaceLoop.addExitListener(updateTask);
+      new Thread(interfaceLoop).start();
+      interfaceLoop.addExitListener(() -> {
+        try {
+          client.shutdown();
+        } catch (IOException e) {
+          LOG.error("Cannot stop the server", e);
+          throw new RuntimeException("Cannot stop the server");
+        }
+      });
+    }
     client.start();
   }
 
@@ -137,6 +164,16 @@ public class ClientEntryPoint {
         .type(String.class)
         .setDefault("./files-client.json")
         .help("path to json configuration file");
+
+    parser.addArgument("-d", "--directory")
+        .type(String.class)
+        .setDefault(".")
+        .help("path to working directory");
+
+    parser.addArgument("--gui")
+        .action(Arguments.storeTrue())
+        .type(Boolean.class)
+        .help("Open the graphic user interface");
 
     return parser;
   }

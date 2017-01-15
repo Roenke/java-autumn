@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ServerStateImpl implements ServerStateEx {
   private final SharedFiles myStorage;
-  private final Map<ClientInfo, Set<Integer>> myClient2Files = new ConcurrentHashMap<>();
+  private final Map<ClientInfo, List<Integer>> myClient2Files = new ConcurrentHashMap<>();
   private final Map<ClientInfo, Timestamp> myClient2LastConnectionTime = new ConcurrentHashMap<>();
 
   public ServerStateImpl(@NotNull SharedFiles storage) {
@@ -27,7 +27,7 @@ public class ServerStateImpl implements ServerStateEx {
   }
 
   @Override
-  public void updateSharedFiles(@NotNull ClientInfo client, @NotNull Set<Integer> ids) {
+  public void updateSharedFiles(@NotNull ClientInfo client, @NotNull List<Integer> ids) {
     myClient2Files.put(client, ids);
   }
 

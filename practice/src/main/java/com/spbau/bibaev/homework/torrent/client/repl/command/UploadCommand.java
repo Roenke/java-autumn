@@ -23,8 +23,8 @@ import java.util.stream.IntStream;
 public class UploadCommand implements UserCommand {
   private final Server myServer;
 
-  public UploadCommand(@NotNull Server server) {
-    myServer = server;
+  public UploadCommand(@NotNull InetAddress serverAddress, int serverPort) {
+    myServer = new ServerImpl(serverAddress, serverPort);
   }
 
   @Override

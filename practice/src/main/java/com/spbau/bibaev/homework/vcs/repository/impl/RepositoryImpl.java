@@ -42,17 +42,18 @@ public class RepositoryImpl implements Repository, Serializable {
     myWorkingDirectory = workingDirectory;
   }
 
+  @Nullable
   private static RepositoryImpl readRepository(@NotNull Path repositoryFile, @NotNull Path repositoryRoot)
       throws IOException {
-    ObjectInputStream in = new ObjectInputStream(Files.newInputStream(repositoryFile));
-
     final RepositoryImpl repository;
-    try {
-      repository = (RepositoryImpl) in.readObject();
-    } catch (ClassNotFoundException e) {
-      throw new IOException("Cannot restore the repository state");
+    try (final ObjectInputStream in = new ObjectInputStream(Files.newInputStream(repositoryFile))) {
+      try {
+        repository = (RepositoryImpl) in.readObject();
+      } catch (ClassNotFoundException e) {
+        throw new IOException("Cannot restore the repository state");
+      }
+      repository.myWorkingDirectory = new WorkingDirectoryImpl(repositoryRoot);
     }
-    repository.myWorkingDirectory = new WorkingDirectoryImpl(repositoryRoot);
 
     return repository;
   }
@@ -85,6 +86,7 @@ public class RepositoryImpl implements Repository, Serializable {
     return repository;
   }
 
+  @Nullable
   private static RepositoryImpl openHere(@NotNull Path directory) throws IOException {
     final Path metadataDirectory = directory.resolve(REPOSITORY_DIRECTORY_NAME);
     final Path meta = metadataDirectory.resolve(REPOSITORY_METADATA);
@@ -92,9 +94,7 @@ public class RepositoryImpl implements Repository, Serializable {
       throw new IOException("Repository meta file not found");
     }
 
-    final RepositoryImpl repository = readRepository(meta, directory);
-    repository.myWorkingDirectory = new WorkingDirectoryImpl(directory);
-    return repository;
+    return readRepository(meta, directory);
   }
 
   private void writeObject() throws IOException {
@@ -109,6 +109,8 @@ public class RepositoryImpl implements Repository, Serializable {
     out.writeObject(this);
   }
 
+  @NotNull
+  @Override
   public Path getMetaDirectory() {
     return myWorkingDirectory.getRootPath().resolve(REPOSITORY_DIRECTORY_NAME);
   }
@@ -118,11 +120,13 @@ public class RepositoryImpl implements Repository, Serializable {
     writeObject();
   }
 
+  @NotNull
   @Override
   public WorkingDirectory getWorkingDirectory() {
     return myWorkingDirectory;
   }
 
+  @NotNull
   @Override
   public List<Branch> getBranches() {
     List<Branch> result = new ArrayList<>();
@@ -137,11 +141,13 @@ public class RepositoryImpl implements Repository, Serializable {
     return result;
   }
 
+  @Nullable
   @Override
   public Commit getCommit(@NotNull String commitId) {
-    return myCommitsIndex.getOrDefault(commitId, null);
+    return myCommitsIndex.get(commitId);
   }
 
+  @NotNull
   @Override
   public String getUserName() {
     return myUserName;
@@ -152,17 +158,22 @@ public class RepositoryImpl implements Repository, Serializable {
     myUserName = userName;
   }
 
+  @NotNull
   @Override
   public Branch getCurrentBranch() {
-    return getBranchByName(myCurrentBranchName);
+    return new BranchImpl(myCurrentBranchName, myCommitsIndex.get(myBranches.get(myCurrentBranchName)));
   }
 
+  @NotNull
   @Override
   public Branch createNewBranch(@NotNull String name, @NotNull Commit commit) throws IOException {
-    assert !myBranches.containsKey(name);
+    if (myBranches.containsKey(name)) {
+      throw new IllegalStateException("Such branch already exists");
+    }
+
     String commitId = commit.getMeta().getId();
     myBranches.put(name, commitId);
-    return getBranchByName(name);
+    return new BranchImpl(name, commit);
   }
 
   @Nullable
@@ -176,6 +187,7 @@ public class RepositoryImpl implements Repository, Serializable {
     return new BranchImpl(branchName, commit);
   }
 
+  @NotNull
   @Override
   public RepositoryIndex getIndex() {
     return new RepositoryIndex() {
@@ -204,6 +216,7 @@ public class RepositoryImpl implements Repository, Serializable {
     return !myDeletedFiles.contains(relativePath) && myDeletedFiles.add(relativePath);
   }
 
+  @NotNull
   @Override
   public Commit commitChanges(@NotNull String message) throws IOException {
     Diff diff = getWorkingDirectory().getDiff(getCurrentBranch().getCommit().getRepositoryState());
@@ -258,8 +271,8 @@ public class RepositoryImpl implements Repository, Serializable {
     String commitHash = DigestUtils.sha1Hex(globalDigest.digest());
     FileUtils.moveFile(snapshot.toFile(), snapshot.getParent().resolve(commitHash).toFile());
 
-    List<FilePersistentState> newStates = newStatesImpl.stream().collect(Collectors.toList());
-    List<FilePersistentState> modifiedStates = modifiedStatesImpl.stream().collect(Collectors.toList());
+    List<FilePersistentState> newStates = new ArrayList<>(newStatesImpl);
+    List<FilePersistentState> modifiedStates = new ArrayList<>(modifiedStatesImpl);
 
     CommitImpl commit = new CommitImpl(Collections.singletonList(current), newStates, modifiedStates, removedFiles,
         new CommitMetaImpl(commitHash, message, myUserName, now), this);
@@ -296,6 +309,7 @@ public class RepositoryImpl implements Repository, Serializable {
     return mergeCommit;
   }
 
+  @NotNull
   @Override
   public Commit checkout(@NotNull Branch branch) throws IOException {
     myCurrentBranchName = branch.getName();
@@ -313,6 +327,7 @@ public class RepositoryImpl implements Repository, Serializable {
     return branch.getCommit();
   }
 
+  @NotNull
   @Override
   public Commit checkout(@NotNull Commit commit) throws IOException {
     String branchName = getCommitBranchName(commit.getMeta().getId());

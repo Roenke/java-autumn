@@ -1,7 +1,10 @@
 package com.spbau.bibaev.homework.vcs.repository.impl;
 
+import com.spbau.bibaev.homework.vcs.repository.api.Commit;
 import com.spbau.bibaev.homework.vcs.repository.api.FilePersistentState;
+import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,9 +18,9 @@ public class FileStateImpl implements FilePersistentState, Serializable {
   private final int mySnapshotOffset;
   private final int mySnapshotLength;
   private final String myHash;
-  private CommitImpl myCommit;
+  private Commit myCommit;
 
-  public FileStateImpl(String relativePath, CommitImpl commit, String hash, int off, int len) {
+  FileStateImpl(@NotNull String relativePath, @Nullable Commit commit, @NotNull String hash, int off, int len) {
     myRelativePath = relativePath;
     myCommit = commit;
     mySnapshotOffset = off;
@@ -37,12 +40,13 @@ public class FileStateImpl implements FilePersistentState, Serializable {
   @Override
   public void restore(@NotNull Path directory) throws IOException {
     final Path snapshotFile = myCommit.getSnapshotFile();
-    InputStream is = Files.newInputStream(snapshotFile);
-    Path fileLocation = directory.resolve(myRelativePath);
-    Files.createDirectories(fileLocation.getParent());
-    Files.createFile(fileLocation);
-    is.skip(mySnapshotOffset);
-    writeToFile(is, fileLocation, mySnapshotLength);
+    try (final InputStream is = Files.newInputStream(snapshotFile)) {
+      final Path fileLocation = directory.resolve(myRelativePath);
+      Files.createDirectories(fileLocation.getParent());
+      Files.createFile(fileLocation);
+      IOUtils.skip(is, mySnapshotOffset);
+      writeToFile(is, fileLocation, mySnapshotLength);
+    }
   }
 
   private static void writeToFile(@NotNull InputStream in, @NotNull Path path, int len) throws IOException {

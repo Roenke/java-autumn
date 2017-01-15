@@ -22,12 +22,12 @@ public class RmCommandTest extends RepositoryTestCase {
     assertEquals(CommandResult.SUCCESSFUL, createCommand("rm").perform(Collections.singletonList(MAKEFILE)));
     final Repository repository = openRepository();
     assertFalse(repository.getWorkingDirectory().getAllFiles().stream()
-        .filter(x -> x.getFileName().toString().equals(MAKEFILE)).findFirst().isPresent());
+        .anyMatch(x -> x.getFileName().toString().equals(MAKEFILE)));
   }
 
   @Test
   public void addFileToDeleteIndex() throws IOException {
-    assertEquals(CommandResult.SUCCESSFUL ,createCommand("add").perform(Collections.singletonList(MAKEFILE)));
+    assertEquals(CommandResult.SUCCESSFUL, createCommand("add").perform(Collections.singletonList(MAKEFILE)));
     createCommand("commit").perform(Collections.singletonList("message"));
     createCommand("rm").perform(Collections.singletonList(MAKEFILE));
 

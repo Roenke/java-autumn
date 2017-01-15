@@ -34,14 +34,13 @@ public class ConsoleColoredPrinter {
     System.out.println(String.format("%s%s%s", color.color(), text, ANSI_RESET));
   }
 
-  public static void printListOfFiles(@NotNull String groupName, @NotNull Color color,
-                                      @NotNull Collection<String> paths) {
-    if (paths.isEmpty()) {
+  public static void print(@NotNull String groupName, @NotNull Color color, @NotNull Collection<String> strings) {
+    if (strings.isEmpty()) {
       return;
     }
 
     ConsoleColoredPrinter.println(String.format("%s:", groupName));
-    for (String path : paths) {
+    for (String path : strings) {
       ConsoleColoredPrinter.println(String.format("\t\t%s", path), color);
     }
   }

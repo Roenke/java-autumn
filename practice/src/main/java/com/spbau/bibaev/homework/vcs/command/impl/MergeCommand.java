@@ -35,6 +35,7 @@ public class MergeCommand extends RepositoryCommand {
       }
     } catch (MergeException me) {
       ConsoleColoredPrinter.println("Merge failed", ConsoleColoredPrinter.Color.RED);
+      return CommandResult.FAILED;
     }
 
     return CommandResult.SUCCESSFUL;

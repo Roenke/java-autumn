@@ -1,27 +1,23 @@
 package com.spbau.bibaev.homework.vcs.repository.impl;
 
-import com.spbau.bibaev.homework.vcs.repository.api.Commit;
-import com.spbau.bibaev.homework.vcs.repository.api.CommitMeta;
-import com.spbau.bibaev.homework.vcs.repository.api.FilePersistentState;
-import com.spbau.bibaev.homework.vcs.repository.api.RepositoryState;
+import com.spbau.bibaev.homework.vcs.repository.api.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CommitImpl implements Commit {
-  private final RepositoryImpl myRepository;
+  private final Repository myRepository;
   private final List<Commit> myParents;
   private final List<FilePersistentState> myAddedFiles;
   private final List<FilePersistentState> myModifiedFiles;
   private final List<String> myDeletedFiles;
   private final CommitMeta myMeta;
 
-  public CommitImpl(@NotNull List<Commit> parents, @NotNull List<FilePersistentState> added,
-                    @NotNull List<FilePersistentState> modified, @NotNull List<String> deleted,
-                    @NotNull CommitMeta meta, @NotNull RepositoryImpl repository) {
+  CommitImpl(@NotNull List<Commit> parents, @NotNull List<FilePersistentState> added,
+             @NotNull List<FilePersistentState> modified, @NotNull List<String> deleted,
+             @NotNull CommitMeta meta, @NotNull Repository repository) {
     myParents = parents;
     myAddedFiles = added;
     myModifiedFiles = modified;
@@ -30,10 +26,13 @@ public class CommitImpl implements Commit {
     myRepository = repository;
   }
 
+  @NotNull
+  @Override
   public Path getSnapshotFile() {
     return myRepository.getMetaDirectory().resolve(myMeta.getId());
   }
 
+  @NotNull
   @Override
   public List<Commit> getParents() {
     return Collections.unmodifiableList(myParents);
@@ -49,44 +48,48 @@ public class CommitImpl implements Commit {
     return myParents.get(0);
   }
 
+  @NotNull
   @Override
   public CommitMeta getMeta() {
     return myMeta;
   }
 
+  @NotNull
   @Override
   public List<FilePersistentState> getAddedFiles() {
     return Collections.unmodifiableList(myAddedFiles);
   }
 
+  @NotNull
   @Override
   public List<FilePersistentState> getModifiedFiles() {
     return Collections.unmodifiableList(myModifiedFiles);
   }
 
+  @NotNull
   @Override
   public List<String> getDeletedFiles() {
     return Collections.unmodifiableList(myDeletedFiles);
   }
 
+  @NotNull
   @Override
   public RepositoryState getRepositoryState() {
-    LinkedList<Commit> commits = new LinkedList<>();
+    final LinkedList<Commit> commits = new LinkedList<>();
     Commit current = this;
     while (current != null) {
       commits.addFirst(current);
-      List<Commit> parents = current.getParents();
-      current = parents.isEmpty() ? null : parents.get(0);
+      current = current.getMainParent();
     }
 
-    Map<String, FilePersistentState> files = new HashMap<>();
+    final Map<String, FilePersistentState> files = new HashMap<>();
     for (Commit commit : commits) {
       commit.getAddedFiles().forEach(x -> files.put(x.getRelativePath(), x));
       commit.getModifiedFiles().forEach(x -> files.put(x.getRelativePath(), x));
       commit.getDeletedFiles().forEach(files::remove);
     }
 
-    List<FilePersistentState> states = files.values().stream().collect(Collectors.toList());
+    final List<FilePersistentState> states = new ArrayList<>(files.values());
     return () -> Collections.unmodifiableList(states);
   }
 }

@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.Color.*;
-import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.printListOfFiles;
+import static com.spbau.bibaev.homework.vcs.util.ConsoleColoredPrinter.print;
 
 public class StatusCommand extends RepositoryCommand {
   @SuppressWarnings("WeakerAccess")
@@ -32,9 +32,9 @@ public class StatusCommand extends RepositoryCommand {
     ConsoleColoredPrinter.println("Revision: " + lastCommit.getMeta().getHashcode(), ConsoleColoredPrinter.Color.GREEN);
 
     Diff diff = repository.getWorkingDirectory().getDiff(repository.getCurrentBranch().getCommit().getRepositoryState());
-    printListOfFiles("New files", GREEN, FilesUtil.pathsToStrings(diff.getNewFiles()));
-    printListOfFiles("Modified", YELLOW, FilesUtil.pathsToStrings(diff.getModifiedFiles()));
-    printListOfFiles("Deleted", RED, FilesUtil.pathsToStrings(diff.getDeletedFiles()));
+    print("New files", GREEN, FilesUtil.pathsToStrings(diff.getNewFiles()));
+    print("Modified", YELLOW, FilesUtil.pathsToStrings(diff.getModifiedFiles()));
+    print("Deleted", RED, FilesUtil.pathsToStrings(diff.getDeletedFiles()));
 
     return CommandResult.SUCCESSFUL;
   }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="WARN">
+    <appenders>
+        <Console name="Console" target="SYSTEM_ERR">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <File name="AllLogFile" fileName="logs/all.log">
+            <PatternLayout pattern="%d{yyyy-mm-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+        <File name="InfoLogFile" fileName="logs/info.log">
+            <PatternLayout pattern="%d{yyyy-mm-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+        <File name="ErrorLogFile" fileName="logs/error.log">
+            <PatternLayout pattern="%d{yyyy-mm-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+    </appenders>
+
+    <loggers>
+        <root level="all">
+            <AppenderRef  ref="AllLogFile" level="all"/>
+            <AppenderRef ref="InfoLogFile" level="info"/>
+            <AppenderRef ref="ErrorLogFile" level="error"/>
+            <AppenderRef ref="Console" level="debug"/>
+        </root>
+    </loggers>
+</configuration>

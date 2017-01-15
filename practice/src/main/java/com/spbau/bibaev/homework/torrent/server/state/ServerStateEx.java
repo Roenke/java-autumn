@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Vitaliy.Bibaev
@@ -14,7 +15,7 @@ import java.util.List;
 public interface ServerStateEx extends ServerState {
   int addNewFile(@NotNull FileInfo fileInfo);
 
-  void updateSharedFiles(@NotNull ClientInfo client, @NotNull List<Integer> ids);
+  void updateSharedFiles(@NotNull ClientInfo client, @NotNull Set<Integer> ids);
 
   void updateClientConnectionTime(@NotNull ClientInfo client, @NotNull Timestamp time);
 

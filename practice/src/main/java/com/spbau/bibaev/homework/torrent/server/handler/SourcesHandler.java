@@ -28,10 +28,7 @@ public class SourcesHandler extends ReadOnlyRequestHandler {
 
         out.writeInt(clientsWithTargetFile.size());
         for (ClientInfo client : clientsWithTargetFile) {
-          for (byte b : client.getIp()) {
-            out.writeByte(b);
-          }
-
+          out.write(client.getIp());
           out.writeShort(client.getPort());
         }
       }

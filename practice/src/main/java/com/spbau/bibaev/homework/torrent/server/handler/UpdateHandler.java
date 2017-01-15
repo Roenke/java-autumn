@@ -12,14 +12,15 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Vitaliy.Bibaev
  */
 public class UpdateHandler extends RequestHandler {
   private static final Logger LOG = LogManager.getLogger(UpdateHandler.class);
+
   @Override
   protected void handleImpl(@NotNull Socket socket, @NotNull ServerStateEx serverState) throws IOException {
     try (DataInputStream is = new DataInputStream(socket.getInputStream())) {
@@ -31,7 +32,7 @@ public class UpdateHandler extends RequestHandler {
 
       final int filesCount = is.readInt();
       LOG.debug("Files count = " + filesCount);
-      final List<Integer> ids = new ArrayList<>();
+      final Set<Integer> ids = new HashSet<>();
       for (int i = 0; i < filesCount; i++) {
         final int fileId = is.readInt();
         ids.add(fileId);

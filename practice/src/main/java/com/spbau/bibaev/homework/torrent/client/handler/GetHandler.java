@@ -11,6 +11,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ProtocolException;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,7 +41,12 @@ public class GetHandler extends AbstractRequestHandler<ClientState> {
       }
 
       try (final InputStream inputStream = Files.newInputStream(path)) {
-        IOUtils.copyLarge(inputStream, out, partNumber * Details.FILE_PART_SIZE, Details.FILE_PART_SIZE);
+        final long copied = IOUtils.copyLarge(inputStream, out, partNumber * Details.FILE_PART_SIZE,
+            Details.FILE_PART_SIZE);
+        if (copied != Details.FILE_PART_SIZE) {
+          throw new ProtocolException(String.format("Only part of file received. Received = %d, total = %d", copied,
+              Details.FILE_PART_SIZE));
+        }
       }
     }
   }

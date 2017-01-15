@@ -22,7 +22,7 @@ public class TorrentServer {
   private static final Logger LOG = LogManager.getLogger(TorrentServer.class);
   private final int myPort;
   private final ServerStateEx myState;
-  private static final Map<Byte, RequestHandler> myCommandId2HandlerMap;
+  private static final Map<Byte, RequestHandler> COMMAND_ID_TO_HANDLER_MAP;
 
   static {
     final Map<Byte, RequestHandler> handlers = new HashMap<>();
@@ -31,7 +31,7 @@ public class TorrentServer {
     handlers.put(Details.Server.SOURCES_REQUEST_ID, new SourcesHandler());
     handlers.put(Details.Server.UPDATE_REQUEST_ID, new UpdateHandler());
 
-    myCommandId2HandlerMap = Collections.unmodifiableMap(handlers);
+    COMMAND_ID_TO_HANDLER_MAP = Collections.unmodifiableMap(handlers);
   }
 
   public TorrentServer(int port, @NotNull ServerStateEx state) {
@@ -55,12 +55,12 @@ public class TorrentServer {
                InputStream is = client.getInputStream()) {
             final byte commandId = (byte) is.read();
             LOG.info("New request received id = " + commandId);
-            if (!myCommandId2HandlerMap.containsKey(commandId)) {
+            if (!COMMAND_ID_TO_HANDLER_MAP.containsKey(commandId)) {
               LOG.warn("Unknown request received. Id = " + commandId);
             } else {
               LOG.info("Request received. Id = " + commandId);
 
-              final RequestHandler requestHandler = myCommandId2HandlerMap.get(commandId);
+              final RequestHandler requestHandler = COMMAND_ID_TO_HANDLER_MAP.get(commandId);
               requestHandler.handle(client, myState);
               LOG.info("Request handled. Id = " + commandId);
             }

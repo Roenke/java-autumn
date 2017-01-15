@@ -3,6 +3,7 @@ package com.spbau.bibaev.homework.torrent.client.repl;
 import com.spbau.bibaev.homework.torrent.client.ExitListener;
 import com.spbau.bibaev.homework.torrent.client.api.ClientStateEx;
 import com.spbau.bibaev.homework.torrent.client.download.DownloadManager;
+import com.spbau.bibaev.homework.torrent.client.impl.ServerImpl;
 import com.spbau.bibaev.homework.torrent.client.repl.command.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,13 +33,14 @@ public class ReadEvalPrintLoop implements Runnable {
     myState = state;
     Map<String, UserCommand> commands = new HashMap<>();
 
+    final ServerImpl server = new ServerImpl(serverAddress, serverPort);
     commands.put("help", new MyHelpCommand());
     commands.put("exit", new MyExitCommand());
     commands.put("download", new DownloadCommand(downloader));
-    commands.put("list", new ListCommand(serverAddress, serverPort));
+    commands.put("list", new ListCommand(server));
     commands.put("local", new LocalCommand());
     commands.put("progress", new ProgressCommand());
-    commands.put("upload", new UploadCommand(serverAddress, serverPort));
+    commands.put("upload", new UploadCommand(server));
 
     USER_COMMANDS = Collections.unmodifiableMap(commands);
   }

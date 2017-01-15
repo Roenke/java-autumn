@@ -19,8 +19,8 @@ public class ListCommand implements UserCommand {
   private static final Logger LOG = LogManager.getLogger(ListCommand.class);
   private final Server myServer;
 
-  public ListCommand(@NotNull InetAddress serverAddress, int serverPort) {
-    myServer = new ServerImpl(serverAddress, serverPort);
+  public ListCommand(@NotNull Server server) {
+    myServer = server;
   }
 
   @Override

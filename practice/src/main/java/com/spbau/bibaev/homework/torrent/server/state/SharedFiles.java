@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.spbau.bibaev.homework.torrent.common.FileInfo;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +30,7 @@ public class SharedFiles {
     return myId2FileInfo.containsKey(id);
   }
 
-  @NotNull
+  @Nullable
   public FileInfo getInfo(int id) {
     return myId2FileInfo.get(id);
   }
@@ -38,7 +39,7 @@ public class SharedFiles {
     myListeners.add(listener);
   }
 
-  public int putNewFile(FileInfo info) {
+  public int putNewFile(@NotNull FileInfo info) {
     final int newId = myId2FileInfo.keySet().stream().max(Integer::compare).orElse(0) + 1;
     myId2FileInfo.put(newId, info);
     fireStateChanged();

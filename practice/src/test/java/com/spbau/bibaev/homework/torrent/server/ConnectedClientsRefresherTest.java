@@ -11,9 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -50,8 +48,8 @@ public class ConnectedClientsRefresherTest {
   public void correctReleaseClient() {
     ClientInfo client1 = new Ip4ClientInfo(1, 1, 1, 1, 1000);
     ClientInfo client2 = new Ip4ClientInfo(1, 1, 1, 2, 1000);
-    state.updateSharedFiles(client1, Arrays.asList(1, 2));
-    state.updateSharedFiles(client2, Arrays.asList(1, 4));
+    state.updateSharedFiles(client1, new HashSet<>(Arrays.asList(1, 2)));
+    state.updateSharedFiles(client2, new HashSet<>(Arrays.asList(1, 4)));
     state.updateClientConnectionTime(client1,
         new Timestamp(System.currentTimeMillis() - Details.Server.TIME_TO_RELEASE_FILES_MILLIS / 2));
     state.updateClientConnectionTime(client2,
@@ -68,7 +66,7 @@ public class ConnectedClientsRefresherTest {
   @Test
   public void setCorrectDelay() {
     ClientInfo client1 = new Ip4ClientInfo(1, 1, 1, 1, 1000);
-    state.updateSharedFiles(client1, Arrays.asList(1, 2));
+    state.updateSharedFiles(client1, new HashSet<>(Arrays.asList(1, 2)));
     state.updateClientConnectionTime(client1,
         new Timestamp(System.currentTimeMillis() - Details.Server.TIME_TO_RELEASE_FILES_MILLIS / 2));
     ScheduledExecutorService executorService = mock(ScheduledExecutorService.class);

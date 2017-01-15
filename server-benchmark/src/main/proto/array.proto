@@ -1,0 +1,8 @@
+package proto;
+
+option java_package = "com.spbau.bibaev.benchmark.common";
+option java_outer_classname = "MessageProtos";
+
+message Array {
+    repeated int32 item = 1;
+}

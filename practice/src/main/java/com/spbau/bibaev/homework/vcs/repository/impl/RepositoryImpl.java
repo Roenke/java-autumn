@@ -59,7 +59,7 @@ public class RepositoryImpl implements Repository, Serializable {
   }
 
   @Nullable
-  public static RepositoryImpl openRepository(@NotNull Path directory) throws IOException {
+  public static Repository openRepository(@NotNull Path directory) throws IOException {
     File currentDirectory = directory.toFile();
     while (currentDirectory != null && !FilesUtil.isContainsDirectory(currentDirectory, REPOSITORY_DIRECTORY_NAME)) {
       currentDirectory = currentDirectory.getParentFile();

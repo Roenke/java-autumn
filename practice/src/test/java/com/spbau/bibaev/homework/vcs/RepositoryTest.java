@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.vcs;
 
+import com.spbau.bibaev.homework.vcs.repository.api.Repository;
 import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryImpl;
 import org.junit.Test;
 
@@ -14,7 +15,7 @@ public class RepositoryTest extends RepositoryTestCase {
   @Test
   public void openFromSubdirectory() throws IOException {
     final Path srcDir = myRule.getRoot().toPath().resolve("src");
-    final RepositoryImpl repo = RepositoryImpl.openRepository(srcDir);
+    final Repository repo = RepositoryImpl.openRepository(srcDir);
     assertNotNull(repo);
     assertEquals(repo.getWorkingDirectory().getRootPath(), myRule.getRoot().toPath());
   }

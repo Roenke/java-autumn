@@ -1,5 +1,6 @@
 package com.spbau.bibaev.homework.vcs.serialization;
 
+import com.spbau.bibaev.homework.vcs.repository.api.Repository;
 import com.spbau.bibaev.homework.vcs.repository.impl.RepositoryImpl;
 import org.junit.Rule;
 import org.junit.Test;
@@ -9,7 +10,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class RepositorySerialization {
   @Rule
@@ -32,7 +35,8 @@ public class RepositorySerialization {
 
   @Test
   public void check() throws IOException, ClassNotFoundException {
-    RepositoryImpl repository = RepositoryImpl.openRepository(myRule.getRoot().toPath());
+    Repository repository = RepositoryImpl.openRepository(myRule.getRoot().toPath());
+    assertNotNull(repository);
     assertEquals(myRule.getRoot().toPath(), repository.getMetaDirectory().getParent());
     assertEquals(RepositoryImpl.REPOSITORY_DIRECTORY_NAME, repository.getMetaDirectory().getFileName().toString());
     assertEquals(myRule.getRoot().toPath(), repository.getWorkingDirectory().getRootPath());

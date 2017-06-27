@@ -8,16 +8,16 @@
 выбирался лучший (т.е. для установленных значений `M, N, X, Delta` делали 5 последовательных запусков). В результате 
 полученные цифры оказались воспроизводимы.
 
-##N - array size
+## N - array size
 
 Изменяемая величина: `N` - размер массива. Пределы: `1-12001` шаг `500`
 
 Значения остальных параметров:
 `M = 30, X = 3, Delta = 0`
 
-![n-lifetime](https://raw.githubusercontent.com/Roenke/java-autumn/bench/server-benchmark/img/array-size/n-lifetime.png)
-![n-server-client](https://raw.githubusercontent.com/Roenke/java-autumn/bench/server-benchmark/img/array-size/n-server-per-client.png)
-![n-server-request](https://raw.githubusercontent.com/Roenke/java-autumn/bench/server-benchmark/img/array-size/n-server-per-request.png)
+![n-lifetime](https://raw.githubusercontent.com/Roenke/java-autumn/master/server-benchmark/img/array-size/n-lifetime.png)
+![n-server-client](https://raw.githubusercontent.com/Roenke/java-autumn/master/server-benchmark/img/array-size/n-server-per-client.png)
+![n-server-request](https://raw.githubusercontent.com/Roenke/java-autumn/master/server-benchmark/img/array-size/n-server-per-request.png)
 
 
 ## M - clients count
@@ -26,9 +26,9 @@
 Значения остальных параметров:
 `N = 300, X = 2, Delta = 0`
  
- ![m-lifetime](https://raw.githubusercontent.com/Roenke/java-autumn/bench/server-benchmark/img/client-count/m-lifetime.png)
- ![m-server-client](https://raw.githubusercontent.com/Roenke/java-autumn/bench/server-benchmark/img/client-count/m-server-per-client.png)
- ![m-server-request](https://raw.githubusercontent.com/Roenke/java-autumn/bench/server-benchmark/img/client-count/m-server-per-request.png)
+ ![m-lifetime](https://raw.githubusercontent.com/Roenke/java-autumn/master/server-benchmark/img/client-count/m-lifetime.png)
+ ![m-server-client](https://raw.githubusercontent.com/Roenke/java-autumn/master/server-benchmark/img/client-count/m-server-per-client.png)
+ ![m-server-request](https://raw.githubusercontent.com/Roenke/java-autumn/master/server-benchmark/img/client-count/m-server-per-request.png)
 
  
 ## Delta - client delay
@@ -37,6 +37,6 @@
 Значения остальных параметров:
 `M = 1000, N = 1, X = 10`
 
-![delta-lifetime](https://raw.githubusercontent.com/Roenke/java-autumn/bench/server-benchmark/img/client-delay/delta-lifetime.png)
-![delta-server-client](https://raw.githubusercontent.com/Roenke/java-autumn/bench/server-benchmark/img/client-delay/delta-server-per-client.png)
-![delta-server-request](https://raw.githubusercontent.com/Roenke/java-autumn/bench/server-benchmark/img/client-delay/delta-server-per-request.png)
+![delta-lifetime](https://raw.githubusercontent.com/Roenke/java-autumn/master/server-benchmark/img/client-delay/delta-lifetime.png)
+![delta-server-client](https://raw.githubusercontent.com/Roenke/java-autumn/master/server-benchmark/img/client-delay/delta-server-per-client.png)
+![delta-server-request](https://raw.githubusercontent.com/Roenke/java-autumn/master/server-benchmark/img/client-delay/delta-server-per-request.png)
